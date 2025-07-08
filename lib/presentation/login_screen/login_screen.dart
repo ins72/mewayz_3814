@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/biometric_auth_widget.dart';
 import './widgets/login_form_widget.dart';
 import './widgets/two_factor_modal_widget.dart';
@@ -177,49 +176,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleForgotPassword() {
-    // Show forgot password dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Reset Password',
-          style: AppTheme.darkTheme.textTheme.titleLarge,
-        ),
-        content: Text(
-          'Password reset functionality will be implemented in the next update.',
-          style: AppTheme.darkTheme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    Navigator.pushNamed(context, AppRoutes.forgotPasswordScreen);
   }
 
   void _handleSignUp() {
-    // Navigate to sign up screen (placeholder)
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Sign Up',
-          style: AppTheme.darkTheme.textTheme.titleLarge,
-        ),
-        content: Text(
-          'Sign up functionality will be implemented in the next update.',
-          style: AppTheme.darkTheme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    Navigator.pushNamed(context, AppRoutes.registerScreen);
   }
 
   @override

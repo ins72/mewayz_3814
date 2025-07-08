@@ -145,12 +145,12 @@ class _SplashScreenState extends State<SplashScreen>
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         if (isAuthenticated) {
-          Navigator.pushReplacementNamed(context, '/workspace-dashboard');
+          Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
         } else if (isFirstTime) {
-          // For now, navigate to login as onboarding is not implemented
-          Navigator.pushReplacementNamed(context, '/login-screen');
+          Navigator.pushReplacementNamed(
+              context, AppRoutes.userOnboardingScreen);
         } else {
-          Navigator.pushReplacementNamed(context, '/login-screen');
+          Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
         }
       }
     });

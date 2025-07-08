@@ -66,42 +66,42 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       "title": "Instagram Search",
       "subtitle": "Find leads",
       "icon": "search",
-      "route": "/instagram-lead-search",
+      "route": AppRoutes.instagramLeadSearch,
       "color": AppTheme.accent,
     },
     {
       "title": "Post Scheduler",
       "subtitle": "Schedule posts",
       "icon": "schedule",
-      "route": "/social-media-scheduler",
+      "route": AppRoutes.socialMediaScheduler,
       "color": AppTheme.success,
     },
     {
       "title": "Link in Bio",
       "subtitle": "Build pages",
       "icon": "link",
-      "route": "/link-in-bio-builder",
+      "route": AppRoutes.linkInBioBuilder,
       "color": AppTheme.warning,
     },
     {
       "title": "Course Creator",
       "subtitle": "Create courses",
       "icon": "play_circle_filled",
-      "route": "/course-creator",
+      "route": AppRoutes.courseCreator,
       "color": AppTheme.accent,
     },
     {
       "title": "Marketplace",
       "subtitle": "Manage store",
       "icon": "store",
-      "route": "/marketplace-store",
+      "route": AppRoutes.marketplaceStore,
       "color": AppTheme.success,
     },
     {
       "title": "CRM",
       "subtitle": "Manage contacts",
       "icon": "contacts",
-      "route": "/crm-contact-management",
+      "route": AppRoutes.crmContactManagement,
       "color": AppTheme.warning,
     },
   ];
@@ -270,13 +270,13 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildQuickCreateItem(
-                    "Post", "edit", "/social-media-scheduler"),
+                    "Post", "edit", AppRoutes.socialMediaScheduler),
                 _buildQuickCreateItem(
-                    "Product", "add_shopping_cart", "/marketplace-store"),
+                    "Product", "add_shopping_cart", AppRoutes.marketplaceStore),
                 _buildQuickCreateItem(
-                    "Course", "play_circle_filled", "/course-creator"),
+                    "Course", "play_circle_filled", AppRoutes.courseCreator),
                 _buildQuickCreateItem(
-                    "Contact", "person_add", "/crm-contact-management"),
+                    "Contact", "person_add", AppRoutes.crmContactManagement),
               ],
             ),
             SizedBox(height: 2.h),
@@ -350,7 +350,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         actions: [
           IconButton(
             onPressed: () =>
-                Navigator.pushNamed(context, '/analytics-dashboard'),
+                Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
             icon: CustomIconWidget(
               iconName: 'analytics',
               color: AppTheme.primaryText,
@@ -358,7 +358,8 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.settingsScreen),
             icon: CustomIconWidget(
               iconName: 'notifications',
               color: AppTheme.primaryText,
@@ -549,7 +550,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/analytics-dashboard');
+              Navigator.pushNamed(context, AppRoutes.analyticsDashboard);
             },
             child: const Text("View Details"),
           ),

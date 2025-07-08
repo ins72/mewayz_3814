@@ -323,7 +323,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
               label: 'View Analytics',
               textColor: AppTheme.primaryAction,
               onPressed: () {
-                Navigator.pushNamed(context, '/analytics-dashboard');
+                Navigator.pushNamed(context, AppRoutes.analyticsDashboard);
               },
             ),
           ),
