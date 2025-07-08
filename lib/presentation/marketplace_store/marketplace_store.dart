@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import './widgets/add_product_dialog_widget.dart';
@@ -36,112 +35,86 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
   };
 
   final List<Map<String, dynamic>> products = [
-    {
-      "id": 1,
-      "name": "Wireless Bluetooth Headphones",
-      "price": "\$89.99",
-      "image":
-          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-      "stock": 25,
-      "status": "active",
-      "isBestseller": true,
-      "category": "Electronics"
-    },
-    {
-      "id": 2,
-      "name": "Smart Watch Pro",
-      "price": "\$299.99",
-      "image":
-          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-      "stock": 5,
-      "status": "low_stock",
-      "isBestseller": false,
-      "category": "Wearables"
-    },
-    {
-      "id": 3,
-      "name": "USB-C Hub Adapter",
-      "price": "\$49.99",
-      "image":
-          "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=400&fit=crop",
-      "stock": 0,
-      "status": "out_of_stock",
-      "isBestseller": false,
-      "category": "Accessories"
-    },
-    {
-      "id": 4,
-      "name": "Portable Power Bank",
-      "price": "\$39.99",
-      "image":
-          "https://images.unsplash.com/photo-1609592806596-4d8d2b0e8b8e?w=400&h=400&fit=crop",
-      "stock": 50,
-      "status": "active",
-      "isBestseller": true,
-      "category": "Accessories"
-    },
-    {
-      "id": 5,
-      "name": "Gaming Mechanical Keyboard",
-      "price": "\$129.99",
-      "image":
-          "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop",
-      "stock": 15,
-      "status": "active",
-      "isBestseller": false,
-      "category": "Gaming"
-    },
-    {
-      "id": 6,
-      "name": "4K Webcam",
-      "price": "\$159.99",
-      "image":
-          "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=400&fit=crop",
-      "stock": 8,
-      "status": "low_stock",
-      "isBestseller": false,
-      "category": "Electronics"
-    }
-  ];
+{ "id": 1,
+"name": "Wireless Bluetooth Headphones",
+"price": "\$89.99",
+"image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
+"stock": 25,
+"status": "active",
+"isBestseller": true,
+"category": "Electronics" },
+{ "id": 2,
+"name": "Smart Watch Pro",
+"price": "\$299.99",
+"image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
+"stock": 5,
+"status": "low_stock",
+"isBestseller": false,
+"category": "Wearables" },
+{ "id": 3,
+"name": "USB-C Hub Adapter",
+"price": "\$49.99",
+"image": "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=400&fit=crop",
+"stock": 0,
+"status": "out_of_stock",
+"isBestseller": false,
+"category": "Accessories" },
+{ "id": 4,
+"name": "Portable Power Bank",
+"price": "\$39.99",
+"image": "https://images.unsplash.com/photo-1609592806596-4d8d2b0e8b8e?w=400&h=400&fit=crop",
+"stock": 50,
+"status": "active",
+"isBestseller": true,
+"category": "Accessories" },
+{ "id": 5,
+"name": "Gaming Mechanical Keyboard",
+"price": "\$129.99",
+"image": "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop",
+"stock": 15,
+"status": "active",
+"isBestseller": false,
+"category": "Gaming" },
+{ "id": 6,
+"name": "4K Webcam",
+"price": "\$159.99",
+"image": "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=400&fit=crop",
+"stock": 8,
+"status": "low_stock",
+"isBestseller": false,
+"category": "Electronics" }
+];
 
   final List<Map<String, dynamic>> orders = [
-    {
-      "id": "ORD-2024-001",
-      "customerName": "John Smith",
-      "items": 3,
-      "total": "\$179.97",
-      "status": "pending",
-      "date": "2024-01-15",
-      "shippingAddress": "123 Main St, New York, NY 10001"
-    },
-    {
-      "id": "ORD-2024-002",
-      "customerName": "Sarah Johnson",
-      "items": 1,
-      "total": "\$299.99",
-      "status": "processing",
-      "date": "2024-01-14",
-      "shippingAddress": "456 Oak Ave, Los Angeles, CA 90210"
-    },
-    {
-      "id": "ORD-2024-003",
-      "customerName": "Mike Davis",
-      "items": 2,
-      "total": "\$89.98",
-      "status": "shipped",
-      "date": "2024-01-13",
-      "shippingAddress": "789 Pine St, Chicago, IL 60601"
-    },
-    {
-      "id": "ORD-2024-004",
-      "customerName": "Emily Wilson",
-      "items": 1,
-      "total": "\$129.99",
-      "status": "delivered",
-      "date": "2024-01-12",
-      "shippingAddress": "321 Elm St, Houston, TX 77001"
-    }
-  ];
+{ "id": "ORD-2024-001",
+"customerName": "John Smith",
+"items": 3,
+"total": "\$179.97",
+"status": "pending",
+"date": "2024-01-15",
+"shippingAddress": "123 Main St, New York, NY 10001" },
+{ "id": "ORD-2024-002",
+"customerName": "Sarah Johnson",
+"items": 1,
+"total": "\$299.99",
+"status": "processing",
+"date": "2024-01-14",
+"shippingAddress": "456 Oak Ave, Los Angeles, CA 90210" },
+{ "id": "ORD-2024-003",
+"customerName": "Mike Davis",
+"items": 2,
+"total": "\$89.98",
+"status": "shipped",
+"date": "2024-01-13",
+"shippingAddress": "789 Pine St, Chicago, IL 60601" },
+{ "id": "ORD-2024-004",
+"customerName": "Emily Wilson",
+"items": 1,
+"total": "\$129.99",
+"status": "delivered",
+"date": "2024-01-12",
+"shippingAddress": "321 Elm St, Houston, TX 77001" }
+];
 
   @override
   void initState() {

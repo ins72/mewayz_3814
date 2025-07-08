@@ -1,10 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/contact_form_widget.dart';
 import './widgets/contact_info_widget.dart';
 import './widgets/faq_section_widget.dart';

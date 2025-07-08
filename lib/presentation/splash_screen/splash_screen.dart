@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 
@@ -96,12 +95,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _performInitializationSteps() async {
     final List<Map<String, dynamic>> initSteps = [
-      {'status': 'Checking authentication...', 'duration': 600},
-      {'status': 'Loading workspace preferences...', 'duration': 500},
-      {'status': 'Fetching configuration...', 'duration': 700},
-      {'status': 'Preparing cached data...', 'duration': 400},
-      {'status': 'Finalizing setup...', 'duration': 300},
-    ];
+{'status': 'Checking authentication...', 'duration': 600},
+{'status': 'Loading workspace preferences...', 'duration': 500},
+{'status': 'Fetching configuration...', 'duration': 700},
+{'status': 'Preparing cached data...', 'duration': 400},
+{'status': 'Finalizing setup...', 'duration': 300},
+];
 
     for (final step in initSteps) {
       if (mounted) {

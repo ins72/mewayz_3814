@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 
@@ -23,29 +22,25 @@ class _BulkUploadModalState extends State<BulkUploadModal> {
 
   // Mock CSV data for preview
   final List<Map<String, dynamic>> _previewData = [
-    {
-      'platform': 'instagram',
-      'content': 'Check out our new product launch! 🚀 #newproduct #launch',
-      'date': '2024-01-20',
-      'time': '09:00',
-      'imageUrl':
-          'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400',
-    },
-    {
-      'platform': 'facebook',
-      'content': 'Join us for our webinar tomorrow at 2 PM EST!',
-      'date': '2024-01-21',
-      'time': '14:00',
-      'imageUrl': null,
-    },
-    {
-      'platform': 'twitter',
-      'content': 'Exciting news coming soon! Stay tuned 👀 #comingsoon',
-      'date': '2024-01-22',
-      'time': '11:30',
-      'imageUrl': null,
-    },
-  ];
+{ 'platform': 'instagram',
+'content': 'Check out our new product launch! 🚀 #newproduct #launch',
+'date': '2024-01-20',
+'time': '09:00',
+'imageUrl': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400',
+},
+{ 'platform': 'facebook',
+'content': 'Join us for our webinar tomorrow at 2 PM EST!',
+'date': '2024-01-21',
+'time': '14:00',
+'imageUrl': null,
+},
+{ 'platform': 'twitter',
+'content': 'Exciting news coming soon! Stay tuned 👀 #comingsoon',
+'date': '2024-01-22',
+'time': '11:30',
+'imageUrl': null,
+},
+];
 
   @override
   Widget build(BuildContext context) {

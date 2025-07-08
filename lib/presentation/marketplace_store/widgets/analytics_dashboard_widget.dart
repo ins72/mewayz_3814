@@ -1,6 +1,4 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 
@@ -25,14 +23,14 @@ class _AnalyticsDashboardWidgetState extends State<AnalyticsDashboardWidget> {
   String selectedPeriod = '7d';
 
   final List<Map<String, dynamic>> salesData = [
-    {"day": "Mon", "sales": 1200},
-    {"day": "Tue", "sales": 1800},
-    {"day": "Wed", "sales": 1500},
-    {"day": "Thu", "sales": 2200},
-    {"day": "Fri", "sales": 2800},
-    {"day": "Sat", "sales": 3200},
-    {"day": "Sun", "sales": 2600},
-  ];
+{"day": "Mon", "sales": 1200},
+{"day": "Tue", "sales": 1800},
+{"day": "Wed", "sales": 1500},
+{"day": "Thu", "sales": 2200},
+{"day": "Fri", "sales": 2800},
+{"day": "Sat", "sales": 3200},
+{"day": "Sun", "sales": 2600},
+];
 
   @override
   Widget build(BuildContext context) {

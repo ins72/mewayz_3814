@@ -1,10 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 import './file_attachment_widget.dart';
 
 class ContactFormWidget extends StatelessWidget {

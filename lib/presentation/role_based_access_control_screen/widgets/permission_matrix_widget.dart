@@ -1,7 +1,6 @@
-import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import '../../../core/app_export.dart';
 
 class PermissionMatrixWidget extends StatelessWidget {
   final List<Map<String, dynamic>> roles;
@@ -14,77 +13,67 @@ class PermissionMatrixWidget extends StatelessWidget {
   }) : super(key: key);
 
   static final List<Map<String, dynamic>> _permissions = [
-    {
-      'key': 'dashboard_view',
-      'name': 'Dashboard View',
-      'description': 'Access to main dashboard and overview',
-      'category': 'Core',
-      'icon': Icons.dashboard,
-    },
-    {
-      'key': 'social_media_management',
-      'name': 'Social Media Management',
-      'description': 'Create, schedule, and manage social media posts',
-      'category': 'Content',
-      'icon': Icons.share,
-    },
-    {
-      'key': 'crm_access',
-      'name': 'CRM Access',
-      'description': 'Access to customer relationship management',
-      'category': 'Core',
-      'icon': Icons.contacts,
-    },
-    {
-      'key': 'course_creation',
-      'name': 'Course Creation',
-      'description': 'Create and manage online courses',
-      'category': 'Content',
-      'icon': Icons.school,
-    },
-    {
-      'key': 'marketplace_management',
-      'name': 'Marketplace Management',
-      'description': 'Manage marketplace products and orders',
-      'category': 'Commerce',
-      'icon': Icons.store,
-    },
-    {
-      'key': 'analytics_viewing',
-      'name': 'Analytics Viewing',
-      'description': 'View analytics and reports',
-      'category': 'Analytics',
-      'icon': Icons.analytics,
-    },
-    {
-      'key': 'billing_access',
-      'name': 'Billing Access',
-      'description': 'Access to billing and payment settings',
-      'category': 'Financial',
-      'icon': Icons.payment,
-    },
-    {
-      'key': 'user_management',
-      'name': 'User Management',
-      'description': 'Manage team members and permissions',
-      'category': 'Administration',
-      'icon': Icons.people,
-    },
-    {
-      'key': 'workspace_settings',
-      'name': 'Workspace Settings',
-      'description': 'Configure workspace settings and preferences',
-      'category': 'Administration',
-      'icon': Icons.settings,
-    },
-    {
-      'key': 'delete_workspace',
-      'name': 'Delete Workspace',
-      'description': 'Permanently delete workspace (critical)',
-      'category': 'Administration',
-      'icon': Icons.delete_forever,
-    },
-  ];
+{ 'key': 'dashboard_view',
+'name': 'Dashboard View',
+'description': 'Access to main dashboard and overview',
+'category': 'Core',
+'icon': Icons.dashboard,
+},
+{ 'key': 'social_media_management',
+'name': 'Social Media Management',
+'description': 'Create, schedule, and manage social media posts',
+'category': 'Content',
+'icon': Icons.share,
+},
+{ 'key': 'crm_access',
+'name': 'CRM Access',
+'description': 'Access to customer relationship management',
+'category': 'Core',
+'icon': Icons.contacts,
+},
+{ 'key': 'course_creation',
+'name': 'Course Creation',
+'description': 'Create and manage online courses',
+'category': 'Content',
+'icon': Icons.school,
+},
+{ 'key': 'marketplace_management',
+'name': 'Marketplace Management',
+'description': 'Manage marketplace products and orders',
+'category': 'Commerce',
+'icon': Icons.store,
+},
+{ 'key': 'analytics_viewing',
+'name': 'Analytics Viewing',
+'description': 'View analytics and reports',
+'category': 'Analytics',
+'icon': Icons.analytics,
+},
+{ 'key': 'billing_access',
+'name': 'Billing Access',
+'description': 'Access to billing and payment settings',
+'category': 'Financial',
+'icon': Icons.payment,
+},
+{ 'key': 'user_management',
+'name': 'User Management',
+'description': 'Manage team members and permissions',
+'category': 'Administration',
+'icon': Icons.people,
+},
+{ 'key': 'workspace_settings',
+'name': 'Workspace Settings',
+'description': 'Configure workspace settings and preferences',
+'category': 'Administration',
+'icon': Icons.settings,
+},
+{ 'key': 'delete_workspace',
+'name': 'Delete Workspace',
+'description': 'Permanently delete workspace (critical)',
+'category': 'Administration',
+'icon': Icons.delete_forever,
+},
+];
 
   @override
   Widget build(BuildContext context) {

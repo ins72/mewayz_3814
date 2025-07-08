@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/quick_actions_widget.dart';
 import './widgets/settings_category_widget.dart';
 import './widgets/settings_search_widget.dart';
@@ -20,91 +18,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final List<String> _expandedCategories = [];
 
   final List<Map<String, dynamic>> _settingsCategories = [
-    {
-      'title': 'Account Settings',
-      'description': 'Manage your profile, preferences, and account details',
-      'icon': Icons.account_circle_outlined,
-      'subcategories': [
-        'Profile Management',
-        'Email Preferences',
-        'Language Settings',
-        'Time Zone',
-        'Avatar & Display Name'
-      ]
-    },
-    {
-      'title': 'Workspace Settings',
-      'description': 'Configure workspace branding, domains, and permissions',
-      'icon': Icons.business_outlined,
-      'subcategories': [
-        'Workspace Branding',
-        'Custom Domain',
-        'Team Permissions',
-        'Workspace Limits',
-        'Data Export'
-      ]
-    },
-    {
-      'title': 'Notification Preferences',
-      'description': 'Control email, push, and in-app notifications',
-      'icon': Icons.notifications_outlined,
-      'subcategories': [
-        'Email Notifications',
-        'Push Notifications',
-        'In-App Alerts',
-        'Notification Frequency',
-        'Do Not Disturb'
-      ]
-    },
-    {
-      'title': 'Security & Privacy',
-      'description': 'Manage passwords, authentication, and privacy settings',
-      'icon': Icons.security_outlined,
-      'subcategories': [
-        'Password Management',
-        'Two-Factor Authentication',
-        'Active Sessions',
-        'Privacy Settings',
-        'Data Protection'
-      ]
-    },
-    {
-      'title': 'Billing & Subscriptions',
-      'description': 'View current plans, usage metrics, and payment methods',
-      'icon': Icons.payment_outlined,
-      'subcategories': [
-        'Current Subscription',
-        'Usage Metrics',
-        'Payment Methods',
-        'Billing History',
-        'Upgrade Plans'
-      ]
-    },
-    {
-      'title': 'Integrations',
-      'description': 'Manage connected services and third-party applications',
-      'icon': Icons.extension_outlined,
-      'subcategories': [
-        'Connected Apps',
-        'API Access',
-        'Webhooks',
-        'Social Media Accounts',
-        'Third-Party Services'
-      ]
-    },
-    {
-      'title': 'Support',
-      'description': 'Access help documentation, contact support, and feedback',
-      'icon': Icons.help_outline,
-      'subcategories': [
-        'Help Documentation',
-        'Contact Support',
-        'Submit Feedback',
-        'Feature Requests',
-        'System Status'
-      ]
-    }
-  ];
+{ 'title': 'Account Settings',
+'description': 'Manage your profile, preferences, and account details',
+'icon': Icons.account_circle_outlined,
+'subcategories': [ 'Profile Management',
+'Email Preferences',
+'Language Settings',
+'Time Zone',
+'Avatar & Display Name' ] },
+{ 'title': 'Workspace Settings',
+'description': 'Configure workspace branding, domains, and permissions',
+'icon': Icons.business_outlined,
+'subcategories': [ 'Workspace Branding',
+'Custom Domain',
+'Team Permissions',
+'Workspace Limits',
+'Data Export' ] },
+{ 'title': 'Notification Preferences',
+'description': 'Control email, push, and in-app notifications',
+'icon': Icons.notifications_outlined,
+'subcategories': [ 'Email Notifications',
+'Push Notifications',
+'In-App Alerts',
+'Notification Frequency',
+'Do Not Disturb' ] },
+{ 'title': 'Security & Privacy',
+'description': 'Manage passwords, authentication, and privacy settings',
+'icon': Icons.security_outlined,
+'subcategories': [ 'Password Management',
+'Two-Factor Authentication',
+'Active Sessions',
+'Privacy Settings',
+'Data Protection' ] },
+{ 'title': 'Billing & Subscriptions',
+'description': 'View current plans, usage metrics, and payment methods',
+'icon': Icons.payment_outlined,
+'subcategories': [ 'Current Subscription',
+'Usage Metrics',
+'Payment Methods',
+'Billing History',
+'Upgrade Plans' ] },
+{ 'title': 'Integrations',
+'description': 'Manage connected services and third-party applications',
+'icon': Icons.extension_outlined,
+'subcategories': [ 'Connected Apps',
+'API Access',
+'Webhooks',
+'Social Media Accounts',
+'Third-Party Services' ] },
+{ 'title': 'Support',
+'description': 'Access help documentation, contact support, and feedback',
+'icon': Icons.help_outline,
+'subcategories': [ 'Help Documentation',
+'Contact Support',
+'Submit Feedback',
+'Feature Requests',
+'System Status' ] }
+];
 
   List<Map<String, dynamic>> get _filteredCategories {
     if (_searchQuery.isEmpty) return _settingsCategories;

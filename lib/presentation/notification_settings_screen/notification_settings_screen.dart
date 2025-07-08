@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/notification_category_widget.dart';
 import './widgets/notification_preview_widget.dart';
 import './widgets/quiet_hours_widget.dart';

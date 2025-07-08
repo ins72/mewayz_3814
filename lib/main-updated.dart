@@ -8,7 +8,6 @@ import 'dart:html' as html;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
 
 import '../core/app_export.dart';
 import '../widgets/custom_error_widget.dart';
@@ -21,12 +20,16 @@ void main() async {
   };
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize core services
+  await _initializeServices();
+
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return CustomErrorWidget(
       errorDetails: details,
     );
   };
+
   // 🚨 CRITICAL: Device orientation lock - DO NOT REMOVE
   Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -35,13 +38,43 @@ void main() async {
   });
 }
 
+Future<void> _initializeServices() async {
+  try {
+    // Initialize storage service
+    final storageService = StorageService();
+    await storageService.initialize();
+    
+    // Initialize API client
+    final apiClient = ApiClient();
+    apiClient.initialize();
+    
+    // Initialize analytics service
+    final analyticsService = AnalyticsService();
+    await analyticsService.initialize();
+    
+    // Initialize notification service
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    
+    // Initialize security service
+    final securityService = SecurityService();
+    await securityService.initialize();
+    
+    if (ProductionConfig.enableLogging) {
+      debugPrint('All services initialized successfully');
+    }
+  } catch (e) {
+    ErrorHandler.handleError('Failed to initialize services: $e');
+  }
+}
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Sizer(builder: (context, orientation, screenType) {
       return MaterialApp(
         navigatorObservers: [routeObserver],
-        title: 'mewayz',
+        title: ProductionConfig.appName,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.light,
@@ -59,14 +92,13 @@ class MyApp extends StatelessWidget {
         );
         },
         // 🚨 END CRITICAL SECTION
-        debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: ProductionConfig.isDebug,
         routes: AppRoutes.routes,
         initialRoute: AppRoutes.initial,
       );
     });
   }
-}
-final ValueNotifier<String> currentPageNotifier = ValueNotifier<String>('');
+}final ValueNotifier<String> currentPageNotifier = ValueNotifier<String>('');
 
 class MyRouteObserver extends RouteObserver<PageRoute<dynamic>> {
           void _updateCurrentPage(Route<dynamic>? route) {

@@ -11,7 +11,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>mewayz</string>
+	<string>Mewayz</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,8 +29,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -43,10 +41,113 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- App Transport Security -->
 	<key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true />
-    </dict>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>mewayz.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	
+	<!-- Permission descriptions -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to camera to take photos for your posts and profile.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to select images for your posts and profile.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to microphone to record audio for your posts.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location to provide location-based features.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to contacts to help you connect with your network.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>This app needs access to calendar to schedule your posts and events.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>This app needs access to reminders to help you manage your tasks.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app uses Face ID for secure authentication.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>This app needs access to Bluetooth for device connectivity features.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>This app needs access to motion sensors for enhanced user experience.</string>
+	
+	<!-- Background modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-fetch</string>
+		<string>background-processing</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- URL schemes for deep linking -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mewayz.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mewayz</string>
+				<string>https</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Appearance -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	<key>UIStatusBarHidden</key>
+	<false/>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	
+	<!-- Keyboard shortcuts -->
+	<key>UIKeyboardShortcut</key>
+	<dict>
+		<key>UIKeyboardShortcutInput</key>
+		<string>n</string>
+		<key>UIKeyboardShortcutModifierFlags</key>
+		<integer>1048576</integer>
+		<key>UIKeyboardShortcutTitle</key>
+		<string>New Post</string>
+	</dict>
+	
+	<!-- Required device capabilities -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	
+	<!-- App icon -->
+	<key>CFBundleIconFiles</key>
+	<array>
+		<string>AppIcon</string>
+	</array>
+	
+	<!-- Launch screen -->
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	
+	<!-- Scene configuration -->
+	<key>UISceneDelegate</key>
+	<string>AppDelegate</string>
+	
+	<!-- Minimum iOS version -->
+	<key>MinimumOSVersion</key>
+	<string>11.0</string>
 </dict>
 </plist>

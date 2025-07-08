@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import './widgets/activity_item_widget.dart';
@@ -20,129 +19,114 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   bool isRefreshing = false;
 
   final List<Map<String, dynamic>> workspaces = [
-    {"id": 1, "name": "Digital Marketing Agency", "isActive": true},
-    {"id": 2, "name": "E-commerce Store", "isActive": false},
-    {"id": 3, "name": "Course Creator Hub", "isActive": false},
-    {"id": 4, "name": "Freelance Business", "isActive": false},
-  ];
+{"id": 1, "name": "Digital Marketing Agency", "isActive": true},
+{"id": 2, "name": "E-commerce Store", "isActive": false},
+{"id": 3, "name": "Course Creator Hub", "isActive": false},
+{"id": 4, "name": "Freelance Business", "isActive": false},
+];
 
   final List<Map<String, dynamic>> metricsData = [
-    {
-      "title": "Total Leads",
-      "value": "2,847",
-      "change": "+12.5%",
-      "isPositive": true,
-      "icon": "people",
-      "color": AppTheme.accent,
-    },
-    {
-      "title": "Revenue",
-      "value": "\$45,230",
-      "change": "+8.2%",
-      "isPositive": true,
-      "icon": "attach_money",
-      "color": AppTheme.success,
-    },
-    {
-      "title": "Social Followers",
-      "value": "18.5K",
-      "change": "+15.7%",
-      "isPositive": true,
-      "icon": "favorite",
-      "color": AppTheme.warning,
-    },
-    {
-      "title": "Course Enrollments",
-      "value": "1,234",
-      "change": "-2.1%",
-      "isPositive": false,
-      "icon": "school",
-      "color": AppTheme.accent,
-    },
-  ];
+{ "title": "Total Leads",
+"value": "2,847",
+"change": "+12.5%",
+"isPositive": true,
+"icon": "people",
+"color": AppTheme.accent,
+},
+{ "title": "Revenue",
+"value": "\$45,230",
+"change": "+8.2%",
+"isPositive": true,
+"icon": "attach_money",
+"color": AppTheme.success,
+},
+{ "title": "Social Followers",
+"value": "18.5K",
+"change": "+15.7%",
+"isPositive": true,
+"icon": "favorite",
+"color": AppTheme.warning,
+},
+{ "title": "Course Enrollments",
+"value": "1,234",
+"change": "-2.1%",
+"isPositive": false,
+"icon": "school",
+"color": AppTheme.accent,
+},
+];
 
   final List<Map<String, dynamic>> quickActions = [
-    {
-      "title": "Instagram Search",
-      "subtitle": "Find leads",
-      "icon": "search",
-      "route": AppRoutes.instagramLeadSearch,
-      "color": AppTheme.accent,
-    },
-    {
-      "title": "Post Scheduler",
-      "subtitle": "Schedule posts",
-      "icon": "schedule",
-      "route": AppRoutes.socialMediaScheduler,
-      "color": AppTheme.success,
-    },
-    {
-      "title": "Link in Bio",
-      "subtitle": "Build pages",
-      "icon": "link",
-      "route": AppRoutes.linkInBioBuilder,
-      "color": AppTheme.warning,
-    },
-    {
-      "title": "Course Creator",
-      "subtitle": "Create courses",
-      "icon": "play_circle_filled",
-      "route": AppRoutes.courseCreator,
-      "color": AppTheme.accent,
-    },
-    {
-      "title": "Marketplace",
-      "subtitle": "Manage store",
-      "icon": "store",
-      "route": AppRoutes.marketplaceStore,
-      "color": AppTheme.success,
-    },
-    {
-      "title": "CRM",
-      "subtitle": "Manage contacts",
-      "icon": "contacts",
-      "route": AppRoutes.crmContactManagement,
-      "color": AppTheme.warning,
-    },
-  ];
+{ "title": "Instagram Search",
+"subtitle": "Find leads",
+"icon": "search",
+"route": AppRoutes.instagramLeadSearch,
+"color": AppTheme.accent,
+},
+{ "title": "Post Scheduler",
+"subtitle": "Schedule posts",
+"icon": "schedule",
+"route": AppRoutes.socialMediaScheduler,
+"color": AppTheme.success,
+},
+{ "title": "Link in Bio",
+"subtitle": "Build pages",
+"icon": "link",
+"route": AppRoutes.linkInBioBuilder,
+"color": AppTheme.warning,
+},
+{ "title": "Course Creator",
+"subtitle": "Create courses",
+"icon": "play_circle_filled",
+"route": '/course-creator',
+"color": AppTheme.accent,
+},
+{ "title": "Marketplace",
+"subtitle": "Manage store",
+"icon": "store",
+"route": '/marketplace-store',
+"color": AppTheme.success,
+},
+{ "title": "CRM",
+"subtitle": "Manage contacts",
+"icon": "contacts",
+"route": '/crm-contact-management',
+"color": AppTheme.warning,
+},
+];
 
   final List<Map<String, dynamic>> recentActivities = [
-    {
-      "title": "New lead from Instagram campaign",
-      "subtitle": "Sarah Johnson - Digital Marketing",
-      "timestamp": "2 minutes ago",
-      "icon": "person_add",
-      "color": AppTheme.success,
-    },
-    {
-      "title": "Course enrollment completed",
-      "subtitle": "Advanced Social Media Marketing",
-      "timestamp": "15 minutes ago",
-      "icon": "school",
-      "color": AppTheme.accent,
-    },
-    {
-      "title": "Product sold on marketplace",
-      "subtitle": "Social Media Template Pack - \$29.99",
-      "timestamp": "1 hour ago",
-      "icon": "shopping_cart",
-      "color": AppTheme.warning,
-    },
-    {
-      "title": "Scheduled post published",
-      "subtitle": "Instagram - Marketing Tips #5",
-      "timestamp": "2 hours ago",
-      "icon": "publish",
-      "color": AppTheme.accent,
-    },
-    {
-      "title": "New contact added to CRM",
-      "subtitle": "Michael Rodriguez - Lead",
-      "timestamp": "3 hours ago",
-      "icon": "contact_page",
-      "color": AppTheme.success,
-    },
-  ];
+{ "title": "New lead from Instagram campaign",
+"subtitle": "Sarah Johnson - Digital Marketing",
+"timestamp": "2 minutes ago",
+"icon": "person_add",
+"color": AppTheme.success,
+},
+{ "title": "Course enrollment completed",
+"subtitle": "Advanced Social Media Marketing",
+"timestamp": "15 minutes ago",
+"icon": "school",
+"color": AppTheme.accent,
+},
+{ "title": "Product sold on marketplace",
+"subtitle": "Social Media Template Pack - \$29.99",
+"timestamp": "1 hour ago",
+"icon": "shopping_cart",
+"color": AppTheme.warning,
+},
+{ "title": "Scheduled post published",
+"subtitle": "Instagram - Marketing Tips #5",
+"timestamp": "2 hours ago",
+"icon": "publish",
+"color": AppTheme.accent,
+},
+{ "title": "New contact added to CRM",
+"subtitle": "Michael Rodriguez - Lead",
+"timestamp": "3 hours ago",
+"icon": "contact_page",
+"color": AppTheme.success,
+},
+];
 
   @override
   void initState() {
@@ -350,7 +334,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         actions: [
           IconButton(
             onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
+                Navigator.pushNamed(context, '/analytics-dashboard'),
             icon: CustomIconWidget(
               iconName: 'analytics',
               color: AppTheme.primaryText,
@@ -550,7 +534,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutes.analyticsDashboard);
+              Navigator.pushNamed(context, '/analytics-dashboard');
             },
             child: const Text("View Details"),
           ),

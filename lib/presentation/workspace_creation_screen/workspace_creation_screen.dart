@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import './widgets/progress_indicator_widget.dart';
@@ -61,42 +60,37 @@ class _WorkspaceCreationScreenState extends State<WorkspaceCreationScreen> {
   ];
 
   final List<Map<String, dynamic>> _templates = [
-    {
-      'id': 'blank',
-      'name': 'Blank Workspace',
-      'description': 'Start with a clean workspace',
-      'icon': 'add_circle_outline',
-      'features': ['Basic dashboard', 'Team management', 'Settings'],
-    },
-    {
-      'id': 'marketing',
-      'name': 'Marketing Agency',
-      'description': 'Perfect for digital marketing agencies',
-      'icon': 'campaign',
-      'features': ['Social media tools', 'Lead generation', 'Analytics'],
-    },
-    {
-      'id': 'ecommerce',
-      'name': 'E-commerce Store',
-      'description': 'Complete e-commerce solution',
-      'icon': 'shopping_cart',
-      'features': ['Product catalog', 'Order management', 'Payment processing'],
-    },
-    {
-      'id': 'education',
-      'name': 'Educational Platform',
-      'description': 'Create and sell online courses',
-      'icon': 'school',
-      'features': ['Course creation', 'Student management', 'Certificates'],
-    },
-    {
-      'id': 'consulting',
-      'name': 'Consulting Business',
-      'description': 'Manage consulting projects',
-      'icon': 'business_center',
-      'features': ['Project tracking', 'Client management', 'Invoicing'],
-    },
-  ];
+{ 'id': 'blank',
+'name': 'Blank Workspace',
+'description': 'Start with a clean workspace',
+'icon': 'add_circle_outline',
+'features': ['Basic dashboard', 'Team management', 'Settings'],
+},
+{ 'id': 'marketing',
+'name': 'Marketing Agency',
+'description': 'Perfect for digital marketing agencies',
+'icon': 'campaign',
+'features': ['Social media tools', 'Lead generation', 'Analytics'],
+},
+{ 'id': 'ecommerce',
+'name': 'E-commerce Store',
+'description': 'Complete e-commerce solution',
+'icon': 'shopping_cart',
+'features': ['Product catalog', 'Order management', 'Payment processing'],
+},
+{ 'id': 'education',
+'name': 'Educational Platform',
+'description': 'Create and sell online courses',
+'icon': 'school',
+'features': ['Course creation', 'Student management', 'Certificates'],
+},
+{ 'id': 'consulting',
+'name': 'Consulting Business',
+'description': 'Manage consulting projects',
+'icon': 'business_center',
+'features': ['Project tracking', 'Client management', 'Invoicing'],
+},
+];
 
   @override
   void dispose() {

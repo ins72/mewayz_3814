@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 import './verification_code_input_widget.dart';
 
 class AuthenticatorVerificationWidget extends StatelessWidget {

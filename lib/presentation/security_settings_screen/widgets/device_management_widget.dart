@@ -10,31 +10,28 @@ class DeviceManagementWidget extends StatefulWidget {
 
 class _DeviceManagementWidgetState extends State<DeviceManagementWidget> {
   final List<Map<String, dynamic>> _devices = [
-    {
-      'name': 'iPhone 15 Pro',
-      'platform': 'iOS',
-      'location': 'San Francisco, CA',
-      'lastActivity': '2 minutes ago',
-      'isCurrent': true,
-      'icon': Icons.phone_iphone,
-    },
-    {
-      'name': 'MacBook Pro',
-      'platform': 'macOS',
-      'location': 'San Francisco, CA',
-      'lastActivity': '1 hour ago',
-      'isCurrent': false,
-      'icon': Icons.laptop_mac,
-    },
-    {
-      'name': 'Chrome Browser',
-      'platform': 'Windows',
-      'location': 'New York, NY',
-      'lastActivity': '2 days ago',
-      'isCurrent': false,
-      'icon': Icons.computer,
-    },
-  ];
+{ 'name': 'iPhone 15 Pro',
+'platform': 'iOS',
+'location': 'San Francisco, CA',
+'lastActivity': '2 minutes ago',
+'isCurrent': true,
+'icon': Icons.phone_iphone,
+},
+{ 'name': 'MacBook Pro',
+'platform': 'macOS',
+'location': 'San Francisco, CA',
+'lastActivity': '1 hour ago',
+'isCurrent': false,
+'icon': Icons.laptop_mac,
+},
+{ 'name': 'Chrome Browser',
+'platform': 'Windows',
+'location': 'New York, NY',
+'lastActivity': '2 days ago',
+'isCurrent': false,
+'icon': Icons.computer,
+},
+];
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/avatar_upload_widget.dart';
 import './widgets/danger_zone_widget.dart';
 import './widgets/notification_preferences_widget.dart';

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 
 class SecurityInfoWidget extends StatelessWidget {
   const SecurityInfoWidget({Key? key}) : super(key: key);

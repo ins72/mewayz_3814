@@ -1,6 +1,4 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 
@@ -379,35 +377,27 @@ class StudentProgressWidget extends StatelessWidget {
 
   Widget _buildRecentActivity() {
     final List<Map<String, dynamic>> recentActivities = [
-      {
-        "student": "Sarah Johnson",
-        "action": "Completed Module 1",
-        "time": "2 hours ago",
-        "avatar":
-            "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      },
-      {
-        "student": "Mike Chen",
-        "action": "Started Quiz: Flutter Basics",
-        "time": "4 hours ago",
-        "avatar":
-            "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      },
-      {
-        "student": "Emma Davis",
-        "action": "Submitted Assignment 2",
-        "time": "6 hours ago",
-        "avatar":
-            "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      },
-      {
-        "student": "Alex Rodriguez",
-        "action": "Posted in Discussion Forum",
-        "time": "8 hours ago",
-        "avatar":
-            "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      },
-    ];
+{ "student": "Sarah Johnson",
+"action": "Completed Module 1",
+"time": "2 hours ago",
+"avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+},
+{ "student": "Mike Chen",
+"action": "Started Quiz: Flutter Basics",
+"time": "4 hours ago",
+"avatar": "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+},
+{ "student": "Emma Davis",
+"action": "Submitted Assignment 2",
+"time": "6 hours ago",
+"avatar": "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+},
+{ "student": "Alex Rodriguez",
+"action": "Posted in Discussion Forum",
+"time": "8 hours ago",
+"avatar": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+},
+];
 
     return Card(
       child: Padding(

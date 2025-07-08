@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.mewayz.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -24,18 +24,90 @@ android {
         applicationId = "com.mewayz.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = 23
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
         multiDexEnabled true
+        
+        // Production configurations
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+        
+        // ProGuard configuration for release builds
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+
+    signingConfigs {
+        release {
+            // TODO: Add your release signing configuration
+            // storeFile file('path/to/your/keystore.jks')
+            // storePassword 'your-store-password'
+            // keyAlias 'your-key-alias'
+            // keyPassword 'your-key-password'
+        }
     }
 
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // TODO: Uncomment and configure for production release
+            // signingConfig signingConfigs.release
+            
+            // For now, use debug signing for testing
+            signingConfig signingConfigs.debug
+        }
+    }
+    
+    flavorDimensions "default"
+    productFlavors {
+        development {
+            dimension "default"
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            manifestPlaceholders = [
+                app_name: "Mewayz Dev"
+            ]
+        }
+        
+        staging {
+            dimension "default"
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-staging"
+            manifestPlaceholders = [
+                app_name: "Mewayz Staging"
+            ]
+        }
+        
+        production {
+            dimension "default"
+            manifestPlaceholders = [
+                app_name: "Mewayz"
+            ]
+        }
+    }
+    
+    // Enable bundle splitting for smaller APK sizes
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
         }
     }
 }
@@ -46,4 +118,16 @@ flutter {
 
 dependencies {
     implementation "androidx.multidex:multidex:2.0.1"
+    implementation "androidx.core:core-ktx:1.12.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.7.0"
+    implementation "androidx.work:work-runtime-ktx:2.9.0"
+    
+    // Security dependencies
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    implementation "androidx.biometric:biometric:1.1.0"
+    
+    // Testing
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
 }

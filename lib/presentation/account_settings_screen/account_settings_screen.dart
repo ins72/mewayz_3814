@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
-import './widgets/personal_info_widget.dart';
-import './widgets/security_settings_widget.dart';
-import './widgets/privacy_controls_widget.dart';
 import './widgets/account_actions_widget.dart';
+import './widgets/personal_info_widget.dart';
+import './widgets/privacy_controls_widget.dart';
+import './widgets/security_settings_widget.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import './widgets/add_content_bottom_sheet_widget.dart';
@@ -26,95 +25,67 @@ class _CourseCreatorState extends State<CourseCreator>
 
   // Mock data for course structure
   final List<Map<String, dynamic>> _courseModules = [
-    {
-      "id": 1,
-      "title": "Introduction to Flutter Development",
-      "lessonCount": 8,
-      "duration": "2h 45m",
-      "completionRate": 85.5,
-      "isExpanded": false,
-      "lessons": [
-        {
-          "id": 1,
-          "title": "Setting up Development Environment",
-          "type": "video",
-          "duration": "15m",
-          "thumbnail":
-              "https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-          "isCompleted": true,
-          "status": "published"
-        },
-        {
-          "id": 2,
-          "title": "Understanding Widgets",
-          "type": "video",
-          "duration": "22m",
-          "thumbnail":
-              "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-          "isCompleted": false,
-          "status": "draft"
-        },
-        {
-          "id": 3,
-          "title": "Basic Layout Concepts",
-          "type": "text",
-          "duration": "12m",
-          "thumbnail": null,
-          "isCompleted": false,
-          "status": "draft"
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "title": "Advanced Flutter Concepts",
-      "lessonCount": 12,
-      "duration": "4h 20m",
-      "completionRate": 42.3,
-      "isExpanded": false,
-      "lessons": [
-        {
-          "id": 4,
-          "title": "State Management with Provider",
-          "type": "video",
-          "duration": "35m",
-          "thumbnail":
-              "https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-          "isCompleted": false,
-          "status": "draft"
-        },
-        {
-          "id": 5,
-          "title": "Navigation and Routing",
-          "type": "quiz",
-          "duration": "25m",
-          "thumbnail": null,
-          "isCompleted": false,
-          "status": "draft"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "title": "Building Real-World Apps",
-      "lessonCount": 15,
-      "duration": "6h 15m",
-      "completionRate": 0.0,
-      "isExpanded": false,
-      "lessons": [
-        {
-          "id": 6,
-          "title": "Project Setup and Architecture",
-          "type": "video",
-          "duration": "28m",
-          "thumbnail":
-              "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-          "isCompleted": false,
-          "status": "draft"
-        }
-      ]
-    }
-  ];
+{ "id": 1,
+"title": "Introduction to Flutter Development",
+"lessonCount": 8,
+"duration": "2h 45m",
+"completionRate": 85.5,
+"isExpanded": false,
+"lessons": [ { "id": 1,
+"title": "Setting up Development Environment",
+"type": "video",
+"duration": "15m",
+"thumbnail": "https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+"isCompleted": true,
+"status": "published" },
+{ "id": 2,
+"title": "Understanding Widgets",
+"type": "video",
+"duration": "22m",
+"thumbnail": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+"isCompleted": false,
+"status": "draft" },
+{ "id": 3,
+"title": "Basic Layout Concepts",
+"type": "text",
+"duration": "12m",
+"thumbnail": null,
+"isCompleted": false,
+"status": "draft" } ] },
+{ "id": 2,
+"title": "Advanced Flutter Concepts",
+"lessonCount": 12,
+"duration": "4h 20m",
+"completionRate": 42.3,
+"isExpanded": false,
+"lessons": [ { "id": 4,
+"title": "State Management with Provider",
+"type": "video",
+"duration": "35m",
+"thumbnail": "https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+"isCompleted": false,
+"status": "draft" },
+{ "id": 5,
+"title": "Navigation and Routing",
+"type": "quiz",
+"duration": "25m",
+"thumbnail": null,
+"isCompleted": false,
+"status": "draft" } ] },
+{ "id": 3,
+"title": "Building Real-World Apps",
+"lessonCount": 15,
+"duration": "6h 15m",
+"completionRate": 0.0,
+"isExpanded": false,
+"lessons": [ { "id": 6,
+"title": "Project Setup and Architecture",
+"type": "video",
+"duration": "28m",
+"thumbnail": "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+"isCompleted": false,
+"status": "draft" } ] }
+];
 
   final Map<String, dynamic> _courseAnalytics = {
     "totalStudents": 1247,

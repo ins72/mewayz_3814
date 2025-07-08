@@ -1,48 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 
 class AuditTrailWidget extends StatelessWidget {
   const AuditTrailWidget({Key? key}) : super(key: key);
 
   static final List<Map<String, dynamic>> _auditLogs = [
-    {
-      'action': 'Permission Updated',
-      'details': 'Editor role: Course Creation permission enabled',
-      'user': 'John Doe',
-      'timestamp': DateTime.now().subtract(const Duration(minutes: 30)),
-      'type': 'permission_change',
-    },
-    {
-      'action': 'Role Created',
-      'details': 'New custom role "Content Manager" created',
-      'user': 'Jane Smith',
-      'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
-      'type': 'role_creation',
-    },
-    {
-      'action': 'Permission Updated',
-      'details': 'Viewer role: Analytics Viewing permission disabled',
-      'user': 'Admin',
-      'timestamp': DateTime.now().subtract(const Duration(hours: 4)),
-      'type': 'permission_change',
-    },
-    {
-      'action': 'Role Assignment',
-      'details': 'User "mike@example.com" assigned Editor role',
-      'user': 'Jane Smith',
-      'timestamp': DateTime.now().subtract(const Duration(days: 1)),
-      'type': 'role_assignment',
-    },
-    {
-      'action': 'Permission Updated',
-      'details': 'Admin role: Billing Access permission enabled',
-      'user': 'John Doe',
-      'timestamp': DateTime.now().subtract(const Duration(days: 2)),
-      'type': 'permission_change',
-    },
-  ];
+{ 'action': 'Permission Updated',
+'details': 'Editor role: Course Creation permission enabled',
+'user': 'John Doe',
+'timestamp': DateTime.now().subtract(const Duration(minutes: 30)),
+'type': 'permission_change',
+},
+{ 'action': 'Role Created',
+'details': 'New custom role "Content Manager" created',
+'user': 'Jane Smith',
+'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
+'type': 'role_creation',
+},
+{ 'action': 'Permission Updated',
+'details': 'Viewer role: Analytics Viewing permission disabled',
+'user': 'Admin',
+'timestamp': DateTime.now().subtract(const Duration(hours: 4)),
+'type': 'permission_change',
+},
+{ 'action': 'Role Assignment',
+'details': 'User "mike@example.com" assigned Editor role',
+'user': 'Jane Smith',
+'timestamp': DateTime.now().subtract(const Duration(days: 1)),
+'type': 'role_assignment',
+},
+{ 'action': 'Permission Updated',
+'details': 'Admin role: Billing Access permission enabled',
+'user': 'John Doe',
+'timestamp': DateTime.now().subtract(const Duration(days: 2)),
+'type': 'permission_change',
+},
+];
 
   @override
   Widget build(BuildContext context) {

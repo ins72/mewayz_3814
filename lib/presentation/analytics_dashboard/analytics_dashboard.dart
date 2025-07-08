@@ -1,6 +1,4 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import './widgets/chart_container_widget.dart';
@@ -25,75 +23,63 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
   String _selectedFilter = 'All';
 
   final List<Map<String, dynamic>> _mockMetrics = [
-    {
-      "title": "Total Revenue",
-      "value": "\$24,580",
-      "change": "+12.5%",
-      "isPositive": true,
-      "icon": "attach_money"
-    },
-    {
-      "title": "Leads Generated",
-      "value": "1,247",
-      "change": "+8.3%",
-      "isPositive": true,
-      "icon": "people"
-    },
-    {
-      "title": "Social Followers",
-      "value": "15.2K",
-      "change": "+15.7%",
-      "isPositive": true,
-      "icon": "thumb_up"
-    },
-    {
-      "title": "Course Completions",
-      "value": "89",
-      "change": "-2.1%",
-      "isPositive": false,
-      "icon": "school"
-    },
-    {
-      "title": "Active Workspaces",
-      "value": "12",
-      "change": "+4.2%",
-      "isPositive": true,
-      "icon": "business"
-    },
-    {
-      "title": "Conversion Rate",
-      "value": "3.8%",
-      "change": "+0.5%",
-      "isPositive": true,
-      "icon": "trending_up"
-    }
-  ];
+{ "title": "Total Revenue",
+"value": "\$24,580",
+"change": "+12.5%",
+"isPositive": true,
+"icon": "attach_money" },
+{ "title": "Leads Generated",
+"value": "1,247",
+"change": "+8.3%",
+"isPositive": true,
+"icon": "people" },
+{ "title": "Social Followers",
+"value": "15.2K",
+"change": "+15.7%",
+"isPositive": true,
+"icon": "thumb_up" },
+{ "title": "Course Completions",
+"value": "89",
+"change": "-2.1%",
+"isPositive": false,
+"icon": "school" },
+{ "title": "Active Workspaces",
+"value": "12",
+"change": "+4.2%",
+"isPositive": true,
+"icon": "business" },
+{ "title": "Conversion Rate",
+"value": "3.8%",
+"change": "+0.5%",
+"isPositive": true,
+"icon": "trending_up" }
+];
 
   final List<Map<String, dynamic>> _mockRevenueData = [
-    {"day": "Mon", "value": 3200.0},
-    {"day": "Tue", "value": 4100.0},
-    {"day": "Wed", "value": 3800.0},
-    {"day": "Thu", "value": 4500.0},
-    {"day": "Fri", "value": 5200.0},
-    {"day": "Sat", "value": 4800.0},
-    {"day": "Sun", "value": 3900.0}
-  ];
+{"day": "Mon", "value": 3200.0},
+{"day": "Tue", "value": 4100.0},
+{"day": "Wed", "value": 3800.0},
+{"day": "Thu", "value": 4500.0},
+{"day": "Fri", "value": 5200.0},
+{"day": "Sat", "value": 4800.0},
+{"day": "Sun", "value": 3900.0}
+];
 
   final List<Map<String, dynamic>> _mockLeadSources = [
-    {"source": "Instagram", "value": 35.0, "color": "0xFFE91E63"},
-    {"source": "Facebook", "value": 25.0, "color": "0xFF2196F3"},
-    {"source": "LinkedIn", "value": 20.0, "color": "0xFF0077B5"},
-    {"source": "Direct", "value": 15.0, "color": "0xFF4CAF50"},
-    {"source": "Other", "value": 5.0, "color": "0xFF9E9E9E"}
-  ];
+{"source": "Instagram", "value": 35.0, "color": "0xFFE91E63"},
+{"source": "Facebook", "value": 25.0, "color": "0xFF2196F3"},
+{"source": "LinkedIn", "value": 20.0, "color": "0xFF0077B5"},
+{"source": "Direct", "value": 15.0, "color": "0xFF4CAF50"},
+{"source": "Other", "value": 5.0, "color": "0xFF9E9E9E"}
+];
 
   final List<Map<String, dynamic>> _mockSocialPerformance = [
-    {"platform": "Instagram", "followers": 8500, "engagement": 4.2},
-    {"platform": "Facebook", "followers": 3200, "engagement": 2.8},
-    {"platform": "LinkedIn", "followers": 1800, "engagement": 6.1},
-    {"platform": "Twitter", "followers": 2100, "engagement": 3.5},
-    {"platform": "TikTok", "followers": 5400, "engagement": 7.8}
-  ];
+{"platform": "Instagram", "followers": 8500, "engagement": 4.2},
+{"platform": "Facebook", "followers": 3200, "engagement": 2.8},
+{"platform": "LinkedIn", "followers": 1800, "engagement": 6.1},
+{"platform": "Twitter", "followers": 2100, "engagement": 3.5},
+{"platform": "TikTok", "followers": 5400, "engagement": 7.8}
+];
 
   final List<String> _filterOptions = [
     'All',
@@ -523,11 +509,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
 
   Widget _buildCourseEngagementChart() {
     final List<Map<String, dynamic>> courseData = [
-      {"week": "Week 1", "completions": 45, "enrollments": 120},
-      {"week": "Week 2", "completions": 38, "enrollments": 95},
-      {"week": "Week 3", "completions": 52, "enrollments": 110},
-      {"week": "Week 4", "completions": 41, "enrollments": 88},
-    ];
+{"week": "Week 1", "completions": 45, "enrollments": 120},
+{"week": "Week 2", "completions": 38, "enrollments": 95},
+{"week": "Week 3", "completions": 52, "enrollments": 110},
+{"week": "Week 4", "completions": 41, "enrollments": 88},
+];
 
     return ChartContainerWidget(
         title: 'Course Engagement',
@@ -620,11 +606,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
 
   Widget _buildRevenueBreakdown() {
     final List<Map<String, dynamic>> revenueBreakdown = [
-      {"category": "Course Sales", "amount": 12580, "percentage": 51.2},
-      {"category": "Marketplace", "amount": 7890, "percentage": 32.1},
-      {"category": "Subscriptions", "amount": 3210, "percentage": 13.1},
-      {"category": "Services", "amount": 900, "percentage": 3.6},
-    ];
+{"category": "Course Sales", "amount": 12580, "percentage": 51.2},
+{"category": "Marketplace", "amount": 7890, "percentage": 32.1},
+{"category": "Subscriptions", "amount": 3210, "percentage": 13.1},
+{"category": "Services", "amount": 900, "percentage": 3.6},
+];
 
     return Container(
         padding: EdgeInsets.all(4.w),
@@ -694,11 +680,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
 
   Widget _buildCourseMetrics() {
     final List<Map<String, dynamic>> courseMetrics = [
-      {"title": "Active Courses", "value": "24", "change": "+3"},
-      {"title": "Total Students", "value": "1,247", "change": "+89"},
-      {"title": "Completion Rate", "value": "78.5%", "change": "+2.1%"},
-      {"title": "Average Rating", "value": "4.6", "change": "+0.2"},
-    ];
+{"title": "Active Courses", "value": "24", "change": "+3"},
+{"title": "Total Students", "value": "1,247", "change": "+89"},
+{"title": "Completion Rate", "value": "78.5%", "change": "+2.1%"},
+{"title": "Average Rating", "value": "4.6", "change": "+0.2"},
+];
 
     return Container(
         padding: EdgeInsets.all(4.w),
