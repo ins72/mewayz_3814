@@ -658,19 +658,17 @@ class _CrmContactManagementState extends State<CrmContactManagement>
             ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: 8,
+        currentIndex: 6,
         onTap: (index) {
           final routes = [
-            '/splash-screen',
-            '/login-screen',
-            '/workspace-dashboard',
-            '/instagram-lead-search',
-            '/social-media-scheduler',
-            '/link-in-bio-builder',
-            '/course-creator',
-            '/marketplace-store',
-            '/crm-contact-management',
-            '/analytics-dashboard'
+            AppRoutes.workspaceDashboard,
+            AppRoutes.instagramLeadSearch,
+            AppRoutes.socialMediaScheduler,
+            AppRoutes.linkInBioBuilder,
+            AppRoutes.courseCreator,
+            AppRoutes.marketplaceStore,
+            AppRoutes.crmContactManagement,
+            AppRoutes.analyticsDashboard,
           ];
           if (index < routes.length) {
             Navigator.pushNamed(context, routes[index]);
@@ -681,56 +679,56 @@ class _CrmContactManagementState extends State<CrmContactManagement>
             icon: CustomIconWidget(
                 iconName: 'home', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'home', color: AppTheme.primaryAction, size: 20),
+                iconName: 'home', color: AppTheme.accent, size: 20),
             label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
                 iconName: 'search', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'search', color: AppTheme.primaryAction, size: 20),
+                iconName: 'search', color: AppTheme.accent, size: 20),
             label: 'Search',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
                 iconName: 'schedule', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'schedule', color: AppTheme.primaryAction, size: 20),
+                iconName: 'schedule', color: AppTheme.accent, size: 20),
             label: 'Schedule',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
                 iconName: 'link', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'link', color: AppTheme.primaryAction, size: 20),
+                iconName: 'link', color: AppTheme.accent, size: 20),
             label: 'Bio',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
                 iconName: 'school', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'school', color: AppTheme.primaryAction, size: 20),
+                iconName: 'school', color: AppTheme.accent, size: 20),
             label: 'Courses',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
                 iconName: 'store', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'store', color: AppTheme.primaryAction, size: 20),
+                iconName: 'store', color: AppTheme.accent, size: 20),
             label: 'Store',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
-                iconName: 'contacts', color: AppTheme.primaryAction, size: 20),
+                iconName: 'contacts', color: AppTheme.accent, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'contacts', color: AppTheme.primaryAction, size: 20),
+                iconName: 'contacts', color: AppTheme.accent, size: 20),
             label: 'CRM',
           ),
           BottomNavigationBarItem(
             icon: CustomIconWidget(
                 iconName: 'analytics', color: AppTheme.secondaryText, size: 20),
             activeIcon: CustomIconWidget(
-                iconName: 'analytics', color: AppTheme.primaryAction, size: 20),
+                iconName: 'analytics', color: AppTheme.accent, size: 20),
             label: 'Analytics',
           ),
         ],

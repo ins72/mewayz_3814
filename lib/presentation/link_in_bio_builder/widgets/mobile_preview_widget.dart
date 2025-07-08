@@ -6,6 +6,7 @@ import '../../../core/app_export.dart';
 class MobilePreviewWidget extends StatelessWidget {
   final List<Map<String, dynamic>> components;
   final String selectedComponentId;
+  final Map<String, dynamic> pageSettings;
   final Function(String) onComponentTap;
   final Function(String) onComponentLongPress;
 
@@ -13,6 +14,7 @@ class MobilePreviewWidget extends StatelessWidget {
     Key? key,
     required this.components,
     required this.selectedComponentId,
+    required this.pageSettings,
     required this.onComponentTap,
     required this.onComponentLongPress,
   }) : super(key: key);
@@ -20,351 +22,546 @@ class MobilePreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: AppTheme.primaryBackground,
-        child: Column(children: [
-          Container(
-              padding: EdgeInsets.all(4.w),
-              decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  border: Border(
-                      bottom: BorderSide(color: AppTheme.border, width: 1))),
-              child: Row(children: [
-                Text('Mobile Preview',
-                    style: AppTheme.darkTheme.textTheme.titleMedium),
-                const Spacer(),
-                Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-                    decoration: BoxDecoration(
-                        color: AppTheme.accent.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Container(
-                          width: 2.w,
-                          height: 2.w,
-                          decoration: BoxDecoration(
-                              color: AppTheme.success, shape: BoxShape.circle)),
-                      SizedBox(width: 2.w),
-                      Text('Live',
-                          style: AppTheme.darkTheme.textTheme.bodySmall
-                              ?.copyWith(
-                                  color: AppTheme.accent,
-                                  fontWeight: FontWeight.w500)),
-                    ])),
-              ])),
-          Expanded(
-              child: Center(
-                  child: Container(
-                      width: 80.w,
-                      height: 70.h,
-                      decoration: BoxDecoration(
-                          color: AppTheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.border, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                                color: AppTheme.shadowDark,
-                                blurRadius: 20,
-                                offset: const Offset(0, 8)),
-                          ]),
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
-                          child: Column(children: [
-                            _buildMobileHeader(),
-                            Expanded(
-                                child: DragTarget<Map<String, dynamic>>(
-                                    onAcceptWithDetails: (component) {
-                              // Handle component drop
-                            }, builder: (context, candidateData, rejectedData) {
-                              return Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                      color: candidateData.isNotEmpty
-                                          ? AppTheme.accent
-                                              .withValues(alpha: 0.1)
-                                          : AppTheme.primaryBackground,
-                                      border: candidateData.isNotEmpty
-                                          ? Border.all(
-                                              color: AppTheme.accent,
-                                              width: 2,
-                                              style: BorderStyle.solid)
-                                          : null),
-                                  child: components.isEmpty
-                                      ? _buildEmptyState()
-                                      : _buildComponentList());
-                            })),
-                          ]))))),
-        ]));
-  }
-
-  Widget _buildMobileHeader() {
-    return Container(
-        height: 6.h,
-        decoration: BoxDecoration(
-            color: AppTheme.surface,
-            border: Border(
-                bottom:
-                    BorderSide(color: AppTheme.border.withValues(alpha: 0.3)))),
-        child: Row(children: [
-          SizedBox(width: 4.w),
-          Container(
-              width: 1.5.w,
-              height: 1.5.w,
-              decoration:
-                  BoxDecoration(color: AppTheme.error, shape: BoxShape.circle)),
-          SizedBox(width: 2.w),
-          Container(
-              width: 1.5.w,
-              height: 1.5.w,
-              decoration: BoxDecoration(
-                  color: AppTheme.warning, shape: BoxShape.circle)),
-          SizedBox(width: 2.w),
-          Container(
-              width: 1.5.w,
-              height: 1.5.w,
-              decoration: BoxDecoration(
-                  color: AppTheme.success, shape: BoxShape.circle)),
-          const Spacer(),
-          Text('yourpage.bio',
-              style: AppTheme.darkTheme.textTheme.bodySmall
-                  ?.copyWith(color: AppTheme.secondaryText)),
-          const Spacer(),
-          CustomIconWidget(
-              iconName: 'refresh', color: AppTheme.secondaryText, size: 16),
-          SizedBox(width: 4.w),
-        ]));
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(
-          padding: EdgeInsets.all(6.w),
-          decoration: BoxDecoration(
-              color: AppTheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: AppTheme.border, width: 2, style: BorderStyle.solid)),
-          child: CustomIconWidget(
-              iconName: 'add', color: AppTheme.secondaryText, size: 32)),
-      SizedBox(height: 3.h),
-      Text('Drag components here',
-          style: AppTheme.darkTheme.textTheme.titleMedium
-              ?.copyWith(color: AppTheme.secondaryText)),
-      SizedBox(height: 1.h),
-      Text(
-          'Start building your Link in Bio page\nby dragging components from the left panel',
-          style: AppTheme.darkTheme.textTheme.bodySmall,
-          textAlign: TextAlign.center),
-    ]));
-  }
-
-  Widget _buildComponentList() {
-    return ListView.builder(
         padding: EdgeInsets.all(4.w),
-        itemCount: components.length,
-        itemBuilder: (context, index) {
-          final component = components[index];
-          final isSelected = component['id'] == selectedComponentId;
+        child: Center(
+            child: Container(
+                width: 80.w,
+                height: 85.h,
+                decoration: BoxDecoration(
+                    color: Color(int.parse(pageSettings['backgroundColor']
+                        .replaceFirst('#', '0xFF'))),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.border, width: 2)),
+                child: Column(children: [
+                  // Phone status bar simulation
+                  Container(
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                          color: AppTheme.primaryBackground,
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(18))),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                                margin: EdgeInsets.only(left: 4.w),
+                                child: Text('9:41',
+                                    style: AppTheme
+                                        .darkTheme.textTheme.bodySmall
+                                        ?.copyWith(
+                                            color: AppTheme.primaryText,
+                                            fontWeight: FontWeight.w600))),
+                            Row(children: [
+                              CustomIconWidget(
+                                  iconName: 'signal_cellular_4_bar',
+                                  color: AppTheme.primaryText,
+                                  size: 16),
+                              SizedBox(width: 1.w),
+                              CustomIconWidget(
+                                  iconName: 'wifi',
+                                  color: AppTheme.primaryText,
+                                  size: 16),
+                              SizedBox(width: 1.w),
+                              CustomIconWidget(
+                                  iconName: 'battery_full',
+                                  color: AppTheme.primaryText,
+                                  size: 16),
+                              SizedBox(width: 4.w),
+                            ]),
+                          ])),
+                  // Scrollable content area
+                  Expanded(
+                      child: Container(
+                          decoration: BoxDecoration(
+                              color: Color(int.parse(
+                                  pageSettings['backgroundColor']
+                                      .replaceFirst('#', '0xFF'))),
+                              borderRadius: BorderRadius.vertical(
+                                  bottom: Radius.circular(18))),
+                          child: components.isEmpty
+                              ? Center(
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                      CustomIconWidget(
+                                          iconName: 'add_circle_outline',
+                                          color: AppTheme.secondaryText,
+                                          size: 48),
+                                      SizedBox(height: 2.h),
+                                      Text('Add components to get started',
+                                          style: AppTheme
+                                              .darkTheme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                  color:
+                                                      AppTheme.secondaryText),
+                                          textAlign: TextAlign.center),
+                                    ]))
+                              : ListView.builder(
+                                  padding: EdgeInsets.all(4.w),
+                                  itemCount: components.length,
+                                  itemBuilder: (context, index) {
+                                    final component = components[index];
+                                    final isSelected =
+                                        component['id'] == selectedComponentId;
 
-          return GestureDetector(
-              onTap: () => onComponentTap(component['id'] as String),
-              onLongPress: () =>
-                  onComponentLongPress(component['id'] as String),
-              child: Container(
-                  margin: EdgeInsets.only(bottom: 3.h),
-                  decoration: BoxDecoration(
-                      border: isSelected
-                          ? Border.all(color: AppTheme.accent, width: 2)
-                          : null,
-                      borderRadius: BorderRadius.circular(12)),
-                  child: _buildComponentPreview(component)));
-        });
+                                    return GestureDetector(
+                                        onTap: () =>
+                                            onComponentTap(component['id']),
+                                        onLongPress: () => onComponentLongPress(
+                                            component['id']),
+                                        child: Container(
+                                            margin:
+                                                EdgeInsets.only(bottom: 3.h),
+                                            decoration: BoxDecoration(
+                                                border: isSelected
+                                                    ? Border.all(
+                                                        color: AppTheme.accent,
+                                                        width: 2)
+                                                    : null,
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                            child: _buildComponent(component)));
+                                  }))),
+                ]))));
   }
 
-  Widget _buildComponentPreview(Map<String, dynamic> component) {
-    final type = component['type'] as String;
-    final props = component['defaultProps'] as Map<String, dynamic>;
-
-    switch (type) {
-      case 'text':
-        return _buildTextPreview(props);
+  Widget _buildComponent(Map<String, dynamic> component) {
+    switch (component['type']) {
+      case 'profile':
+        return _buildProfileComponent(component);
       case 'button':
-        return _buildButtonPreview(props);
-      case 'image':
-        return _buildImagePreview(props);
-      case 'video':
-        return _buildVideoPreview(props);
-      case 'product':
-        return _buildProductPreview(props);
-      case 'form':
-        return _buildFormPreview(props);
+        return _buildButtonComponent(component);
       case 'social':
-        return _buildSocialPreview(props);
+        return _buildSocialComponent(component);
+      case 'text':
+        return _buildTextComponent(component);
+      case 'gallery':
+        return _buildGalleryComponent(component);
+      case 'video':
+        return _buildVideoComponent(component);
+      case 'form':
+        return _buildFormComponent(component);
+      case 'newsletter':
+        return _buildNewsletterComponent(component);
+      case 'product':
+        return _buildProductComponent(component);
+      case 'booking':
+        return _buildBookingComponent(component);
+      case 'testimonials':
+        return _buildTestimonialsComponent(component);
+      case 'music':
+        return _buildMusicComponent(component);
       default:
-        return Container();
+        return Container(
+            padding: EdgeInsets.all(4.w),
+            decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.border)),
+            child: Text('Unknown component type: ${component['type']}',
+                style: AppTheme.darkTheme.textTheme.bodyMedium
+                    ?.copyWith(color: AppTheme.secondaryText)));
     }
   }
 
-  Widget _buildTextPreview(Map<String, dynamic> props) {
+  Widget _buildProfileComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
     return Container(
         padding: EdgeInsets.all(4.w),
-        child: Text(props['content'] as String,
-            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                fontSize: (props['fontSize'] as double).sp,
-                fontWeight: props['fontWeight'] == 'bold'
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-                color: Color(int.parse(
-                    (props['color'] as String).replaceAll('#', '0xFF')))),
-            textAlign: props['alignment'] == 'center'
-                ? TextAlign.center
-                : props['alignment'] == 'right'
-                    ? TextAlign.right
-                    : TextAlign.left));
+        child: Column(children: [
+          CircleAvatar(
+              radius: 40, backgroundImage: NetworkImage(props['profileImage'])),
+          SizedBox(height: 2.h),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(props['name'],
+                style: AppTheme.darkTheme.textTheme.headlineSmall?.copyWith(
+                    color: AppTheme.primaryText, fontWeight: FontWeight.w600)),
+            if (props['showVerifiedBadge'])
+              Container(
+                  margin: EdgeInsets.only(left: 2.w),
+                  child: CustomIconWidget(
+                      iconName: 'verified', color: AppTheme.accent, size: 20)),
+          ]),
+          SizedBox(height: 1.h),
+          Text(props['bio'],
+              style: AppTheme.darkTheme.textTheme.bodyMedium
+                  ?.copyWith(color: AppTheme.secondaryText),
+              textAlign: TextAlign.center),
+        ]));
   }
 
-  Widget _buildButtonPreview(Map<String, dynamic> props) {
+  Widget _buildButtonComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
     return Container(
+        width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 4.w),
         child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              // Handle button press
+            },
             style: ElevatedButton.styleFrom(
                 backgroundColor: Color(int.parse(
-                    (props['backgroundColor'] as String)
-                        .replaceAll('#', '0xFF'))),
-                foregroundColor: Color(int.parse(
-                    (props['textColor'] as String).replaceAll('#', '0xFF'))),
-                padding: EdgeInsets.symmetric(vertical: 2.h),
+                    props['backgroundColor'].replaceFirst('#', '0xFF'))),
+                foregroundColor: Color(
+                    int.parse(props['textColor'].replaceFirst('#', '0xFF'))),
+                padding: EdgeInsets.symmetric(vertical: 3.h),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        props['borderRadius'] as double))),
-            child: Text(props['text'] as String,
-                style: AppTheme.darkTheme.textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.w500))));
+                    borderRadius:
+                        BorderRadius.circular(props['borderRadius']))),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              if (props['showIcon'])
+                Container(
+                    margin: EdgeInsets.only(right: 2.w),
+                    child: CustomIconWidget(
+                        iconName: props['icon'],
+                        color: Color(int.parse(
+                            props['textColor'].replaceFirst('#', '0xFF'))),
+                        size: 20)),
+              Text(props['title'],
+                  style: AppTheme.darkTheme.textTheme.bodyLarge?.copyWith(
+                      color: Color(int.parse(
+                          props['textColor'].replaceFirst('#', '0xFF'))),
+                      fontWeight: FontWeight.w500)),
+            ])));
   }
 
-  Widget _buildImagePreview(Map<String, dynamic> props) {
+  Widget _buildSocialComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    final platforms = props['platforms'] as List;
+
     return Container(
         padding: EdgeInsets.symmetric(horizontal: 4.w),
-        child: Center(
-            child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(props['borderRadius'] as double),
-                child: CustomImageWidget(
-                    imageUrl: props['url'] as String,
-                    width: (props['width'] as double).w,
-                    height: (props['height'] as double).w,
-                    fit: BoxFit.cover))));
+        child: props['layout'] == 'horizontal'
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: platforms
+                    .map((platform) => _buildSocialIcon(platform, props))
+                    .toList())
+            : Column(
+                children: platforms
+                    .map((platform) => _buildSocialIcon(platform, props))
+                    .toList()));
   }
 
-  Widget _buildVideoPreview(Map<String, dynamic> props) {
+  Widget _buildSocialIcon(
+      Map<String, dynamic> platform, Map<String, dynamic> props) {
     return Container(
-        padding: EdgeInsets.symmetric(horizontal: 4.w),
-        child: Stack(alignment: Alignment.center, children: [
-          ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CustomImageWidget(
-                  imageUrl: props['thumbnail'] as String,
-                  width: double.infinity,
-                  height: 25.h,
-                  fit: BoxFit.cover)),
-          Container(
-              padding: EdgeInsets.all(4.w),
-              decoration: BoxDecoration(
-                  color: AppTheme.primaryBackground.withValues(alpha: 0.8),
-                  shape: BoxShape.circle),
+        margin: EdgeInsets.symmetric(vertical: 1.h),
+        child: Column(children: [
+          CircleAvatar(
+              radius: 20,
+              backgroundColor:
+                  Color(int.parse(platform['color'].replaceFirst('#', '0xFF'))),
               child: CustomIconWidget(
-                  iconName: 'play_arrow',
+                  iconName: platform['icon'],
                   color: AppTheme.primaryAction,
-                  size: 32)),
+                  size: 20)),
+          if (props['showLabels']) ...[
+            SizedBox(height: 1.h),
+            Text(platform['name'],
+                style: AppTheme.darkTheme.textTheme.bodySmall
+                    ?.copyWith(color: AppTheme.secondaryText)),
+          ],
         ]));
   }
 
-  Widget _buildProductPreview(Map<String, dynamic> props) {
+  Widget _buildTextComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(props['padding']),
+        decoration: BoxDecoration(
+            color: props['backgroundColor'] == 'transparent'
+                ? Colors.transparent
+                : Color(int.parse(
+                    props['backgroundColor'].replaceFirst('#', '0xFF'))),
+            borderRadius: BorderRadius.circular(8)),
+        child: Text(props['content'],
+            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                color:
+                    Color(int.parse(props['color'].replaceFirst('#', '0xFF'))),
+                fontSize: props['fontSize'],
+                fontWeight: props['fontWeight'] == 'bold'
+                    ? FontWeight.bold
+                    : FontWeight.normal),
+            textAlign: props['alignment'] == 'center'
+                ? TextAlign.center
+                : TextAlign.left));
+  }
+
+  Widget _buildGalleryComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    final images = props['images'] as List;
+
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        child: GridView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: props['columns'],
+                crossAxisSpacing: props['spacing'],
+                mainAxisSpacing: props['spacing']),
+            itemCount: images.length,
+            itemBuilder: (context, index) {
+              return ClipRRect(
+                  borderRadius: BorderRadius.circular(props['borderRadius']),
+                  child: CustomImageWidget(imageUrl: '', fit: BoxFit.cover));
+            }));
+  }
+
+  Widget _buildVideoComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(children: [
+                  CustomImageWidget(imageUrl: '', fit: BoxFit.cover),
+                  Center(
+                      child: CircleAvatar(
+                          radius: 30,
+                          backgroundColor:
+                              AppTheme.primaryAction.withAlpha(204),
+                          child: CustomIconWidget(
+                              iconName: 'play_arrow',
+                              color: AppTheme.primaryBackground,
+                              size: 32))),
+                ]))));
+  }
+
+  Widget _buildFormComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
     return Container(
         padding: EdgeInsets.all(4.w),
         decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.border)),
+            color: Color(
+                int.parse(props['backgroundColor'].replaceFirst('#', '0xFF'))),
+            borderRadius: BorderRadius.circular(8)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CustomImageWidget(
-                  imageUrl: props['image'] as String,
-                  width: double.infinity,
-                  height: 20.h,
-                  fit: BoxFit.cover)),
+          Text(props['title'],
+              style: AppTheme.darkTheme.textTheme.titleMedium
+                  ?.copyWith(color: AppTheme.primaryText)),
           SizedBox(height: 2.h),
-          Text(props['name'] as String,
-              style: AppTheme.darkTheme.textTheme.titleMedium),
+          ...props['fields'].map<Widget>((field) => Container(
+              margin: EdgeInsets.only(bottom: 2.h),
+              child: TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                      labelText: field['label'],
+                      hintText: 'Enter ${field['label'].toLowerCase()}',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)))))),
           SizedBox(height: 1.h),
-          Text(props['price'] as String,
-              style: AppTheme.darkTheme.textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.accent, fontWeight: FontWeight.bold)),
-          SizedBox(height: 1.h),
-          Text(props['description'] as String,
-              style: AppTheme.darkTheme.textTheme.bodySmall,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
-          SizedBox(height: 2.h),
-          SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                  onPressed: () {}, child: const Text('Buy Now'))),
+          ElevatedButton(
+              onPressed: null,
+              child: Text(props['submitText']),
+              style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50))),
         ]));
   }
 
-  Widget _buildFormPreview(Map<String, dynamic> props) {
+  Widget _buildNewsletterComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
     return Container(
         padding: EdgeInsets.all(4.w),
         decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.border)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(props['title'] as String,
-              style: AppTheme.darkTheme.textTheme.titleMedium),
+            color: Color(
+                int.parse(props['backgroundColor'].replaceFirst('#', '0xFF'))),
+            borderRadius: BorderRadius.circular(8)),
+        child: Column(children: [
+          Text(props['title'],
+              style: AppTheme.darkTheme.textTheme.titleMedium
+                  ?.copyWith(color: AppTheme.primaryText)),
+          SizedBox(height: 1.h),
+          Text(props['description'],
+              style: AppTheme.darkTheme.textTheme.bodyMedium
+                  ?.copyWith(color: AppTheme.secondaryText),
+              textAlign: TextAlign.center),
           SizedBox(height: 2.h),
-          ...(props['fields'] as List)
-              .map((field) => Container(
-                  margin: EdgeInsets.only(bottom: 2.h),
-                  child: TextFormField(
-                      decoration: InputDecoration(
-                          labelStyle: AppTheme
-                              .darkTheme.inputDecorationTheme.labelStyle),
-                      maxLines: field == 'message' ? 3 : 1)))
-              .toList(),
-          SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                  onPressed: () {},
-                  child: Text(props['submitText'] as String))),
+          Row(children: [
+            Expanded(
+                child: TextFormField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                        hintText: props['placeholder'],
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8))))),
+            SizedBox(width: 2.w),
+            ElevatedButton(onPressed: null, child: Text(props['buttonText'])),
+          ]),
         ]));
   }
 
-  Widget _buildSocialPreview(Map<String, dynamic> props) {
+  Widget _buildProductComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    final products = props['products'] as List;
+
     return Container(
-        padding: EdgeInsets.all(4.w),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: (props['platforms'] as List)
-                .map((platform) => Container(
-                    padding: EdgeInsets.all(3.w),
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        child: Column(
+            children: products
+                .map<Widget>((product) => Container(
+                    margin: EdgeInsets.only(bottom: 2.h),
                     decoration: BoxDecoration(
                         color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: AppTheme.border)),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    child: Row(children: [
+                      ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CustomImageWidget(
+                              imageUrl: '',
+                              width: 80, height: 80, fit: BoxFit.cover)),
+                      SizedBox(width: 3.w),
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(product['name'],
+                                style: AppTheme.darkTheme.textTheme.titleSmall
+                                    ?.copyWith(color: AppTheme.primaryText)),
+                            if (props['showPrices']) ...[
+                              SizedBox(height: 1.h),
+                              Text(product['price'],
+                                  style: AppTheme.darkTheme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                          color: AppTheme.accent,
+                                          fontWeight: FontWeight.w600)),
+                            ],
+                            if (props['showDescriptions']) ...[
+                              SizedBox(height: 1.h),
+                              Text(product['description'],
+                                  style: AppTheme.darkTheme.textTheme.bodySmall
+                                      ?.copyWith(color: AppTheme.secondaryText),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis),
+                            ],
+                          ])),
+                    ])))
+                .toList()));
+  }
+
+  Widget _buildBookingComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    return Container(
+        padding: EdgeInsets.all(4.w),
+        decoration: BoxDecoration(
+            color: Color(
+                int.parse(props['backgroundColor'].replaceFirst('#', '0xFF'))),
+            borderRadius: BorderRadius.circular(8)),
+        child: Column(children: [
+          CustomIconWidget(
+              iconName: 'calendar_today', color: AppTheme.accent, size: 32),
+          SizedBox(height: 2.h),
+          Text(props['title'],
+              style: AppTheme.darkTheme.textTheme.titleMedium
+                  ?.copyWith(color: AppTheme.primaryText)),
+          SizedBox(height: 1.h),
+          Text(props['description'],
+              style: AppTheme.darkTheme.textTheme.bodyMedium
+                  ?.copyWith(color: AppTheme.secondaryText),
+              textAlign: TextAlign.center),
+          SizedBox(height: 2.h),
+          ElevatedButton(
+              onPressed: null,
+              child: Text(props['buttonText']),
+              style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50))),
+        ]));
+  }
+
+  Widget _buildTestimonialsComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    final testimonials = props['testimonials'] as List;
+
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        child: Column(
+            children: testimonials
+                .map<Widget>((testimonial) => Container(
+                    margin: EdgeInsets.only(bottom: 2.h),
+                    padding: EdgeInsets.all(4.w),
+                    decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.border)),
+                    child: Column(children: [
                       CustomIconWidget(
-                          iconName: platform['icon'] as String,
+                          iconName: 'format_quote',
                           color: AppTheme.accent,
                           size: 24),
-                      SizedBox(height: 1.h),
-                      Text(platform['name'] as String,
-                          style: AppTheme.darkTheme.textTheme.bodySmall),
+                      SizedBox(height: 2.h),
+                      Text(testimonial['text'],
+                          style: AppTheme.darkTheme.textTheme.bodyMedium
+                              ?.copyWith(
+                                  color: AppTheme.primaryText,
+                                  fontStyle: FontStyle.italic),
+                          textAlign: TextAlign.center),
+                      SizedBox(height: 2.h),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (props['showAvatars'])
+                              CircleAvatar(
+                                  radius: 16,
+                                  backgroundImage:
+                                      NetworkImage(testimonial['avatar'])),
+                            SizedBox(width: 2.w),
+                            Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(testimonial['author'],
+                                      style: AppTheme
+                                          .darkTheme.textTheme.bodySmall
+                                          ?.copyWith(
+                                              color: AppTheme.primaryText,
+                                              fontWeight: FontWeight.w600)),
+                                  Text(testimonial['position'],
+                                      style: AppTheme
+                                          .darkTheme.textTheme.bodySmall
+                                          ?.copyWith(
+                                              color: AppTheme.secondaryText)),
+                                ]),
+                          ]),
                     ])))
+                .toList()));
+  }
+
+  Widget _buildMusicComponent(Map<String, dynamic> component) {
+    final props = component['defaultProps'];
+    final tracks = props['tracks'] as List;
+
+    return Container(
+        padding: EdgeInsets.all(4.w),
+        decoration: BoxDecoration(
+            color: Color(
+                int.parse(props['backgroundColor'].replaceFirst('#', '0xFF'))),
+            borderRadius: BorderRadius.circular(8)),
+        child: Column(
+            children: tracks
+                .map<Widget>((track) => Container(
+                    margin: EdgeInsets.only(bottom: 2.h),
+                    decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.border)),
+                    child: ListTile(
+                        leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: CustomImageWidget(
+                                imageUrl: '',
+                                width: 40, height: 40, fit: BoxFit.cover)),
+                        title: Text(track['title'],
+                            style: AppTheme.darkTheme.textTheme.bodyMedium
+                                ?.copyWith(color: AppTheme.primaryText)),
+                        subtitle: Text(track['artist'],
+                            style: AppTheme.darkTheme.textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.secondaryText)),
+                        trailing: CustomIconWidget(iconName: 'play_arrow', color: AppTheme.accent, size: 24))))
                 .toList()));
   }
 }

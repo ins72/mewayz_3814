@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import './widgets/builder_panel_widget.dart';
 import './widgets/component_editor_bottom_sheet.dart';
 import './widgets/custom_domain_modal.dart';
 import './widgets/mobile_preview_widget.dart';
@@ -25,83 +24,47 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
   List<List<Map<String, dynamic>>> _undoStack = [];
   List<List<Map<String, dynamic>>> _redoStack = [];
 
+  // Template data for quick start
+  final Map<String, dynamic> _pageSettings = {
+    'title': 'My Link in Bio',
+    'description': 'All my important links in one place',
+    'backgroundColor': '#101010',
+    'customDomain': '',
+    'isPublished': false,
+    'theme': 'dark',
+    'favicon': '',
+    'analyticsEnabled': true,
+  };
+
   final List<Map<String, dynamic>> _componentLibrary = [
     {
-      'id': 'text_block',
-      'name': 'Text Block',
-      'icon': 'text_fields',
-      'type': 'text',
+      'id': 'profile_header',
+      'name': 'Profile Header',
+      'icon': 'account_circle',
+      'type': 'profile',
+      'category': 'Basic',
       'defaultProps': {
-        'content': 'Your text here',
-        'fontSize': 16.0,
-        'fontWeight': 'normal',
-        'color': '#F1F1F1',
-        'alignment': 'center',
+        'name': 'Your Name',
+        'bio': 'Your bio here',
+        'profileImage':
+            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+        'showVerifiedBadge': false,
       }
     },
     {
-      'id': 'button',
-      'name': 'Button',
-      'icon': 'smart_button',
+      'id': 'link_button',
+      'name': 'Link Button',
+      'icon': 'link',
       'type': 'button',
+      'category': 'Basic',
       'defaultProps': {
-        'text': 'Click Me',
+        'title': 'Visit My Website',
+        'url': 'https://example.com',
         'backgroundColor': '#3B82F6',
         'textColor': '#FFFFFF',
         'borderRadius': 12.0,
-        'action': 'link',
-        'url': '',
-      }
-    },
-    {
-      'id': 'image',
-      'name': 'Image',
-      'icon': 'image',
-      'type': 'image',
-      'defaultProps': {
-        'url':
-            'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400',
-        'width': 100.0,
-        'height': 100.0,
-        'borderRadius': 8.0,
-      }
-    },
-    {
-      'id': 'video',
-      'name': 'Video',
-      'icon': 'play_circle',
-      'type': 'video',
-      'defaultProps': {
-        'url':
-            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-        'thumbnail':
-            'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400',
-        'autoplay': false,
-      }
-    },
-    {
-      'id': 'product_showcase',
-      'name': 'Product',
-      'icon': 'shopping_bag',
-      'type': 'product',
-      'defaultProps': {
-        'name': 'Product Name',
-        'price': '\$99.99',
-        'image':
-            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-        'description': 'Product description',
-        'buyLink': '',
-      }
-    },
-    {
-      'id': 'contact_form',
-      'name': 'Contact Form',
-      'icon': 'contact_mail',
-      'type': 'form',
-      'defaultProps': {
-        'title': 'Get in Touch',
-        'fields': ['name', 'email', 'message'],
-        'submitText': 'Send Message',
+        'icon': 'open_in_new',
+        'showIcon': true,
       }
     },
     {
@@ -109,20 +72,374 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
       'name': 'Social Links',
       'icon': 'share',
       'type': 'social',
+      'category': 'Social',
       'defaultProps': {
         'platforms': [
-          {'name': 'Instagram', 'url': '', 'icon': 'camera_alt'},
-          {'name': 'Twitter', 'url': '', 'icon': 'alternate_email'},
-          {'name': 'LinkedIn', 'url': '', 'icon': 'business'},
-        ]
+          {
+            'name': 'Instagram',
+            'url': '',
+            'icon': 'camera_alt',
+            'color': '#E4405F'
+          },
+          {
+            'name': 'Twitter',
+            'url': '',
+            'icon': 'alternate_email',
+            'color': '#1DA1F2'
+          },
+          {
+            'name': 'LinkedIn',
+            'url': '',
+            'icon': 'business',
+            'color': '#0A66C2'
+          },
+          {
+            'name': 'YouTube',
+            'url': '',
+            'icon': 'play_circle_filled',
+            'color': '#FF0000'
+          },
+        ],
+        'layout': 'horizontal',
+        'showLabels': true,
       }
+    },
+    {
+      'id': 'text_block',
+      'name': 'Text Block',
+      'icon': 'text_fields',
+      'type': 'text',
+      'category': 'Basic',
+      'defaultProps': {
+        'content': 'Your text here',
+        'fontSize': 16.0,
+        'fontWeight': 'normal',
+        'color': '#F1F1F1',
+        'alignment': 'center',
+        'backgroundColor': 'transparent',
+        'padding': 16.0,
+      }
+    },
+    {
+      'id': 'image_gallery',
+      'name': 'Image Gallery',
+      'icon': 'photo_library',
+      'type': 'gallery',
+      'category': 'Media',
+      'defaultProps': {
+        'images': [
+          'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400',
+          'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400',
+        ],
+        'layout': 'grid',
+        'columns': 2,
+        'borderRadius': 8.0,
+        'spacing': 8.0,
+      }
+    },
+    {
+      'id': 'video_embed',
+      'name': 'Video Embed',
+      'icon': 'play_circle_outline',
+      'type': 'video',
+      'category': 'Media',
+      'defaultProps': {
+        'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        'thumbnail':
+            'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400',
+        'autoplay': false,
+        'showControls': true,
+        'aspectRatio': '16:9',
+      }
+    },
+    {
+      'id': 'contact_form',
+      'name': 'Contact Form',
+      'icon': 'contact_mail',
+      'type': 'form',
+      'category': 'Interactive',
+      'defaultProps': {
+        'title': 'Get in Touch',
+        'fields': [
+          {'name': 'name', 'type': 'text', 'label': 'Name', 'required': true},
+          {
+            'name': 'email',
+            'type': 'email',
+            'label': 'Email',
+            'required': true
+          },
+          {
+            'name': 'message',
+            'type': 'textarea',
+            'label': 'Message',
+            'required': true
+          },
+        ],
+        'submitText': 'Send Message',
+        'successMessage': 'Thank you for your message!',
+        'backgroundColor': '#191919',
+      }
+    },
+    {
+      'id': 'newsletter_signup',
+      'name': 'Newsletter Signup',
+      'icon': 'mail_outline',
+      'type': 'newsletter',
+      'category': 'Interactive',
+      'defaultProps': {
+        'title': 'Subscribe to Newsletter',
+        'description': 'Get updates directly to your inbox',
+        'buttonText': 'Subscribe',
+        'placeholder': 'Enter your email',
+        'backgroundColor': '#191919',
+        'successMessage': 'Successfully subscribed!',
+      }
+    },
+    {
+      'id': 'product_showcase',
+      'name': 'Product Showcase',
+      'icon': 'shopping_bag',
+      'type': 'product',
+      'category': 'Commerce',
+      'defaultProps': {
+        'products': [
+          {
+            'name': 'Product 1',
+            'price': '\$29.99',
+            'image':
+                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+            'description': 'Amazing product description',
+            'buyLink': 'https://example.com/buy',
+          }
+        ],
+        'layout': 'grid',
+        'showPrices': true,
+        'showDescriptions': true,
+      }
+    },
+    {
+      'id': 'calendar_booking',
+      'name': 'Calendar Booking',
+      'icon': 'calendar_today',
+      'type': 'booking',
+      'category': 'Interactive',
+      'defaultProps': {
+        'title': 'Book a Meeting',
+        'description': 'Schedule a time that works for you',
+        'calendarUrl': 'https://calendly.com/your-calendar',
+        'buttonText': 'Book Now',
+        'backgroundColor': '#191919',
+      }
+    },
+    {
+      'id': 'testimonials',
+      'name': 'Testimonials',
+      'icon': 'format_quote',
+      'type': 'testimonials',
+      'category': 'Social Proof',
+      'defaultProps': {
+        'testimonials': [
+          {
+            'text': 'Amazing service! Highly recommend.',
+            'author': 'John Doe',
+            'position': 'CEO, Company',
+            'avatar':
+                'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+          }
+        ],
+        'layout': 'carousel',
+        'showAvatars': true,
+        'autoPlay': true,
+      }
+    },
+    {
+      'id': 'music_player',
+      'name': 'Music Player',
+      'icon': 'library_music',
+      'type': 'music',
+      'category': 'Media',
+      'defaultProps': {
+        'tracks': [
+          {
+            'title': 'Track 1',
+            'artist': 'Artist Name',
+            'url': 'https://example.com/track1.mp3',
+            'artwork':
+                'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+          }
+        ],
+        'showPlaylist': true,
+        'autoPlay': false,
+        'backgroundColor': '#191919',
+      }
+    },
+  ];
+
+  final List<Map<String, dynamic>> _templates = [
+    {
+      'id': 'minimal',
+      'name': 'Minimal',
+      'thumbnail':
+          'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
+      'components': [
+        {
+          'id': '1',
+          'type': 'profile',
+          'defaultProps': {
+            'name': 'Your Name',
+            'bio': 'Creative professional',
+            'profileImage':
+                'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+          }
+        },
+        {
+          'id': '2',
+          'type': 'button',
+          'defaultProps': {
+            'title': 'Visit Portfolio',
+            'url': 'https://example.com',
+            'backgroundColor': '#3B82F6',
+          }
+        },
+        {
+          'id': '3',
+          'type': 'social',
+          'defaultProps': {
+            'platforms': [
+              {'name': 'Instagram', 'url': '', 'icon': 'camera_alt'},
+              {'name': 'Twitter', 'url': '', 'icon': 'alternate_email'},
+            ]
+          }
+        },
+      ]
+    },
+    {
+      'id': 'business',
+      'name': 'Business',
+      'thumbnail':
+          'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400',
+      'components': [
+        {
+          'id': '1',
+          'type': 'profile',
+          'defaultProps': {
+            'name': 'Business Name',
+            'bio': 'Professional services',
+            'showVerifiedBadge': true,
+          }
+        },
+        {
+          'id': '2',
+          'type': 'button',
+          'defaultProps': {
+            'title': 'Our Services',
+            'backgroundColor': '#10B981',
+          }
+        },
+        {
+          'id': '3',
+          'type': 'booking',
+          'defaultProps': {
+            'title': 'Schedule Consultation',
+          }
+        },
+        {
+          'id': '4',
+          'type': 'form',
+          'defaultProps': {
+            'title': 'Contact Us',
+          }
+        },
+      ]
+    },
+    {
+      'id': 'creator',
+      'name': 'Content Creator',
+      'thumbnail':
+          'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400',
+      'components': [
+        {
+          'id': '1',
+          'type': 'profile',
+          'defaultProps': {
+            'name': 'Creator Name',
+            'bio': 'Content creator & influencer',
+          }
+        },
+        {
+          'id': '2',
+          'type': 'video',
+          'defaultProps': {
+            'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          }
+        },
+        {
+          'id': '3',
+          'type': 'gallery',
+          'defaultProps': {
+            'layout': 'grid',
+            'columns': 3,
+          }
+        },
+        {
+          'id': '4',
+          'type': 'social',
+          'defaultProps': {
+            'platforms': [
+              {'name': 'Instagram', 'url': ''},
+              {'name': 'YouTube', 'url': ''},
+              {'name': 'TikTok', 'url': ''},
+            ]
+          }
+        },
+        {
+          'id': '5',
+          'type': 'newsletter',
+          'defaultProps': {
+            'title': 'Subscribe for Updates',
+          }
+        },
+      ]
     },
   ];
 
   @override
   void initState() {
     super.initState();
+    _loadDefaultTemplate();
     _startAutoSave();
+  }
+
+  void _loadDefaultTemplate() {
+    // Load a basic template by default
+    setState(() {
+      _pageComponents = [
+        {
+          'id': DateTime.now().millisecondsSinceEpoch.toString(),
+          'type': 'profile',
+          'defaultProps': {
+            'name': 'Your Name',
+            'bio': 'Welcome to my Link in Bio',
+            'profileImage':
+                'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+            'showVerifiedBadge': false,
+          }
+        },
+        {
+          'id': (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+          'type': 'button',
+          'defaultProps': {
+            'title': 'Visit My Website',
+            'url': 'https://example.com',
+            'backgroundColor': '#3B82F6',
+            'textColor': '#FFFFFF',
+            'borderRadius': 12.0,
+            'icon': 'open_in_new',
+            'showIcon': true,
+          }
+        },
+      ];
+    });
   }
 
   void _startAutoSave() {
@@ -221,6 +538,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
     showDialog(
       context: context,
       builder: (context) => TemplateSelectionModal(
+        templates: _templates,
         onTemplateSelected: (template) {
           _showConfirmationDialog(
             'Apply Template',
@@ -231,6 +549,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
                     .add(List<Map<String, dynamic>>.from(_pageComponents));
                 _redoStack.clear();
                 _pageComponents = List.from(template['components']);
+                _selectedComponentId = '';
               });
             },
           );
@@ -242,14 +561,26 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
   void _showCustomDomainSetup() {
     showDialog(
       context: context,
-      builder: (context) => const CustomDomainModal(),
+      builder: (context) => CustomDomainModal(
+        currentDomain: _pageSettings['customDomain'],
+        onDomainUpdate: (domain) {
+          setState(() {
+            _pageSettings['customDomain'] = domain;
+          });
+        },
+      ),
     );
   }
 
   void _showQRCodeGenerator() {
     showDialog(
       context: context,
-      builder: (context) => const QRCodeModal(),
+      builder: (context) => QRCodeModal(
+        url: _pageSettings['customDomain'].isNotEmpty
+            ? _pageSettings['customDomain']
+            : 'https://your-bio-link.com',
+        title: _pageSettings['title'],
+      ),
     );
   }
 
@@ -314,10 +645,23 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
       'Publish Page',
       'Your Link in Bio page will be live and accessible to visitors.',
       () {
-        // Simulate publish process
+        setState(() {
+          _pageSettings['isPublished'] = true;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Page published successfully!'),
+            content: Row(
+              children: [
+                CustomIconWidget(
+                  iconName: 'check_circle',
+                  color: AppTheme.success,
+                  size: 20,
+                ),
+                SizedBox(width: 2.w),
+                const Text('Page published successfully!'),
+              ],
+            ),
             backgroundColor: AppTheme.success,
             action: SnackBarAction(
               label: 'View Analytics',
@@ -329,6 +673,71 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildComponentLibrary() {
+    return Container(
+      width: 80,
+      color: AppTheme.surface,
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(2.w),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryBackground,
+              border: Border(
+                bottom: BorderSide(color: AppTheme.border),
+              ),
+            ),
+            child: Text(
+              'Components',
+              style: AppTheme.darkTheme.textTheme.titleSmall,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(vertical: 1.h),
+              itemCount: _componentLibrary.length,
+              itemBuilder: (context, index) {
+                final component = _componentLibrary[index];
+                return GestureDetector(
+                  onTap: () => _addComponent(component),
+                  child: Container(
+                    margin:
+                        EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
+                    padding: EdgeInsets.all(2.w),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryBackground,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomIconWidget(
+                          iconName: component['icon'],
+                          color: AppTheme.accent,
+                          size: 24,
+                        ),
+                        SizedBox(height: 1.h),
+                        Text(
+                          component['name'],
+                          style: AppTheme.darkTheme.textTheme.labelSmall,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -380,14 +789,23 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
               size: 24,
             ),
           ),
-          Switch(
-            value: _isPreviewMode,
-            onChanged: (value) {
-              setState(() {
-                _isPreviewMode = value;
-              });
-            },
-            activeColor: AppTheme.accent,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Preview',
+                style: AppTheme.darkTheme.textTheme.bodySmall,
+              ),
+              Switch(
+                value: _isPreviewMode,
+                onChanged: (value) {
+                  setState(() {
+                    _isPreviewMode = value;
+                  });
+                },
+                activeColor: AppTheme.accent,
+              ),
+            ],
           ),
           SizedBox(width: 2.w),
           ElevatedButton(
@@ -397,7 +815,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
               foregroundColor: AppTheme.primaryAction,
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
             ),
-            child: const Text('Publish'),
+            child: Text(_pageSettings['isPublished'] ? 'Update' : 'Publish'),
           ),
           SizedBox(width: 4.w),
         ],
@@ -406,6 +824,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
           ? MobilePreviewWidget(
               components: _pageComponents,
               selectedComponentId: _selectedComponentId,
+              pageSettings: _pageSettings,
               onComponentTap: (componentId) {
                 setState(() {
                   _selectedComponentId = componentId;
@@ -415,22 +834,16 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
             )
           : Row(
               children: [
-                Expanded(
-                  flex: 1,
-                  child: BuilderPanelWidget(
-                    componentLibrary: _componentLibrary,
-                    onComponentDrag: _addComponent,
-                  ),
-                ),
+                _buildComponentLibrary(),
                 Container(
                   width: 1,
                   color: AppTheme.border,
                 ),
                 Expanded(
-                  flex: 1,
                   child: MobilePreviewWidget(
                     components: _pageComponents,
                     selectedComponentId: _selectedComponentId,
+                    pageSettings: _pageSettings,
                     onComponentTap: (componentId) {
                       setState(() {
                         _selectedComponentId = componentId;

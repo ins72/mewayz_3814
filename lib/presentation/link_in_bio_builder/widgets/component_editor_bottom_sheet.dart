@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_theme.dart';
 
 class ComponentEditorBottomSheet extends StatefulWidget {
   final Map<String, dynamic> component;
@@ -18,31 +19,40 @@ class ComponentEditorBottomSheet extends StatefulWidget {
       _ComponentEditorBottomSheetState();
 }
 
-class _ComponentEditorBottomSheetState extends State<ComponentEditorBottomSheet>
-    with TickerProviderStateMixin {
-  late TabController _tabController;
+class _ComponentEditorBottomSheetState
+    extends State<ComponentEditorBottomSheet> {
   late Map<String, dynamic> _editedComponent;
+  late TextEditingController _titleController;
+  late TextEditingController _urlController;
+  late TextEditingController _contentController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _editedComponent = Map<String, dynamic>.from(widget.component);
+    _titleController = TextEditingController(
+      text: _editedComponent['defaultProps']['title'] ??
+          _editedComponent['defaultProps']['name'] ??
+          _editedComponent['defaultProps']['content'] ??
+          '',
+    );
+    _urlController = TextEditingController(
+      text: _editedComponent['defaultProps']['url'] ?? '',
+    );
+    _contentController = TextEditingController(
+      text: _editedComponent['defaultProps']['content'] ?? '',
+    );
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _titleController.dispose();
+    _urlController.dispose();
+    _contentController.dispose();
     super.dispose();
   }
 
-  void _updateProperty(String key, dynamic value) {
-    setState(() {
-      _editedComponent['defaultProps'][key] = value;
-    });
-  }
-
-  void _saveChanges() {
+  void _updateComponent() {
     widget.onUpdate(_editedComponent);
     Navigator.pop(context);
   }
@@ -50,722 +60,868 @@ class _ComponentEditorBottomSheetState extends State<ComponentEditorBottomSheet>
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70.h,
+      height: 80.h,
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
-          _buildHeader(),
-          _buildTabBar(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildContentTab(),
-                _buildDesignTab(),
-                _buildActionsTab(),
-              ],
-            ),
-          ),
-          _buildBottomActions(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryBackground,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border(
-          bottom: BorderSide(color: AppTheme.border, width: 1),
-        ),
-      ),
-      child: Column(
-        children: [
+          // Handle bar
           Container(
             width: 12.w,
             height: 0.5.h,
+            margin: EdgeInsets.only(top: 2.h),
             decoration: BoxDecoration(
               color: AppTheme.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           SizedBox(height: 2.h),
-          Row(
-            children: [
-              CustomIconWidget(
-                iconName: _editedComponent['icon'] as String,
-                color: AppTheme.accent,
-                size: 24,
-              ),
-              SizedBox(width: 3.w),
-              Text(
-                'Edit ${_editedComponent['name']}',
-                style: AppTheme.darkTheme.textTheme.titleLarge,
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: CustomIconWidget(
-                  iconName: 'close',
-                  color: AppTheme.primaryText,
-                  size: 24,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.primaryBackground,
-        border: Border(
-          bottom: BorderSide(color: AppTheme.border, width: 1),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        tabs: const [
-          Tab(text: 'Content'),
-          Tab(text: 'Design'),
-          Tab(text: 'Actions'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContentTab() {
-    final type = _editedComponent['type'] as String;
-    final props = _editedComponent['defaultProps'] as Map<String, dynamic>;
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (type == 'text') ..._buildTextContentFields(props),
-          if (type == 'button') ..._buildButtonContentFields(props),
-          if (type == 'image') ..._buildImageContentFields(props),
-          if (type == 'video') ..._buildVideoContentFields(props),
-          if (type == 'product') ..._buildProductContentFields(props),
-          if (type == 'form') ..._buildFormContentFields(props),
-          if (type == 'social') ..._buildSocialContentFields(props),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildTextContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Text Content',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['content'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Text',
-          hintText: 'Enter your text here',
-        ),
-        maxLines: 3,
-        onChanged: (value) => _updateProperty('content', value),
-      ),
-      SizedBox(height: 2.h),
-      Text(
-        'Text Alignment',
-        style: AppTheme.darkTheme.textTheme.bodyMedium,
-      ),
-      SizedBox(height: 1.h),
-      Row(
-        children: ['left', 'center', 'right'].map((alignment) {
-          final isSelected = props['alignment'] == alignment;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => _updateProperty('alignment', alignment),
-              child: Container(
-                margin: EdgeInsets.only(right: alignment != 'right' ? 2.w : 0),
-                padding: EdgeInsets.symmetric(vertical: 1.5.h),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.accent.withValues(alpha: 0.2)
-                      : AppTheme.primaryBackground,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isSelected ? AppTheme.accent : AppTheme.border,
+          // Header
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Edit ${_getComponentTypeName()}',
+                  style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+                    color: AppTheme.primaryText,
                   ),
                 ),
-                child: Center(
-                  child: CustomIconWidget(
-                    iconName: alignment == 'left'
-                        ? 'format_align_left'
-                        : alignment == 'center'
-                            ? 'format_align_center'
-                            : 'format_align_right',
-                    color: isSelected ? AppTheme.accent : AppTheme.primaryText,
-                    size: 20,
-                  ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: AppTheme.secondaryText),
+                      ),
+                    ),
+                    SizedBox(width: 2.w),
+                    ElevatedButton(
+                      onPressed: _updateComponent,
+                      child: const Text('Save'),
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ),
-          );
-        }).toList(),
-      ),
-    ];
-  }
-
-  List<Widget> _buildButtonContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Button Content',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['text'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Button Text',
-          hintText: 'Enter button text',
-        ),
-        onChanged: (value) => _updateProperty('text', value),
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['url'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Link URL',
-          hintText: 'https://example.com',
-        ),
-        keyboardType: TextInputType.url,
-        onChanged: (value) => _updateProperty('url', value),
-      ),
-    ];
-  }
-
-  List<Widget> _buildImageContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Image Content',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['url'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Image URL',
-          hintText: 'https://example.com/image.jpg',
-        ),
-        keyboardType: TextInputType.url,
-        onChanged: (value) => _updateProperty('url', value),
-      ),
-      SizedBox(height: 2.h),
-      ElevatedButton.icon(
-        onPressed: () {
-          // Simulate image upload
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Image upload feature coming soon!'),
-              backgroundColor: AppTheme.accent,
+          ),
+          Divider(color: AppTheme.border),
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(4.w),
+              child: _buildEditor(),
             ),
-          );
-        },
-        icon: CustomIconWidget(
-          iconName: 'upload',
-          color: AppTheme.primaryBackground,
-          size: 20,
-        ),
-        label: const Text('Upload Image'),
-      ),
-    ];
-  }
-
-  List<Widget> _buildVideoContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Video Content',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['url'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Video URL',
-          hintText: 'https://example.com/video.mp4',
-        ),
-        keyboardType: TextInputType.url,
-        onChanged: (value) => _updateProperty('url', value),
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['thumbnail'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Thumbnail URL',
-          hintText: 'https://example.com/thumbnail.jpg',
-        ),
-        keyboardType: TextInputType.url,
-        onChanged: (value) => _updateProperty('thumbnail', value),
-      ),
-      SizedBox(height: 2.h),
-      Row(
-        children: [
-          Text(
-            'Autoplay',
-            style: AppTheme.darkTheme.textTheme.bodyMedium,
           ),
-          const Spacer(),
-          Switch(
-            value: props['autoplay'] as bool,
-            onChanged: (value) => _updateProperty('autoplay', value),
-          ),
-        ],
-      ),
-    ];
-  }
-
-  List<Widget> _buildProductContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Product Content',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['name'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Product Name',
-          hintText: 'Enter product name',
-        ),
-        onChanged: (value) => _updateProperty('name', value),
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['price'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Price',
-          hintText: '\$99.99',
-        ),
-        keyboardType: TextInputType.number,
-        onChanged: (value) => _updateProperty('price', value),
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['description'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Description',
-          hintText: 'Product description',
-        ),
-        maxLines: 3,
-        onChanged: (value) => _updateProperty('description', value),
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['image'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Product Image URL',
-          hintText: 'https://example.com/product.jpg',
-        ),
-        keyboardType: TextInputType.url,
-        onChanged: (value) => _updateProperty('image', value),
-      ),
-    ];
-  }
-
-  List<Widget> _buildFormContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Form Content',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['title'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Form Title',
-          hintText: 'Contact Us',
-        ),
-        onChanged: (value) => _updateProperty('title', value),
-      ),
-      SizedBox(height: 2.h),
-      TextFormField(
-        initialValue: props['submitText'] as String,
-        decoration: const InputDecoration(
-          labelText: 'Submit Button Text',
-          hintText: 'Send Message',
-        ),
-        onChanged: (value) => _updateProperty('submitText', value),
-      ),
-    ];
-  }
-
-  List<Widget> _buildSocialContentFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Social Links',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      ...(props['platforms'] as List).asMap().entries.map((entry) {
-        final index = entry.key;
-        final platform = entry.value as Map<String, dynamic>;
-
-        return Container(
-          margin: EdgeInsets.only(bottom: 2.h),
-          padding: EdgeInsets.all(3.w),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryBackground,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                platform['name'] as String,
-                style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 1.h),
-              TextFormField(
-                initialValue: platform['url'] as String,
-                decoration: InputDecoration(
-                  labelText: '${platform['name']} URL',
-                  hintText:
-                      'https://${platform['name'].toString().toLowerCase()}.com/username',
-                ),
-                keyboardType: TextInputType.url,
-                onChanged: (value) {
-                  final platforms = List.from(props['platforms'] as List);
-                  platforms[index]['url'] = value;
-                  _updateProperty('platforms', platforms);
-                },
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    ];
-  }
-
-  Widget _buildDesignTab() {
-    final type = _editedComponent['type'] as String;
-    final props = _editedComponent['defaultProps'] as Map<String, dynamic>;
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (type == 'text') ..._buildTextDesignFields(props),
-          if (type == 'button') ..._buildButtonDesignFields(props),
-          if (type == 'image') ..._buildImageDesignFields(props),
-          ..._buildSpacingFields(),
         ],
       ),
     );
   }
 
-  List<Widget> _buildTextDesignFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Text Style',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      Text(
-        'Font Size: ${(props['fontSize'] as double).toInt()}px',
-        style: AppTheme.darkTheme.textTheme.bodyMedium,
-      ),
-      Slider(
-        value: props['fontSize'] as double,
-        min: 12.0,
-        max: 32.0,
-        divisions: 20,
-        onChanged: (value) => _updateProperty('fontSize', value),
-      ),
-      SizedBox(height: 2.h),
-      Row(
-        children: [
-          Text(
-            'Bold Text',
-            style: AppTheme.darkTheme.textTheme.bodyMedium,
-          ),
-          const Spacer(),
-          Switch(
-            value: props['fontWeight'] == 'bold',
-            onChanged: (value) =>
-                _updateProperty('fontWeight', value ? 'bold' : 'normal'),
-          ),
-        ],
-      ),
-      SizedBox(height: 2.h),
-      _buildColorPicker('Text Color', props['color'] as String,
-          (color) => _updateProperty('color', color)),
-    ];
+  String _getComponentTypeName() {
+    switch (_editedComponent['type']) {
+      case 'profile':
+        return 'Profile Header';
+      case 'button':
+        return 'Button';
+      case 'social':
+        return 'Social Links';
+      case 'text':
+        return 'Text Block';
+      case 'gallery':
+        return 'Image Gallery';
+      case 'video':
+        return 'Video';
+      case 'form':
+        return 'Contact Form';
+      case 'newsletter':
+        return 'Newsletter';
+      case 'product':
+        return 'Product Showcase';
+      case 'booking':
+        return 'Calendar Booking';
+      case 'testimonials':
+        return 'Testimonials';
+      case 'music':
+        return 'Music Player';
+      default:
+        return 'Component';
+    }
   }
 
-  List<Widget> _buildButtonDesignFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Button Style',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      _buildColorPicker('Background Color', props['backgroundColor'] as String,
-          (color) => _updateProperty('backgroundColor', color)),
-      SizedBox(height: 2.h),
-      _buildColorPicker('Text Color', props['textColor'] as String,
-          (color) => _updateProperty('textColor', color)),
-      SizedBox(height: 2.h),
-      Text(
-        'Border Radius: ${(props['borderRadius'] as double).toInt()}px',
-        style: AppTheme.darkTheme.textTheme.bodyMedium,
-      ),
-      Slider(
-        value: props['borderRadius'] as double,
-        min: 0.0,
-        max: 24.0,
-        divisions: 24,
-        onChanged: (value) => _updateProperty('borderRadius', value),
-      ),
-    ];
+  Widget _buildEditor() {
+    switch (_editedComponent['type']) {
+      case 'profile':
+        return _buildProfileEditor();
+      case 'button':
+        return _buildButtonEditor();
+      case 'social':
+        return _buildSocialEditor();
+      case 'text':
+        return _buildTextEditor();
+      case 'gallery':
+        return _buildGalleryEditor();
+      case 'video':
+        return _buildVideoEditor();
+      case 'form':
+        return _buildFormEditor();
+      case 'newsletter':
+        return _buildNewsletterEditor();
+      case 'product':
+        return _buildProductEditor();
+      case 'booking':
+        return _buildBookingEditor();
+      case 'testimonials':
+        return _buildTestimonialsEditor();
+      case 'music':
+        return _buildMusicEditor();
+      default:
+        return _buildGenericEditor();
+    }
   }
 
-  List<Widget> _buildImageDesignFields(Map<String, dynamic> props) {
-    return [
-      Text(
-        'Image Style',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      Text(
-        'Border Radius: ${(props['borderRadius'] as double).toInt()}px',
-        style: AppTheme.darkTheme.textTheme.bodyMedium,
-      ),
-      Slider(
-        value: props['borderRadius'] as double,
-        min: 0.0,
-        max: 24.0,
-        divisions: 24,
-        onChanged: (value) => _updateProperty('borderRadius', value),
-      ),
-    ];
-  }
-
-  Widget _buildColorPicker(
-      String label, String currentColor, Function(String) onColorChanged) {
-    final colors = [
-      '#F1F1F1',
-      '#7B7B7B',
-      '#3B82F6',
-      '#10B981',
-      '#EF4444',
-      '#F59E0B',
-      '#8B5CF6',
-      '#EC4899'
-    ];
-
+  Widget _buildProfileEditor() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTheme.darkTheme.textTheme.bodyMedium,
-        ),
-        SizedBox(height: 1.h),
-        Wrap(
-          spacing: 2.w,
-          runSpacing: 1.h,
-          children: colors.map((color) {
-            final isSelected = color == currentColor;
-            return GestureDetector(
-              onTap: () => onColorChanged(color),
-              child: Container(
-                width: 10.w,
-                height: 10.w,
-                decoration: BoxDecoration(
-                  color: Color(int.parse(color.replaceAll('#', '0xFF'))),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color:
-                        isSelected ? AppTheme.primaryAction : AppTheme.border,
-                    width: isSelected ? 3 : 1,
-                  ),
-                ),
-                child: isSelected
-                    ? Center(
-                        child: CustomIconWidget(
-                          iconName: 'check',
-                          color: color == '#F1F1F1'
-                              ? AppTheme.primaryBackground
-                              : AppTheme.primaryAction,
-                          size: 16,
-                        ),
-                      )
-                    : null,
-              ),
-            );
-          }).toList(),
+        _buildTextField('Name', _titleController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['name'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField('Bio', _contentController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['bio'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField('Profile Image URL', _urlController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['profileImage'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Verified Badge',
+          _editedComponent['defaultProps']['showVerifiedBadge'] ?? false,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showVerifiedBadge'] = value;
+            });
+          },
         ),
       ],
     );
   }
 
-  List<Widget> _buildSpacingFields() {
-    return [
-      SizedBox(height: 3.h),
-      Text(
-        'Spacing',
-        style: AppTheme.darkTheme.textTheme.titleMedium,
-      ),
-      SizedBox(height: 2.h),
-      Text(
-        'Margin: 16px',
-        style: AppTheme.darkTheme.textTheme.bodyMedium,
-      ),
-      Slider(
-        value: 16.0,
-        min: 0.0,
-        max: 32.0,
-        divisions: 32,
-        onChanged: (value) {
-          // Handle margin change
-        },
-      ),
-    ];
-  }
-
-  Widget _buildActionsTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Component Actions',
-            style: AppTheme.darkTheme.textTheme.titleMedium,
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            'Configure what happens when users interact with this component.',
-            style: AppTheme.darkTheme.textTheme.bodySmall,
-          ),
-          SizedBox(height: 3.h),
-          _buildActionOption(
-            'Open Link',
-            'Navigate to external URL',
-            'link',
-            true,
-          ),
-          _buildActionOption(
-            'Send Email',
-            'Open email client',
-            'email',
-            false,
-          ),
-          _buildActionOption(
-            'Make Call',
-            'Initiate phone call',
-            'phone',
-            false,
-          ),
-          _buildActionOption(
-            'Download File',
-            'Download a file',
-            'download',
-            false,
-          ),
-        ],
-      ),
+  Widget _buildButtonEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField('Button Text', _titleController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['title'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField('URL', _urlController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['url'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildColorPicker(
+          'Background Color',
+          _editedComponent['defaultProps']['backgroundColor'],
+          (color) {
+            setState(() {
+              _editedComponent['defaultProps']['backgroundColor'] = color;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildColorPicker(
+          'Text Color',
+          _editedComponent['defaultProps']['textColor'],
+          (color) {
+            setState(() {
+              _editedComponent['defaultProps']['textColor'] = color;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSlider(
+          'Border Radius',
+          _editedComponent['defaultProps']['borderRadius'],
+          0,
+          30,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['borderRadius'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Icon',
+          _editedComponent['defaultProps']['showIcon'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showIcon'] = value;
+            });
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildActionOption(
-      String title, String description, String action, bool isSelected) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 2.h),
-      child: ListTile(
-        contentPadding: EdgeInsets.all(3.w),
-        tileColor: isSelected
-            ? AppTheme.accent.withValues(alpha: 0.1)
-            : AppTheme.primaryBackground,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isSelected ? AppTheme.accent : AppTheme.border,
-            width: isSelected ? 2 : 1,
+  Widget _buildSocialEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Layout',
+          style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
+            color: AppTheme.primaryText,
           ),
         ),
-        leading: Container(
-          width: 6.w,
-          height: 6.w,
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.accent : AppTheme.border,
-            shape: BoxShape.circle,
-          ),
-          child: isSelected
-              ? Center(
-                  child: CustomIconWidget(
-                    iconName: 'check',
-                    color: AppTheme.primaryAction,
-                    size: 16,
-                  ),
-                )
-              : null,
+        SizedBox(height: 1.h),
+        _buildDropdown(
+          _editedComponent['defaultProps']['layout'],
+          ['horizontal', 'vertical'],
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['layout'] = value;
+            });
+          },
         ),
-        title: Text(
-          title,
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Labels',
+          _editedComponent['defaultProps']['showLabels'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showLabels'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        Text(
+          'Social Platforms',
+          style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
+            color: AppTheme.primaryText,
+          ),
+        ),
+        SizedBox(height: 1.h),
+        ..._buildSocialPlatformEditors(),
+      ],
+    );
+  }
+
+  Widget _buildTextEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField('Content', _contentController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['content'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildSlider(
+          'Font Size',
+          _editedComponent['defaultProps']['fontSize'],
+          12,
+          32,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['fontSize'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildDropdown(
+          _editedComponent['defaultProps']['fontWeight'],
+          ['normal', 'bold'],
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['fontWeight'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildDropdown(
+          _editedComponent['defaultProps']['alignment'],
+          ['left', 'center', 'right'],
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['alignment'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildColorPicker(
+          'Text Color',
+          _editedComponent['defaultProps']['color'],
+          (color) {
+            setState(() {
+              _editedComponent['defaultProps']['color'] = color;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGalleryEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSlider(
+          'Columns',
+          _editedComponent['defaultProps']['columns'].toDouble(),
+          1,
+          4,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['columns'] = value.toInt();
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSlider(
+          'Spacing',
+          _editedComponent['defaultProps']['spacing'],
+          0,
+          20,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['spacing'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSlider(
+          'Border Radius',
+          _editedComponent['defaultProps']['borderRadius'],
+          0,
+          20,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['borderRadius'] = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVideoEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField('Video URL', _urlController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['url'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Thumbnail URL',
+            TextEditingController(
+              text: _editedComponent['defaultProps']['thumbnail'] ?? '',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['thumbnail'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Autoplay',
+          _editedComponent['defaultProps']['autoplay'] ?? false,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['autoplay'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Controls',
+          _editedComponent['defaultProps']['showControls'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showControls'] = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField('Form Title', _titleController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['title'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Submit Button Text',
+            TextEditingController(
+              text: _editedComponent['defaultProps']['submitText'] ??
+                  'Send Message',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['submitText'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Success Message',
+            TextEditingController(
+              text: _editedComponent['defaultProps']['successMessage'] ??
+                  'Thank you!',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['successMessage'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildColorPicker(
+          'Background Color',
+          _editedComponent['defaultProps']['backgroundColor'],
+          (color) {
+            setState(() {
+              _editedComponent['defaultProps']['backgroundColor'] = color;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNewsletterEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField('Title', _titleController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['title'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Description',
+            TextEditingController(
+              text: _editedComponent['defaultProps']['description'] ?? '',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['description'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Button Text',
+            TextEditingController(
+              text:
+                  _editedComponent['defaultProps']['buttonText'] ?? 'Subscribe',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['buttonText'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Placeholder',
+            TextEditingController(
+              text: _editedComponent['defaultProps']['placeholder'] ??
+                  'Enter your email',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['placeholder'] = value;
+          });
+        }),
+      ],
+    );
+  }
+
+  Widget _buildProductEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDropdown(
+          _editedComponent['defaultProps']['layout'],
+          ['grid', 'list'],
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['layout'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Prices',
+          _editedComponent['defaultProps']['showPrices'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showPrices'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Descriptions',
+          _editedComponent['defaultProps']['showDescriptions'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showDescriptions'] = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBookingEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField('Title', _titleController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['title'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Description',
+            TextEditingController(
+              text: _editedComponent['defaultProps']['description'] ?? '',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['description'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField('Calendar URL', _urlController, (value) {
+          setState(() {
+            _editedComponent['defaultProps']['calendarUrl'] = value;
+          });
+        }),
+        SizedBox(height: 2.h),
+        _buildTextField(
+            'Button Text',
+            TextEditingController(
+              text:
+                  _editedComponent['defaultProps']['buttonText'] ?? 'Book Now',
+            ), (value) {
+          setState(() {
+            _editedComponent['defaultProps']['buttonText'] = value;
+          });
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTestimonialsEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDropdown(
+          _editedComponent['defaultProps']['layout'],
+          ['carousel', 'grid'],
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['layout'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Show Avatars',
+          _editedComponent['defaultProps']['showAvatars'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showAvatars'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Auto Play',
+          _editedComponent['defaultProps']['autoPlay'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['autoPlay'] = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMusicEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSwitchTile(
+          'Show Playlist',
+          _editedComponent['defaultProps']['showPlaylist'] ?? true,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['showPlaylist'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildSwitchTile(
+          'Auto Play',
+          _editedComponent['defaultProps']['autoPlay'] ?? false,
+          (value) {
+            setState(() {
+              _editedComponent['defaultProps']['autoPlay'] = value;
+            });
+          },
+        ),
+        SizedBox(height: 2.h),
+        _buildColorPicker(
+          'Background Color',
+          _editedComponent['defaultProps']['backgroundColor'],
+          (color) {
+            setState(() {
+              _editedComponent['defaultProps']['backgroundColor'] = color;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenericEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Component Type: ${_editedComponent['type']}',
           style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: isSelected ? AppTheme.accent : AppTheme.primaryText,
+            color: AppTheme.secondaryText,
           ),
         ),
-        subtitle: Text(
-          description,
-          style: AppTheme.darkTheme.textTheme.bodySmall,
+        SizedBox(height: 2.h),
+        Text(
+          'This component type doesn\'t have specific editing options yet.',
+          style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+            color: AppTheme.secondaryText,
+          ),
         ),
-        onTap: () {
-          // Handle action selection
-        },
-      ),
+      ],
     );
   }
 
-  Widget _buildBottomActions() {
-    return Container(
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryBackground,
-        border: Border(
-          top: BorderSide(color: AppTheme.border, width: 1),
+  Widget _buildTextField(String label, TextEditingController controller,
+      Function(String) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.darkTheme.textTheme.titleSmall?.copyWith(
+            color: AppTheme.primaryText,
+          ),
+        ),
+        SizedBox(height: 1.h),
+        TextFormField(
+          controller: controller,
+          onChanged: onChanged,
+          style: AppTheme.darkTheme.textTheme.bodyMedium,
+          decoration: InputDecoration(
+            hintText: 'Enter $label',
+            filled: true,
+            fillColor: AppTheme.primaryBackground,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppTheme.border),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorPicker(
+      String label, String currentColor, Function(String) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.darkTheme.textTheme.titleSmall?.copyWith(
+            color: AppTheme.primaryText,
+          ),
+        ),
+        SizedBox(height: 1.h),
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Color(int.parse(currentColor.replaceFirst('#', '0xFF'))),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.border),
+              ),
+            ),
+            SizedBox(width: 3.w),
+            Expanded(
+              child: TextFormField(
+                initialValue: currentColor,
+                onChanged: onChanged,
+                decoration: InputDecoration(
+                  hintText: '#000000',
+                  filled: true,
+                  fillColor: AppTheme.primaryBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: AppTheme.border),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSlider(String label, double value, double min, double max,
+      Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: AppTheme.darkTheme.textTheme.titleSmall?.copyWith(
+                color: AppTheme.primaryText,
+              ),
+            ),
+            Text(
+              value.toStringAsFixed(0),
+              style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                color: AppTheme.secondaryText,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 1.h),
+        Slider(
+          value: value,
+          min: min,
+          max: max,
+          onChanged: onChanged,
+          activeColor: AppTheme.accent,
+          inactiveColor: AppTheme.border,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown(
+      String currentValue, List<String> options, Function(String) onChanged) {
+    return DropdownButtonFormField<String>(
+      value: currentValue,
+      onChanged: (value) => onChanged(value!),
+      items: options.map((option) {
+        return DropdownMenuItem(
+          value: option,
+          child: Text(
+            option,
+            style: AppTheme.darkTheme.textTheme.bodyMedium,
+          ),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: AppTheme.primaryBackground,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppTheme.border),
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-          ),
-          SizedBox(width: 4.w),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _saveChanges,
-              child: const Text('Save Changes'),
-            ),
-          ),
-        ],
-      ),
+      dropdownColor: AppTheme.surface,
     );
+  }
+
+  Widget _buildSwitchTile(String title, bool value, Function(bool) onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: AppTheme.darkTheme.textTheme.titleSmall?.copyWith(
+            color: AppTheme.primaryText,
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppTheme.accent,
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildSocialPlatformEditors() {
+    final platforms = _editedComponent['defaultProps']['platforms'] as List;
+    return platforms.map<Widget>((platform) {
+      return Container(
+        margin: EdgeInsets.only(bottom: 2.h),
+        padding: EdgeInsets.all(3.w),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryBackground,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              platform['name'],
+              style: AppTheme.darkTheme.textTheme.titleSmall?.copyWith(
+                color: AppTheme.primaryText,
+              ),
+            ),
+            SizedBox(height: 1.h),
+            TextFormField(
+              initialValue: platform['url'],
+              onChanged: (value) {
+                setState(() {
+                  platform['url'] = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Enter ${platform['name']} URL',
+                filled: true,
+                fillColor: AppTheme.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: AppTheme.border),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 }
