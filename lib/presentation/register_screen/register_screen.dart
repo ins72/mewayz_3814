@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import './widgets/registration_form_widget.dart';
 import './widgets/password_strength_indicator_widget.dart';
+import './widgets/registration_form_widget.dart';
 import './widgets/social_registration_widget.dart';
 import './widgets/terms_and_privacy_widget.dart';
 

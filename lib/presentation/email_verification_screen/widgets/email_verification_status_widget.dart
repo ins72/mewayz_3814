@@ -28,9 +28,9 @@ class EmailVerificationStatusWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Email Status
         Container(
           width: double.infinity,
@@ -59,9 +59,9 @@ class EmailVerificationStatusWidget extends StatelessWidget {
                   color: AppTheme.success,
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Email Sent Status
               Text(
                 'Email Sent Successfully',
@@ -72,9 +72,9 @@ class EmailVerificationStatusWidget extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // User Email
               Text(
                 userEmail,
@@ -85,9 +85,9 @@ class EmailVerificationStatusWidget extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Instructions
               Text(
                 'Please check your inbox and spam folder for the verification email. Click the link in the email to verify your account.',
@@ -99,9 +99,9 @@ class EmailVerificationStatusWidget extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Open Email App Button
               SizedBox(
                 width: double.infinity,

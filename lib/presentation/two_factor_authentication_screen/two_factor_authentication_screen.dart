@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/app_export.dart';
-import '../../routes/app_routes.dart';
-import '../../widgets/custom_image_widget.dart';
-import '../../widgets/custom_icon_widget.dart';
-import 'widgets/sms_verification_widget.dart';
-import 'widgets/email_verification_widget.dart';
-import 'widgets/authenticator_verification_widget.dart';
-import 'widgets/backup_codes_widget.dart';
-import 'widgets/verification_code_input_widget.dart';
+import './widgets/authenticator_verification_widget.dart';
+import './widgets/backup_codes_widget.dart';
+import './widgets/email_verification_widget.dart';
+import './widgets/sms_verification_widget.dart';
 
 class TwoFactorAuthenticationScreen extends StatefulWidget {
   const TwoFactorAuthenticationScreen({Key? key}) : super(key: key);
 
   @override
-  State<TwoFactorAuthenticationScreen> createState() => _TwoFactorAuthenticationScreenState();
+  State<TwoFactorAuthenticationScreen> createState() =>
+      _TwoFactorAuthenticationScreenState();
 }
 
-class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationScreen> 
+class _TwoFactorAuthenticationScreenState
+    extends State<TwoFactorAuthenticationScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   String phoneNumber = '';
   String emailAddress = '';
   String verificationCode = '';
@@ -44,7 +43,8 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Get user data from route arguments
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     phoneNumber = args?['phoneNumber'] ?? '+1 (555) 123-4567';
     emailAddress = args?['email'] ?? 'user@example.com';
   }
@@ -81,7 +81,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
     try {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-      
+
       if (mounted) {
         setState(() {
           isLoading = false;
@@ -89,7 +89,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
           resendCountdown = 30;
         });
         _startResendTimer();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Verification code sent successfully'),
@@ -118,14 +118,14 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
     try {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Simulate verification logic
       if (code == '123456') {
         // Success - navigate to dashboard
         if (mounted) {
           // Haptic feedback for success
           HapticFeedback.lightImpact();
-          
+
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.workspaceDashboard,
@@ -140,13 +140,14 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
             attemptCount++;
             errorMessage = 'Invalid verification code. Please try again.';
           });
-          
+
           // Haptic feedback for error
           HapticFeedback.vibrate();
-          
+
           if (attemptCount >= maxAttempts) {
             setState(() {
-              errorMessage = 'Too many failed attempts. Please try again later.';
+              errorMessage =
+                  'Too many failed attempts. Please try again later.';
             });
           }
         }
@@ -212,9 +213,9 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                       color: AppTheme.accent,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   Text(
                     'Two-Factor Authentication',
                     style: GoogleFonts.inter(
@@ -224,9 +225,9 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   Text(
                     'Choose your preferred verification method',
                     style: GoogleFonts.inter(
@@ -239,7 +240,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                 ],
               ),
             ),
-            
+
             // Tab Bar
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -271,7 +272,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                 ],
               ),
             ),
-            
+
             // Tab Content
             Expanded(
               child: TabBarView(
@@ -297,7 +298,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                     },
                     onResendCode: _sendVerificationCode,
                   ),
-                  
+
                   // Email Verification
                   EmailVerificationWidget(
                     emailAddress: emailAddress,
@@ -318,7 +319,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                     },
                     onResendCode: _sendVerificationCode,
                   ),
-                  
+
                   // Authenticator App
                   AuthenticatorVerificationWidget(
                     verificationCode: verificationCode,
@@ -338,7 +339,7 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                 ],
               ),
             ),
-            
+
             // Trust Device & Backup Codes
             Container(
               padding: const EdgeInsets.all(24),
@@ -379,9 +380,9 @@ class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationS
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Backup Codes Link
                   TextButton(
                     onPressed: () {

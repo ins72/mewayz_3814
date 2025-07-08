@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
-import 'verification_code_input_widget.dart';
+import './verification_code_input_widget.dart';
 
 class SmsVerificationWidget extends StatelessWidget {
   final String phoneNumber;
@@ -39,7 +39,7 @@ class SmsVerificationWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
-          
+
           // SMS Icon
           Container(
             width: 80,
@@ -58,9 +58,9 @@ class SmsVerificationWidget extends StatelessWidget {
               color: AppTheme.success,
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Title
           Text(
             'SMS Verification',
@@ -70,9 +70,9 @@ class SmsVerificationWidget extends StatelessWidget {
               color: AppTheme.primaryText,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Phone Number
           RichText(
             text: TextSpan(
@@ -95,9 +95,9 @@ class SmsVerificationWidget extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // Verification Code Input
           VerificationCodeInputWidget(
             code: verificationCode,
@@ -105,9 +105,9 @@ class SmsVerificationWidget extends StatelessWidget {
             isLoading: isLoading,
             hasError: errorMessage != null,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Error Message
           if (errorMessage != null)
             Container(
@@ -157,18 +157,17 @@ class SmsVerificationWidget extends StatelessWidget {
                 ],
               ),
             ),
-          
+
           // Resend Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: canResend ? onResendCode : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: canResend 
-                    ? AppTheme.primaryAction 
-                    : AppTheme.surface,
-                foregroundColor: canResend 
-                    ? AppTheme.primaryBackground 
+                backgroundColor:
+                    canResend ? AppTheme.primaryAction : AppTheme.surface,
+                foregroundColor: canResend
+                    ? AppTheme.primaryBackground
                     : AppTheme.secondaryText,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -177,9 +176,7 @@ class SmsVerificationWidget extends StatelessWidget {
                 ),
               ),
               child: Text(
-                canResend 
-                    ? 'Resend Code' 
-                    : 'Resend Code (${resendCountdown}s)',
+                canResend ? 'Resend Code' : 'Resend Code (${resendCountdown}s)',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -187,9 +184,9 @@ class SmsVerificationWidget extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Additional Info
           Container(
             width: double.infinity,

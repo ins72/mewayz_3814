@@ -22,10 +22,12 @@ class EmailVerificationFormWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<EmailVerificationFormWidget> createState() => _EmailVerificationFormWidgetState();
+  State<EmailVerificationFormWidget> createState() =>
+      _EmailVerificationFormWidgetState();
 }
 
-class _EmailVerificationFormWidgetState extends State<EmailVerificationFormWidget> {
+class _EmailVerificationFormWidgetState
+    extends State<EmailVerificationFormWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -66,9 +68,9 @@ class _EmailVerificationFormWidgetState extends State<EmailVerificationFormWidge
             ],
           ),
         ),
-        
+
         const SizedBox(height: 20),
-        
+
         // Instructions
         Text(
           'Check your email',
@@ -78,9 +80,9 @@ class _EmailVerificationFormWidgetState extends State<EmailVerificationFormWidge
             color: AppTheme.primaryText,
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         RichText(
           text: TextSpan(
             style: GoogleFonts.inter(
@@ -107,23 +109,23 @@ class _EmailVerificationFormWidgetState extends State<EmailVerificationFormWidge
             ],
           ),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Action Buttons
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: widget.canResend && !widget.isLoading 
-                    ? widget.onResend 
+                onPressed: widget.canResend && !widget.isLoading
+                    ? widget.onResend
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.canResend && !widget.isLoading 
-                      ? AppTheme.primaryAction 
+                  backgroundColor: widget.canResend && !widget.isLoading
+                      ? AppTheme.primaryAction
                       : AppTheme.surface,
-                  foregroundColor: widget.canResend && !widget.isLoading 
-                      ? AppTheme.primaryBackground 
+                  foregroundColor: widget.canResend && !widget.isLoading
+                      ? AppTheme.primaryBackground
                       : AppTheme.secondaryText,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -143,8 +145,8 @@ class _EmailVerificationFormWidgetState extends State<EmailVerificationFormWidge
                         ),
                       )
                     : Text(
-                        widget.canResend 
-                            ? 'Resend Email' 
+                        widget.canResend
+                            ? 'Resend Email'
                             : 'Resend (${widget.countdown}s)',
                         style: GoogleFonts.inter(
                           fontSize: 16,

@@ -19,10 +19,12 @@ class VerificationCodeInputWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<VerificationCodeInputWidget> createState() => _VerificationCodeInputWidgetState();
+  State<VerificationCodeInputWidget> createState() =>
+      _VerificationCodeInputWidgetState();
 }
 
-class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidget> {
+class _VerificationCodeInputWidgetState
+    extends State<VerificationCodeInputWidget> {
   late List<TextEditingController> _controllers;
   late List<FocusNode> _focusNodes;
 
@@ -31,7 +33,7 @@ class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidge
     super.initState();
     _controllers = List.generate(6, (_) => TextEditingController());
     _focusNodes = List.generate(6, (_) => FocusNode());
-    
+
     // Set initial values if code is provided
     if (widget.code.isNotEmpty) {
       for (int i = 0; i < widget.code.length && i < 6; i++) {
@@ -63,13 +65,13 @@ class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidge
         _focusNodes[index - 1].requestFocus();
       }
     }
-    
+
     // Build complete code
     String completeCode = '';
     for (final controller in _controllers) {
       completeCode += controller.text;
     }
-    
+
     widget.onCodeChanged(completeCode);
   }
 
@@ -99,10 +101,10 @@ class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidge
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: widget.hasError 
-                      ? AppTheme.error 
-                      : (_focusNodes[index].hasFocus 
-                          ? AppTheme.accent 
+                  color: widget.hasError
+                      ? AppTheme.error
+                      : (_focusNodes[index].hasFocus
+                          ? AppTheme.accent
                           : AppTheme.border),
                   width: widget.hasError ? 2 : 1,
                 ),
@@ -135,7 +137,8 @@ class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidge
                   onChanged: (value) => _onCodeChanged(value, index),
                   onTap: () {
                     if (_controllers[index].text.isNotEmpty) {
-                      _controllers[index].selection = TextSelection.fromPosition(
+                      _controllers[index].selection =
+                          TextSelection.fromPosition(
                         TextPosition(offset: _controllers[index].text.length),
                       );
                     }
@@ -145,9 +148,9 @@ class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidge
             );
           }),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Loading Indicator
         if (widget.isLoading)
           SizedBox(
@@ -158,7 +161,7 @@ class _VerificationCodeInputWidgetState extends State<VerificationCodeInputWidge
               valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
             ),
           ),
-        
+
         // Instructions
         if (!widget.isLoading)
           Text(

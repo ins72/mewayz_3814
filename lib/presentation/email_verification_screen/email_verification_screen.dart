@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../core/app_export.dart';
-import '../../routes/app_routes.dart';
-import '../../widgets/custom_image_widget.dart';
-import '../../widgets/custom_icon_widget.dart';
-import 'widgets/email_verification_form_widget.dart';
-import 'widgets/email_verification_status_widget.dart';
+import './widgets/email_verification_status_widget.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({Key? key}) : super(key: key);
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
@@ -35,7 +32,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Get email from route arguments
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     userEmail = args?['email'] ?? 'user@example.com';
   }
 
@@ -66,7 +64,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     try {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-      
+
       if (mounted) {
         setState(() {
           isResendLoading = false;
@@ -142,7 +140,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              
+
               // Mewayz Logo
               Container(
                 width: 80,
@@ -159,17 +157,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Email Verification Status Widget
               EmailVerificationStatusWidget(
                 userEmail: userEmail,
                 onOpenEmailApp: _openEmailApp,
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Email Icon with Checkmark
               Container(
                 width: 100,
@@ -211,9 +209,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Success/Error Messages
               if (successMessage != null)
                 Container(
@@ -249,7 +247,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     ],
                   ),
                 ),
-              
+
               if (errorMessage != null)
                 Container(
                   width: double.infinity,
@@ -284,18 +282,20 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     ],
                   ),
                 ),
-              
+
               // Resend Email Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: canResend && !isResendLoading ? _resendVerificationEmail : null,
+                  onPressed: canResend && !isResendLoading
+                      ? _resendVerificationEmail
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: canResend && !isResendLoading 
-                        ? AppTheme.primaryAction 
+                    backgroundColor: canResend && !isResendLoading
+                        ? AppTheme.primaryAction
                         : AppTheme.surface,
-                    foregroundColor: canResend && !isResendLoading 
-                        ? AppTheme.primaryBackground 
+                    foregroundColor: canResend && !isResendLoading
+                        ? AppTheme.primaryBackground
                         : AppTheme.secondaryText,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -315,8 +315,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                           ),
                         )
                       : Text(
-                          canResend 
-                              ? 'Resend Email' 
+                          canResend
+                              ? 'Resend Email'
                               : 'Resend Email (${resendCountdown}s)',
                           style: GoogleFonts.inter(
                             fontSize: 16,
@@ -325,9 +325,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Change Email Button
               SizedBox(
                 width: double.infinity,
@@ -354,9 +354,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Security Note
               Container(
                 width: double.infinity,
@@ -403,7 +403,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
             ],
           ),

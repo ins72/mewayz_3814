@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
-import 'verification_code_input_widget.dart';
+import './verification_code_input_widget.dart';
 
 class AuthenticatorVerificationWidget extends StatelessWidget {
   final String verificationCode;
@@ -35,7 +36,7 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
-          
+
           // Authenticator Icon
           Container(
             width: 80,
@@ -54,9 +55,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
               color: AppTheme.warning,
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Title
           Text(
             'Authenticator App',
@@ -66,9 +67,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
               color: AppTheme.primaryText,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Instructions
           Text(
             'Enter the 6-digit code from your authenticator app',
@@ -79,9 +80,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // QR Code Setup (if first time)
           Container(
             width: double.infinity,
@@ -128,9 +129,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Manual Entry Key
                 Text(
                   'Manual Entry Key',
@@ -140,9 +141,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
                     color: AppTheme.primaryText,
                   ),
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
@@ -186,9 +187,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Setup Instructions
                 Text(
                   '1. Scan the QR code with your authenticator app\n2. Or manually enter the key above\n3. Enter the 6-digit code below',
@@ -203,9 +204,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // Verification Code Input
           VerificationCodeInputWidget(
             code: verificationCode,
@@ -213,9 +214,9 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
             isLoading: isLoading,
             hasError: errorMessage != null,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Error Message
           if (errorMessage != null)
             Container(
@@ -265,7 +266,7 @@ class AuthenticatorVerificationWidget extends StatelessWidget {
                 ],
               ),
             ),
-          
+
           // Supported Apps
           Container(
             width: double.infinity,

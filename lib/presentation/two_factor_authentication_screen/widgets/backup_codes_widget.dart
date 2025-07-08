@@ -28,7 +28,7 @@ class _BackupCodesWidgetState extends State<BackupCodesWidget> {
   void _copyAllCodes() {
     String allCodes = backupCodes.join('\n');
     Clipboard.setData(ClipboardData(text: allCodes));
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Backup codes copied to clipboard'),
@@ -87,9 +87,9 @@ class _BackupCodesWidgetState extends State<BackupCodesWidget> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Warning Message
           Container(
             width: double.infinity,
@@ -137,9 +137,9 @@ class _BackupCodesWidgetState extends State<BackupCodesWidget> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Backup Codes List
           Expanded(
             child: Container(
@@ -164,12 +164,11 @@ class _BackupCodesWidgetState extends State<BackupCodesWidget> {
                       color: AppTheme.primaryText,
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
                   Expanded(
                     child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 3.5,
                         crossAxisSpacing: 12,
@@ -218,9 +217,9 @@ class _BackupCodesWidgetState extends State<BackupCodesWidget> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Action Buttons
           Row(
             children: [
@@ -333,9 +332,9 @@ class _BackupCodesWidgetState extends State<BackupCodesWidget> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Instructions
           Text(
             'Use these codes to access your account if you lose your phone or can\'t receive verification codes. Each code can only be used once.',
