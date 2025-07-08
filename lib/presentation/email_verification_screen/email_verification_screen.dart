@@ -89,22 +89,16 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _openEmailApp() async {
-    final Uri emailLaunchUri = Uri(
-      scheme: 'mailto',
-      path: '',
-    );
+    final Uri emailLaunchUri = Uri(scheme: 'mailto', path: '');
 
     try {
       await launchUrl(emailLaunchUri);
     } catch (e) {
       // Handle error if email app cannot be opened
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Could not open email app'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+            backgroundColor: AppTheme.error));
       }
     }
   }
@@ -112,303 +106,219 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryBackground,
-      appBar: AppBar(
         backgroundColor: AppTheme.primaryBackground,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppTheme.primaryText,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          'Email Verification',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.primaryText,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 40),
-
-              // Mewayz Logo
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Center(
-                  child: CustomImageWidget(
-                    imagePath: 'assets/images/img_app_logo.svg',
-                    width: 40,
-                    height: 40,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Email Verification Status Widget
-              EmailVerificationStatusWidget(
-                userEmail: userEmail,
-                onOpenEmailApp: _openEmailApp,
-              ),
-
-              const SizedBox(height: 40),
-
-              // Email Icon with Checkmark
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(50),
-                  border: Border.all(
-                    color: AppTheme.success.withValues(alpha: 0.3),
-                    width: 2,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.email_outlined,
-                        size: 40,
-                        color: AppTheme.primaryText,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: AppTheme.success,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          size: 16,
-                          color: AppTheme.primaryText,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Success/Error Messages
-              if (successMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.success.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: AppTheme.success,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          successMessage!,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: AppTheme.success,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              if (errorMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.error.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: AppTheme.error,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          errorMessage!,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: AppTheme.error,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // Resend Email Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: canResend && !isResendLoading
-                      ? _resendVerificationEmail
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: canResend && !isResendLoading
-                        ? AppTheme.primaryAction
-                        : AppTheme.surface,
-                    foregroundColor: canResend && !isResendLoading
-                        ? AppTheme.primaryBackground
-                        : AppTheme.secondaryText,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isResendLoading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.secondaryText,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          canResend
-                              ? 'Resend Email'
-                              : 'Resend Email (${resendCountdown}s)',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Change Email Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _changeEmail,
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppTheme.surface,
-                    foregroundColor: AppTheme.primaryText,
-                    side: const BorderSide(
-                      color: AppTheme.border,
-                      width: 1,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Change Email Address',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Security Note
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppTheme.border,
-                    width: 1,
-                  ),
-                ),
+        appBar: AppBar(
+            backgroundColor: AppTheme.primaryBackground,
+            elevation: 0,
+            leading: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_ios,
+                    color: AppTheme.primaryText, size: 20)),
+            title: Text('Email Verification',
+                style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.primaryText))),
+        body: SafeArea(
+            child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.security,
-                          color: AppTheme.accent,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Security Notice',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.primaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'The verification link will expire in 24 hours. If you don\'t verify your email within this time, you\'ll need to request a new verification email.',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: AppTheme.secondaryText,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
 
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
-    );
+                      // Mewayz Logo
+                      Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(20)),
+                          child: const Center(
+                              child: CustomImageWidget(
+                                  imageUrl: '', width: 40, height: 40))),
+
+                      const SizedBox(height: 32),
+
+                      // Email Verification Status Widget
+                      EmailVerificationStatusWidget(
+                          userEmail: userEmail, onOpenEmailApp: _openEmailApp),
+
+                      const SizedBox(height: 40),
+
+                      // Email Icon with Checkmark
+                      Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(50),
+                              border: Border.all(
+                                  color:
+                                      AppTheme.success.withValues(alpha: 0.3),
+                                  width: 2)),
+                          child: Stack(children: [
+                            const Center(
+                                child: Icon(Icons.email_outlined,
+                                    size: 40, color: AppTheme.primaryText)),
+                            Positioned(
+                                bottom: 10,
+                                right: 10,
+                                child: Container(
+                                    width: 28,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                        color: AppTheme.success,
+                                        borderRadius:
+                                            BorderRadius.circular(14)),
+                                    child: const Icon(Icons.check,
+                                        size: 16,
+                                        color: AppTheme.primaryText))),
+                          ])),
+
+                      const SizedBox(height: 32),
+
+                      // Success/Error Messages
+                      if (successMessage != null)
+                        Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                                color: AppTheme.success.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color:
+                                        AppTheme.success.withValues(alpha: 0.3),
+                                    width: 1)),
+                            child: Row(children: [
+                              Icon(Icons.check_circle,
+                                  color: AppTheme.success, size: 20),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Text(successMessage!,
+                                      style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppTheme.success))),
+                            ])),
+
+                      if (errorMessage != null)
+                        Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                                color: AppTheme.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color:
+                                        AppTheme.error.withValues(alpha: 0.3),
+                                    width: 1)),
+                            child: Row(children: [
+                              Icon(Icons.error_outline,
+                                  color: AppTheme.error, size: 20),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Text(errorMessage!,
+                                      style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppTheme.error))),
+                            ])),
+
+                      // Resend Email Button
+                      SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                              onPressed: canResend && !isResendLoading
+                                  ? _resendVerificationEmail
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: canResend && !isResendLoading
+                                      ? AppTheme.primaryAction
+                                      : AppTheme.surface,
+                                  foregroundColor: canResend && !isResendLoading
+                                      ? AppTheme.primaryBackground
+                                      : AppTheme.secondaryText,
+                                  elevation: 0,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12))),
+                              child: isResendLoading
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppTheme.secondaryText)))
+                                  : Text(
+                                      canResend
+                                          ? 'Resend Email'
+                                          : 'Resend Email (${resendCountdown}s)',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500)))),
+
+                      const SizedBox(height: 16),
+
+                      // Change Email Button
+                      SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                              onPressed: _changeEmail,
+                              style: OutlinedButton.styleFrom(
+                                  backgroundColor: AppTheme.surface,
+                                  foregroundColor: AppTheme.primaryText,
+                                  side: const BorderSide(
+                                      color: AppTheme.border, width: 1),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12))),
+                              child: Text('Change Email Address',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500)))),
+
+                      const SizedBox(height: 32),
+
+                      // Security Note
+                      Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                              border:
+                                  Border.all(color: AppTheme.border, width: 1)),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(children: [
+                                  Icon(Icons.security,
+                                      color: AppTheme.accent, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text('Security Notice',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.primaryText)),
+                                ]),
+                                const SizedBox(height: 8),
+                                Text(
+                                    'The verification link will expire in 24 hours. If you don\'t verify your email within this time, you\'ll need to request a new verification email.',
+                                    style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppTheme.secondaryText,
+                                        height: 1.4)),
+                              ])),
+
+                      const SizedBox(height: 40),
+                    ]))));
   }
 }
