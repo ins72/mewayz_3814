@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/login_screen/login_screen.dart';
+import '../presentation/register_screen/register_screen.dart';
+import '../presentation/forgot_password_screen/forgot_password_screen.dart';
+import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/instagram_lead_search/instagram_lead_search.dart';
 import '../presentation/social_media_scheduler/social_media_scheduler.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
@@ -15,6 +18,9 @@ class AppRoutes {
   static const String splashScreen = '/splash-screen';
   static const String workspaceDashboard = '/workspace-dashboard';
   static const String loginScreen = '/login-screen';
+  static const String registerScreen = '/register-screen';
+  static const String forgotPasswordScreen = '/forgot-password-screen';
+  static const String resetPasswordScreen = '/reset-password-screen';
   static const String instagramLeadSearch = '/instagram-lead-search';
   static const String linkInBioBuilder = '/link-in-bio-builder';
   static const String socialMediaScheduler = '/social-media-scheduler';
@@ -28,6 +34,9 @@ class AppRoutes {
     splashScreen: (context) => const SplashScreen(),
     workspaceDashboard: (context) => const WorkspaceDashboard(),
     loginScreen: (context) => const LoginScreen(),
+    registerScreen: (context) => const RegisterScreen(),
+    forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
+    resetPasswordScreen: (context) => const ResetPasswordScreen(),
     instagramLeadSearch: (context) => const InstagramLeadSearch(),
     socialMediaScheduler: (context) => const SocialMediaScheduler(),
     marketplaceStore: (context) => const MarketplaceStore(),

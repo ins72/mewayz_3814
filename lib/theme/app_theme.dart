@@ -435,7 +435,8 @@ class AppTheme {
     scaffoldBackgroundColor: backgroundLight,
     cardColor: surfaceLight,
     dividerColor: onSurfaceLight.withValues(alpha: 0.12),
-    textTheme: _buildLightTextTheme(), dialogTheme: DialogThemeData(backgroundColor: surfaceLight),
+    textTheme: _buildLightTextTheme(),
+    dialogTheme: DialogThemeData(backgroundColor: surfaceLight),
   );
 
   /// Helper method to build dark text theme using Inter font

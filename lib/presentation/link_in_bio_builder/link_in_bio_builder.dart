@@ -227,7 +227,8 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder>
             'This will replace your current design. Continue?',
             () {
               setState(() {
-                _undoStack.add(List<Map<String, dynamic>>.from(_pageComponents));
+                _undoStack
+                    .add(List<Map<String, dynamic>>.from(_pageComponents));
                 _redoStack.clear();
                 _pageComponents = List.from(template['components']);
               });

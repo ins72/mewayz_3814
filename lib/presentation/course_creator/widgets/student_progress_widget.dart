@@ -326,8 +326,9 @@ class StudentProgressWidget extends StatelessWidget {
                     PieChartSectionData(
                       color: AppTheme.border,
                       value: (100 -
-                          analytics["engagementRate"] -
-                          analytics["dropoffRate"]).toDouble(),
+                              analytics["engagementRate"] -
+                              analytics["dropoffRate"])
+                          .toDouble(),
                       title:
                           '${(100 - analytics["engagementRate"] - analytics["dropoffRate"]).toStringAsFixed(1)}%',
                       radius: 12.w,

@@ -331,10 +331,9 @@ class MobilePreviewWidget extends StatelessWidget {
               .map((field) => Container(
                   margin: EdgeInsets.only(bottom: 2.h),
                   child: TextFormField(
-                      decoration: InputDecorationTheme()
-                          .copyWith()
-                          .copyWith(
-                              labelStyle: AppTheme.darkTheme.inputDecorationTheme.labelStyle),
+                      decoration: InputDecoration(
+                          labelStyle: AppTheme
+                              .darkTheme.inputDecorationTheme.labelStyle),
                       maxLines: field == 'message' ? 3 : 1)))
               .toList(),
           SizedBox(
