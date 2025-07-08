@@ -415,7 +415,9 @@ class MobilePreviewWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           child: CustomImageWidget(
                               imageUrl: '',
-                              width: 80, height: 80, fit: BoxFit.cover)),
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover)),
                       SizedBox(width: 3.w),
                       Expanded(
                           child: Column(
@@ -554,7 +556,9 @@ class MobilePreviewWidget extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                             child: CustomImageWidget(
                                 imageUrl: '',
-                                width: 40, height: 40, fit: BoxFit.cover)),
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover)),
                         title: Text(track['title'],
                             style: AppTheme.darkTheme.textTheme.bodyMedium
                                 ?.copyWith(color: AppTheme.primaryText)),

@@ -155,7 +155,9 @@ class _TemplateSelectionModalState extends State<TemplateSelectionModal> {
                                 AppTheme.accent.withAlpha(51),
                                 AppTheme.success.withAlpha(51),
                               ])),
-                          child: CustomImageWidget(imageUrl: template['imageUrl'] ?? '', fit: BoxFit.cover)))),
+                          child: CustomImageWidget(
+                              imageUrl: template['imageUrl'] ?? '',
+                              fit: BoxFit.cover)))),
               Padding(
                   padding: EdgeInsets.all(3.w),
                   child: Column(

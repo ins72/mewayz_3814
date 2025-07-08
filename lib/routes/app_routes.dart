@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../presentation/account_settings_screen/account_settings_screen.dart';
 import '../presentation/analytics_dashboard/analytics_dashboard.dart';
 import '../presentation/contact_us_screen/contact_us_screen.dart';
 import '../presentation/course_creator/course_creator.dart';
@@ -9,10 +10,12 @@ import '../presentation/forgot_password_screen/forgot_password_screen.dart';
 import '../presentation/instagram_lead_search/instagram_lead_search.dart';
 import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
+import '../presentation/notification_settings_screen/notification_settings_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
 import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
+import '../presentation/security_settings_screen/security_settings_screen.dart';
 import '../presentation/settings_screen/settings_screen.dart';
 import '../presentation/social_media_scheduler/social_media_scheduler.dart';
 import '../presentation/splash_screen/splash_screen.dart';
@@ -49,6 +52,10 @@ class AppRoutes {
   static const String settingsScreen = '/settings-screen';
   static const String contactUsScreen = '/contact-us-screen';
   static const String profileSettingsScreen = '/profile-settings-screen';
+  static const String accountSettingsScreen = '/account-settings-screen';
+  static const String notificationSettingsScreen =
+      '/notification-settings-screen';
+  static const String securitySettingsScreen = '/security-settings-screen';
   static const String instagramLeadSearch = '/instagram-lead-search';
   static const String linkInBioBuilder = '/link-in-bio-builder';
   static const String socialMediaScheduler = '/social-media-scheduler';
@@ -79,6 +86,9 @@ class AppRoutes {
     settingsScreen: (context) => const SettingsScreen(),
     contactUsScreen: (context) => const ContactUsScreen(),
     profileSettingsScreen: (context) => const ProfileSettingsScreen(),
+    accountSettingsScreen: (context) => const AccountSettingsScreen(),
+    notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
+    securitySettingsScreen: (context) => const SecuritySettingsScreen(),
     instagramLeadSearch: (context) => const InstagramLeadSearch(),
     socialMediaScheduler: (context) => const SocialMediaScheduler(),
     marketplaceStore: (context) => const MarketplaceStore(),
