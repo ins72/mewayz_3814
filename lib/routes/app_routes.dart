@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../presentation/account_settings_screen/account_settings_screen.dart';
 import '../presentation/analytics_dashboard/analytics_dashboard.dart';
 import '../presentation/app_store_optimization_screen/app_store_optimization_screen.dart';
@@ -23,7 +22,6 @@ import '../presentation/notification_settings_screen/notification_settings_scree
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
-import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
 import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
@@ -47,96 +45,99 @@ import '../presentation/workspace_settings_screen/workspace_settings_screen.dart
 class AppRoutes {
   static const String initial = '/';
   static const String splashScreen = '/splash-screen';
-  static const String workspaceDashboard = '/workspace-dashboard';
-  static const String workspaceSelectorScreen = '/workspace-selector-screen';
+  static const String userOnboardingScreen = '/user-onboarding-screen';
+  static const String goalSelectionScreen = '/goal-selection-screen';
   static const String workspaceCreationScreen = '/workspace-creation-screen';
-  static const String workspaceSettingsScreen = '/workspace-settings-screen';
-  static const String teamMemberInvitationScreen = '/team-member-invitation-screen';
-  static const String roleBasedAccessControlScreen = '/role-based-access-control-screen';
-  static const String usersTeamManagementScreen = '/users-team-management-screen';
+  static const String workspaceSelectorScreen = '/workspace-selector-screen';
+  static const String workspaceDashboard = '/workspace-dashboard';
+  static const String setupProgressScreen = '/setup-progress-screen';
   static const String loginScreen = '/login-screen';
   static const String registerScreen = '/register-screen';
   static const String forgotPasswordScreen = '/forgot-password-screen';
   static const String resetPasswordScreen = '/reset-password-screen';
   static const String emailVerificationScreen = '/email-verification-screen';
   static const String twoFactorAuthenticationScreen = '/two-factor-authentication-screen';
-  static const String userOnboardingScreen = '/user-onboarding-screen';
-  static const String goalSelectionScreen = '/goal-selection-screen';
-  static const String setupProgressScreen = '/setup-progress-screen';
+  static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
+  static const String linkInBioBuilder = '/link-in-bio-builder';
+  static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
+  static const String socialMediaManagerScreen = '/social-media-manager-screen';
+  static const String socialMediaSchedulerScreen = '/social-media-scheduler-screen';
+  static const String socialMediaScheduler = '/social-media-scheduler';
+  static const String socialMediaAnalyticsScreen = '/social-media-analytics-screen';
+  static const String hashtagResearchScreen = '/hashtag-research-screen';
+  static const String instagramLeadSearch = '/instagram-lead-search';
+  static const String multiPlatformPostingScreen = '/multi-platform-posting-screen';
+  static const String contentTemplatesScreen = '/content-templates-screen';
+  static const String contentCalendarScreen = '/content-calendar-screen';
+  static const String qrCodeGeneratorScreen = '/qr-code-generator-screen';
+  static const String emailMarketingCampaign = '/email-marketing-campaign';
+  static const String crmContactManagement = '/crm-contact-management';
+  static const String marketplaceStore = '/marketplace-store';
+  static const String courseCreator = '/course-creator';
+  static const String analyticsScreen = '/analytics-screen';
+  static const String analyticsDetailsScreen = '/analytics-details-screen';
+  static const String analyticsReportScreen = '/analytics-report-screen';
+  static const String analyticsExportScreen = '/analytics-export-screen';
   static const String settingsScreen = '/settings-screen';
-  static const String contactUsScreen = '/contact-us-screen';
   static const String profileSettingsScreen = '/profile-settings-screen';
   static const String accountSettingsScreen = '/account-settings-screen';
   static const String notificationSettingsScreen = '/notification-settings-screen';
   static const String securitySettingsScreen = '/security-settings-screen';
-  static const String instagramLeadSearch = '/instagram-lead-search';
-  static const String linkInBioBuilder = '/link-in-bio-builder';
-  static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
-  static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
-  static const String qrCodeGeneratorScreen = '/qr-code-generator-screen';
-  static const String socialMediaScheduler = '/social-media-scheduler';
-  static const String socialMediaSchedulerScreen = '/social-media-scheduler-screen';
-  static const String socialMediaManager = '/social-media-manager';
-  static const String multiPlatformPostingScreen = '/multi-platform-posting-screen';
-  static const String socialMediaAnalyticsScreen = '/social-media-analytics-screen';
-  static const String contentCalendarScreen = '/content-calendar-screen';
-  static const String hashtagResearchScreen = '/hashtag-research-screen';
-  static const String contentTemplatesScreen = '/content-templates-screen';
-  static const String emailMarketingCampaign = '/email-marketing-campaign';
-  static const String analyticsDashboard = '/analytics-dashboard';
-  static const String marketplaceStore = '/marketplace-store';
-  static const String courseCreator = '/course-creator';
-  static const String crmContactManagement = '/crm-contact-management';
+  static const String workspaceSettingsScreen = '/workspace-settings-screen';
+  static const String roleBasedAccessControlScreen = '/role-based-access-control-screen';
+  static const String usersTeamManagementScreen = '/users-team-management-screen';
+  static const String teamMemberInvitationScreen = '/team-member-invitation-screen';
+  static const String contactUsScreen = '/contact-us-screen';
   static const String appStoreOptimizationScreen = '/app-store-optimization-screen';
   static const String productionReleaseChecklistScreen = '/production-release-checklist-screen';
   static const String professionalReadmeDocumentationScreen = '/professional-readme-documentation-screen';
+  static const String analyticsDashboard = '/analytics-dashboard';
 
-  static Map<String, WidgetBuilder> get routes {
-    return {
-      initial: (context) => const SplashScreen(),
-      splashScreen: (context) => const SplashScreen(),
-      workspaceDashboard: (context) => const WorkspaceDashboard(),
-      workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
-      workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
-      workspaceSettingsScreen: (context) => const WorkspaceSettingsScreen(),
-      teamMemberInvitationScreen: (context) => const TeamMemberInvitationScreen(),
-      roleBasedAccessControlScreen: (context) => const RoleBasedAccessControlScreen(),
-      usersTeamManagementScreen: (context) => const UsersTeamManagementScreen(),
-      loginScreen: (context) => const LoginScreen(),
-      registerScreen: (context) => const RegisterScreen(),
-      forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
-      resetPasswordScreen: (context) => const ResetPasswordScreen(),
-      emailVerificationScreen: (context) => const EmailVerificationScreen(),
-      twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
-      userOnboardingScreen: (context) => const UserOnboardingScreen(),
-      goalSelectionScreen: (context) => const GoalSelectionScreen(),
-      setupProgressScreen: (context) => const SetupProgressScreen(),
-      settingsScreen: (context) => const SettingsScreen(),
-      contactUsScreen: (context) => const ContactUsScreen(),
-      profileSettingsScreen: (context) => const ProfileSettingsScreen(),
-      accountSettingsScreen: (context) => const AccountSettingsScreen(),
-      notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
-      securitySettingsScreen: (context) => const SecuritySettingsScreen(),
-      instagramLeadSearch: (context) => const InstagramLeadSearch(),
-      linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
-      linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
-      qrCodeGeneratorScreen: (context) => const QRCodeGeneratorScreen(),
-      socialMediaScheduler: (context) => const SocialMediaScheduler(),
-      socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
-      socialMediaManager: (context) => const SocialMediaManager(),
-      multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
-      socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
-      contentCalendarScreen: (context) => const ContentCalendarScreen(),
-      hashtagResearchScreen: (context) => const HashtagResearchScreen(),
-      contentTemplatesScreen: (context) => const ContentTemplatesScreen(),
-      emailMarketingCampaign: (context) => const EmailMarketingCampaign(),
-      analyticsDashboard: (context) => const AnalyticsDashboard(),
-      marketplaceStore: (context) => const MarketplaceStore(),
-      courseCreator: (context) => const CourseCreator(),
-      crmContactManagement: (context) => const CrmContactManagement(),
-      appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
-      productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
-      professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
-    };
-  }
+  static Map<String, Widget Function(BuildContext)> get routes => {
+    initial: (context) => const SplashScreen(),
+    splashScreen: (context) => const SplashScreen(),
+    userOnboardingScreen: (context) => const UserOnboardingScreen(),
+    goalSelectionScreen: (context) => const GoalSelectionScreen(),
+    workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
+    workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
+    workspaceDashboard: (context) => const WorkspaceDashboard(),
+    setupProgressScreen: (context) => const SetupProgressScreen(),
+    loginScreen: (context) => const LoginScreen(),
+    registerScreen: (context) => const RegisterScreen(),
+    forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
+    resetPasswordScreen: (context) => const ResetPasswordScreen(),
+    emailVerificationScreen: (context) => const EmailVerificationScreen(),
+    twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
+    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),    linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
+    socialMediaManagerScreen: (context) => const SocialMediaManager(),
+    socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
+    socialMediaScheduler: (context) => const SocialMediaScheduler(),
+    socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
+    hashtagResearchScreen: (context) => const HashtagResearchScreen(),
+    instagramLeadSearch: (context) => const InstagramLeadSearch(),
+    multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
+    contentTemplatesScreen: (context) => const ContentTemplatesScreen(),
+    contentCalendarScreen: (context) => const ContentCalendarScreen(),    emailMarketingCampaign: (context) => const EmailMarketingCampaign(),
+    crmContactManagement: (context) => const CrmContactManagement(),
+    marketplaceStore: (context) => const MarketplaceStore(),
+    courseCreator: (context) => const CourseCreator(),
+    analyticsScreen: (context) => const AnalyticsDashboard(),
+    analyticsDetailsScreen: (context) => const AnalyticsDashboard(),
+    analyticsReportScreen: (context) => const AnalyticsDashboard(),
+    analyticsExportScreen: (context) => const AnalyticsDashboard(),
+    settingsScreen: (context) => const SettingsScreen(),
+    profileSettingsScreen: (context) => const ProfileSettingsScreen(),
+    accountSettingsScreen: (context) => const AccountSettingsScreen(),
+    notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
+    securitySettingsScreen: (context) => const SecuritySettingsScreen(),
+    workspaceSettingsScreen: (context) => const WorkspaceSettingsScreen(),
+    roleBasedAccessControlScreen: (context) => const RoleBasedAccessControlScreen(),
+    usersTeamManagementScreen: (context) => const UsersTeamManagementScreen(),
+    teamMemberInvitationScreen: (context) => const TeamMemberInvitationScreen(),
+    contactUsScreen: (context) => const ContactUsScreen(),
+    appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
+    productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
+    professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
+    analyticsDashboard: (context) => const AnalyticsDashboard(),
+  };
 }

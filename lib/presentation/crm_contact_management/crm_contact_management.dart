@@ -604,10 +604,10 @@ class _CrmContactManagementState extends State<CrmContactManagement>
         currentIndex: 6,
         onTap: (index) {
           final routes = [
-            AppRoutes.workspaceDashboard,
-            AppRoutes.instagramLeadSearch,
-            AppRoutes.socialMediaScheduler,
-            AppRoutes.linkInBioBuilder,
+            '/workspace_dashboard',
+            '/instagram_lead_search',
+            '/social_media_scheduler',
+            '/link_in_bio_builder',
             '/course_creator',
             '/marketplace_store',
             '/crm_contact_management',

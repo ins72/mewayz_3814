@@ -147,7 +147,7 @@ class _WorkspaceSelectorScreenState extends State<WorkspaceSelectorScreen> {
         });
 
         HapticFeedback.selectionClick();
-        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+        Navigator.pushReplacementNamed(context, 'workspaceDashboard');
       }
     });
   }
@@ -254,7 +254,7 @@ class _WorkspaceSelectorScreenState extends State<WorkspaceSelectorScreen> {
               size: 24,
             ),
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
+              Navigator.pushNamed(context, 'workspaceCreationScreen');
             },
           ),
         ],
@@ -323,7 +323,7 @@ class _WorkspaceSelectorScreenState extends State<WorkspaceSelectorScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
+          Navigator.pushNamed(context, 'workspaceCreationScreen');
         },
         backgroundColor: AppTheme.primaryAction,
         child: const CustomIconWidget(

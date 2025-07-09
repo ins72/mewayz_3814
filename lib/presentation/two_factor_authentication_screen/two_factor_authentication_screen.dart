@@ -1,4 +1,5 @@
 import '../../core/app_export.dart';
+import '../../routes/app_routes.dart' as app_routes;
 import './widgets/authenticator_verification_widget.dart';
 import './widgets/backup_codes_widget.dart';
 import './widgets/email_verification_widget.dart';
@@ -124,7 +125,7 @@ class _TwoFactorAuthenticationScreenState
 
           Navigator.pushNamedAndRemoveUntil(
             context,
-            AppRoutes.workspaceDashboard,
+            app_routes.AppRoutes.workspaceDashboard,
             (route) => false,
           );
         }

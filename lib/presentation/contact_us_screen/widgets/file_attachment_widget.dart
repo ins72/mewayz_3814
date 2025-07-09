@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+
 import '../../../core/app_export.dart';
 
 class FileAttachmentWidget extends StatelessWidget {
@@ -224,7 +226,7 @@ class FileAttachmentWidget extends StatelessWidget {
               Icons.photo_library,
               () {
                 Navigator.pop(context);
-                // Implement gallery picker
+                _pickImageFromGallery();
               },
             ),
             _buildAttachmentOption(
@@ -233,7 +235,7 @@ class FileAttachmentWidget extends StatelessWidget {
               Icons.camera_alt,
               () {
                 Navigator.pop(context);
-                // Implement camera picker
+                _pickImageFromCamera();
               },
             ),
             _buildAttachmentOption(
@@ -242,13 +244,95 @@ class FileAttachmentWidget extends StatelessWidget {
               Icons.folder,
               () {
                 Navigator.pop(context);
-                // Implement file picker
+                _pickFileFromStorage();
               },
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = File(result.files.first.path!);
+        if (await _validateFile(file)) {
+          onAddAttachment(file);
+        }
+      }
+    } catch (e) {
+      // Handle error
+      debugPrint('Error picking image from gallery: $e');
+    }
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = File(result.files.first.path!);
+        if (await _validateFile(file)) {
+          onAddAttachment(file);
+        }
+      }
+    } catch (e) {
+      // Handle error
+      debugPrint('Error picking image from camera: $e');
+    }
+  }
+
+  Future<void> _pickFileFromStorage() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = File(result.files.first.path!);
+        if (await _validateFile(file)) {
+          onAddAttachment(file);
+        }
+      }
+    } catch (e) {
+      // Handle error
+      debugPrint('Error picking file from storage: $e');
+    }
+  }
+
+  Future<bool> _validateFile(File file) async {
+    const int maxFileSize = 10 * 1024 * 1024; // 10MB
+    final int fileSize = await file.length();
+
+    if (fileSize > maxFileSize) {
+      // Show error message
+      debugPrint('File size exceeds 10MB limit');
+      return false;
+    }
+
+    final String extension = file.path.split('.').last.toLowerCase();
+    const List<String> allowedExtensions = [
+      'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt'
+    ];
+
+    if (!allowedExtensions.contains(extension)) {
+      // Show error message
+      debugPrint('File type not supported');
+      return false;
+    }
+
+    return true;
   }
 
   Widget _buildAttachmentOption(

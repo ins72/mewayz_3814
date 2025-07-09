@@ -31,7 +31,7 @@ class ContentCalendarWidget extends StatelessWidget {
               const Spacer(),
               TextButton(
                 onPressed: () => Navigator.pushNamed(
-                    context, AppRoutes.socialMediaScheduler),
+                    context, 'social_media_scheduler'),
                 child: Text(
                   'View Calendar',
                   style: TextStyle(
@@ -79,7 +79,7 @@ class ContentCalendarWidget extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => Navigator.pushNamed(
-                      context, AppRoutes.socialMediaScheduler),
+                      context, 'social_media_scheduler'),
                   icon: const Icon(Icons.schedule_rounded),
                   label: const Text('Schedule Post'),
                 ),

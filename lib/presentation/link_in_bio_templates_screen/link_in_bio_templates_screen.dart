@@ -1,4 +1,5 @@
 import '../../core/app_export.dart';
+import '../../routes/app_routes.dart' as routes;
 import './widgets/favorites_templates_widget.dart';
 import './widgets/template_analytics_widget.dart';
 import './widgets/template_categories_widget.dart';
@@ -97,7 +98,7 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
     // Navigate to bio builder with template
     Navigator.pushNamed(
       context,
-      AppRoutes.linkInBioBuilder,
+      routes.AppRoutes.linkInBioBuilder,
       arguments: {'templateId': templateId},
     );
   }
@@ -121,7 +122,7 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
     // Apply customizations and navigate to bio builder
     Navigator.pushNamed(
       context,
-      AppRoutes.linkInBioBuilder,
+      routes.AppRoutes.linkInBioBuilder,
       arguments: {
         'templateId': templateId,
         'customizations': customizations,

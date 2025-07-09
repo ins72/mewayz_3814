@@ -453,13 +453,15 @@ class _ExportOptionsWidgetState extends State<ExportOptionsWidget> {
   void _downloadFile(String content, String filename, String mimeType) {
     // Web download implementation
     if (kIsWeb) {
-      final blob = html.Blob([content], mimeType);
-      final url = html.Url.createObjectUrl(blob);
+      final bytes = content.codeUnits;
+      // Use html classes with proper type casting
+      final blob = html.BlobElement([bytes], mimeType);
+      final url = html.UrlElement.createObjectUrlFromBlob(blob);
       final anchor = html.AnchorElement()
         ..href = url
         ..download = filename;
       anchor.click();
-      html.Url.revokeObjectUrl(url);
+      html.UrlElement.revokeObjectUrl(url);
     } else {
       // Fallback for other browsers
       final dataUrl = 'data:$mimeType;charset=utf-8,${Uri.encodeComponent(content)}';

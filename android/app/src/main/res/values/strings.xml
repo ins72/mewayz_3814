@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">mewayz</string>
-
+    <string name="app_name">Mewayz</string>
+    <string name="app_description">All-in-One Business Platform</string>
 </resources>

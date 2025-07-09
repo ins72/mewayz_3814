@@ -34,16 +34,13 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
   void _setupAnimations() {
     _fadeAnimationController = AnimationController(
       duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
+      vsync: this);
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
+      end: 1.0).animate(CurvedAnimation(
       parent: _fadeAnimationController,
-      curve: Curves.easeInOut,
-    ));
+      curve: Curves.easeInOut));
 
     _fadeAnimationController.forward();
   }
@@ -106,25 +103,18 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
         title: Text(
           'Skip Setup?',
           style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-            color: AppTheme.primaryText,
-          ),
-        ),
+            color: AppTheme.primaryText)),
         content: Text(
           'You can always complete these setup steps later from your dashboard.',
           style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-            color: AppTheme.secondaryText,
-          ),
-        ),
+            color: AppTheme.secondaryText)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Continue Setup',
               style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
-                color: AppTheme.secondaryText,
-              ),
-            ),
-          ),
+                color: AppTheme.secondaryText))),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
@@ -132,13 +122,9 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryAction,
-              foregroundColor: Color(0xFF141414),
-            ),
-            child: Text('Skip for Now'),
-          ),
-        ],
-      ),
-    );
+              foregroundColor: Color(0xFF141414)),
+            child: Text('Skip for Now')),
+        ]));
   }
 
   void _showErrorMessage(String message) {
@@ -147,9 +133,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
         SnackBar(
           content: Text(message),
           backgroundColor: Colors.red[400],
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+          behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -166,8 +150,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         systemNavigationBarColor: AppTheme.primaryBackground,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
+        systemNavigationBarIconBrightness: Brightness.light),
       child: Scaffold(
         backgroundColor: AppTheme.primaryBackground,
         body: SafeArea(
@@ -183,33 +166,23 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
                       children: [
                         // Header
                         SetupProgressHeaderWidget(
-                          onSkip: _skipToMainApp,
-                        ),
+                          onSkip: _skipToMainApp),
                         
                         // Content
                         Expanded(
                           child: _isLoading
                               ? _buildLoadingState()
-                              : _buildSetupContent(),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                              : _buildSetupContent()),
+                      ]));
+                }),
               
               // Celebration overlay
               if (_showCelebration)
                 CompletionCelebrationWidget(
                   onContinue: () {
                     Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
-                  },
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
+                  }),
+            ]))));
   }
 
   Widget _buildLoadingState() {
@@ -219,19 +192,14 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
         children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAction),
-            strokeWidth: 3,
-          ),
+            strokeWidth: 3),
           SizedBox(height: 3.h),
           Text(
             'Loading your setup...',
             style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
               color: AppTheme.secondaryText,
-              fontSize: 12.sp,
-            ),
-          ),
-        ],
-      ),
-    );
+              fontSize: 12.sp)),
+        ]));
   }
 
   Widget _buildSetupContent() {
@@ -243,16 +211,14 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
           ProgressOverviewWidget(
             progress: _onboardingProgress,
             totalSteps: _setupSteps.length,
-            completedSteps: _setupSteps.where((step) => step['status'] == 'completed').length,
-          ),
+            completedSteps: _setupSteps.where((step) => step['status'] == 'completed').length),
           
           SizedBox(height: 4.h),
           
           // Setup checklist
           SetupChecklistWidget(
             steps: _setupSteps,
-            onStepTap: _updateStepStatus,
-          ),
+            onStepTap: _updateStepStatus),
           
           SizedBox(height: 4.h),
           
@@ -260,9 +226,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
           if (_onboardingProgress != null && 
               (_onboardingProgress!['completion_percentage'] ?? 0) >= 100)
             _buildCompleteSetupButton(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildCompleteSetupButton() {
@@ -278,23 +242,17 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryAction,
+          
           foregroundColor: Color(0xFF141414),
           padding: EdgeInsets.symmetric(vertical: 2.h),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(3.w),
-          ),
-          elevation: 3,
-        ),
+            borderRadius: BorderRadius.circular(3.w)),
+          elevation: 3),
         child: Text(
           'Complete Setup & Continue',
           style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
             color: Color(0xFF141414),
             fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
+            fontWeight: FontWeight.w600))));
   }
 }

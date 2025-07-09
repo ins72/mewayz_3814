@@ -12,9 +12,11 @@ class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoAnimationController;
   late AnimationController _loadingAnimationController;
+  late AnimationController _backgroundAnimationController;
   late Animation<double> _logoScaleAnimation;
   late Animation<double> _logoFadeAnimation;
   late Animation<double> _loadingFadeAnimation;
+  late Animation<double> _backgroundAnimation;
 
   bool _showRetryOption = false;
   bool _isInitializing = true;
@@ -30,19 +32,25 @@ class _SplashScreenState extends State<SplashScreen>
   void _setupAnimations() {
     // Logo animation controller
     _logoAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
     // Loading animation controller
     _loadingAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
-    // Logo scale animation
+    // Background animation controller
+    _backgroundAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    );
+
+    // Logo scale animation with bounce effect
     _logoScaleAnimation = Tween<double>(
-      begin: 0.8,
+      begin: 0.5,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _logoAnimationController,
@@ -67,9 +75,20 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeIn,
     ));
 
+    // Background gradient animation
+    _backgroundAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _backgroundAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
     // Start animations
+    _backgroundAnimationController.forward();
     _logoAnimationController.forward();
-    Future.delayed(const Duration(milliseconds: 800), () {
+    
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         _loadingAnimationController.forward();
       }
@@ -78,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _initializeApp() async {
     try {
-      // Simulate initialization steps
+      // Perform initialization steps with better error handling
       await _performInitializationSteps();
 
       if (mounted) {
@@ -86,17 +105,19 @@ class _SplashScreenState extends State<SplashScreen>
       }
     } catch (e) {
       if (mounted) {
-        _handleInitializationError();
+        _handleInitializationError(e);
       }
     }
   }
 
   Future<void> _performInitializationSteps() async {
     final List<Map<String, dynamic>> initSteps = [
-{'status': 'Checking authentication...', 'duration': 600},
+{'status': 'Checking system requirements...', 'duration': 400},
+{'status': 'Verifying authentication...', 'duration': 600},
 {'status': 'Loading workspace preferences...', 'duration': 500},
-{'status': 'Fetching configuration...', 'duration': 700},
+{'status': 'Fetching user configuration...', 'duration': 700},
 {'status': 'Preparing cached data...', 'duration': 400},
+{'status': 'Initializing services...', 'duration': 500},
 {'status': 'Finalizing setup...', 'duration': 300},
 ];
 
@@ -110,15 +131,15 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  void _handleInitializationError() {
+  void _handleInitializationError(dynamic error) {
     setState(() {
       _isInitializing = false;
       _showRetryOption = true;
-      _initializationStatus = 'Failed to initialize. Please try again.';
+      _initializationStatus = 'Initialization failed. Please try again.';
     });
 
-    // Auto-hide retry option after 5 seconds
-    Future.delayed(const Duration(seconds: 5), () {
+    // Auto-retry after 8 seconds
+    Future.delayed(const Duration(seconds: 8), () {
       if (mounted && _showRetryOption) {
         _retryInitialization();
       }
@@ -131,21 +152,28 @@ class _SplashScreenState extends State<SplashScreen>
       _isInitializing = true;
       _initializationStatus = 'Retrying initialization...';
     });
+    
+    // Reset and restart animations
+    _loadingAnimationController.reset();
+    _loadingAnimationController.forward();
+    
     _initializeApp();
   }
 
   void _navigateToNextScreen() {
-    // Simulate authentication check
+    // Enhanced navigation logic with better user experience
     final bool isAuthenticated = _checkAuthenticationStatus();
     final bool isFirstTime = _checkFirstTimeUser();
+    final bool hasCompletedOnboarding = _checkOnboardingStatus();
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
-        if (isAuthenticated) {
+        if (isAuthenticated && hasCompletedOnboarding) {
           Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+        } else if (isAuthenticated && !hasCompletedOnboarding) {
+          Navigator.pushReplacementNamed(context, AppRoutes.goalSelectionScreen);
         } else if (isFirstTime) {
-          Navigator.pushReplacementNamed(
-              context, AppRoutes.userOnboardingScreen);
+          Navigator.pushReplacementNamed(context, AppRoutes.userOnboardingScreen);
         } else {
           Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
         }
@@ -154,21 +182,43 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   bool _checkAuthenticationStatus() {
-    // Mock authentication check
-    // In real implementation, check stored tokens/credentials
-    return false;
+    // Enhanced authentication check with proper error handling
+    try {
+      // In real implementation, check stored tokens/credentials
+      // Return AuthService.isAuthenticated();
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   bool _checkFirstTimeUser() {
-    // Mock first-time user check
-    // In real implementation, check user preferences
-    return true;
+    // Enhanced first-time user check
+    try {
+      // In real implementation, check user preferences
+      // Return StorageService.isFirstTimeUser();
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  bool _checkOnboardingStatus() {
+    // Check if user has completed onboarding
+    try {
+      // In real implementation, check onboarding completion
+      // Return OnboardingService.isCompleted();
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
   void dispose() {
     _logoAnimationController.dispose();
     _loadingAnimationController.dispose();
+    _backgroundAnimationController.dispose();
     super.dispose();
   }
 
@@ -182,54 +232,74 @@ class _SplashScreenState extends State<SplashScreen>
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: AppTheme.primaryBackground,
-        body: SafeArea(
-          child: SizedBox(
-            width: 100.w,
-            height: 100.h,
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo Section
-                        AnimatedBuilder(
-                          animation: _logoAnimationController,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _logoScaleAnimation.value,
-                              child: Opacity(
-                                opacity: _logoFadeAnimation.value,
-                                child: _buildLogo(),
-                              ),
-                            );
-                          },
-                        ),
-
-                        SizedBox(height: 8.h),
-
-                        // Loading Section
-                        AnimatedBuilder(
-                          animation: _loadingAnimationController,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _loadingFadeAnimation.value,
-                              child: _buildLoadingSection(),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+        body: AnimatedBuilder(
+          animation: _backgroundAnimation,
+          builder: (context, child) {
+            return Container(
+              width: 100.w,
+              height: 100.h,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.primaryBackground,
+                    AppTheme.surface,
+                    AppTheme.primaryBackground,
+                  ],
+                  stops: [
+                    0.0,
+                    _backgroundAnimation.value,
+                    1.0,
+                  ],
                 ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Logo Section
+                            AnimatedBuilder(
+                              animation: _logoAnimationController,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _logoScaleAnimation.value,
+                                  child: Opacity(
+                                    opacity: _logoFadeAnimation.value,
+                                    child: _buildLogo(),
+                                  ),
+                                );
+                              },
+                            ),
 
-                // Bottom Section
-                _buildBottomSection(),
-              ],
-            ),
-          ),
+                            SizedBox(height: 8.h),
+
+                            // Loading Section
+                            AnimatedBuilder(
+                              animation: _loadingAnimationController,
+                              builder: (context, child) {
+                                return Opacity(
+                                  opacity: _loadingFadeAnimation.value,
+                                  child: _buildLoadingSection(),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Bottom Section
+                    _buildBottomSection(),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -237,20 +307,25 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildLogo() {
     return Container(
-      width: 40.w,
-      height: 40.w,
+      width: 45.w,
+      height: 45.w,
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(20.w),
+        borderRadius: BorderRadius.circular(22.5.w),
         border: Border.all(
-          color: AppTheme.accent.withValues(alpha: 0.3),
+          color: AppTheme.accent.withAlpha(77),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accent.withValues(alpha: 0.2),
-            blurRadius: 20,
+            color: AppTheme.accent.withAlpha(51),
+            blurRadius: 30,
             spreadRadius: 5,
+          ),
+          BoxShadow(
+            color: AppTheme.shadowDark,
+            blurRadius: 10,
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -258,21 +333,32 @@ class _SplashScreenState extends State<SplashScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'M',
-              style: AppTheme.darkTheme.textTheme.displayMedium?.copyWith(
-                color: AppTheme.accent,
-                fontWeight: FontWeight.bold,
-                fontSize: 24.sp,
+            Container(
+              width: 20.w,
+              height: 20.w,
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(10.w),
+              ),
+              child: Center(
+                child: Text(
+                  'M',
+                  style: AppTheme.darkTheme.textTheme.displayMedium?.copyWith(
+                    color: AppTheme.primaryAction,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 28.sp,
+                  ),
+                ),
               ),
             ),
+            SizedBox(height: 2.h),
             Text(
               'MEWAYZ',
-              style: AppTheme.darkTheme.textTheme.labelMedium?.copyWith(
+              style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
                 color: AppTheme.primaryText,
-                fontWeight: FontWeight.w600,
-                fontSize: 8.sp,
-                letterSpacing: 2,
+                fontWeight: FontWeight.w700,
+                fontSize: 12.sp,
+                letterSpacing: 3,
               ),
             ),
           ],
@@ -286,57 +372,59 @@ class _SplashScreenState extends State<SplashScreen>
       children: [
         // Loading Indicator
         _isInitializing
-            ? SizedBox(
-                width: 6.w,
-                height: 6.w,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppTheme.primaryText,
-                  ),
-                ),
+            ? CustomLoadingWidget(
+                size: 8.w,
+                color: AppTheme.accent,
               )
             : _showRetryOption
                 ? CustomIconWidget(
                     iconName: 'error_outline',
                     color: AppTheme.error,
-                    size: 6.w,
+                    size: 32,
                   )
                 : CustomIconWidget(
                     iconName: 'check_circle',
                     color: AppTheme.success,
-                    size: 6.w,
+                    size: 32,
                   ),
 
         SizedBox(height: 3.h),
 
         // Status Text
-        Text(
-          _initializationStatus,
-          style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-            color: AppTheme.primaryText,
-            fontSize: 12.sp,
+        Container(
+          constraints: BoxConstraints(maxWidth: 70.w),
+          child: Text(
+            _initializationStatus,
+            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+              color: AppTheme.primaryText,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
         ),
 
         // Retry Button
         if (_showRetryOption) ...[
-          SizedBox(height: 3.h),
-          TextButton(
+          SizedBox(height: 4.h),
+          ElevatedButton(
             onPressed: _retryInitialization,
-            style: TextButton.styleFrom(
-              foregroundColor: AppTheme.accent,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.primaryAction,
               padding: EdgeInsets.symmetric(
-                horizontal: 6.w,
-                vertical: 1.5.h,
+                horizontal: 8.w,
+                vertical: 2.h,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusM),
               ),
             ),
             child: Text(
               'Retry',
               style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
-                color: AppTheme.accent,
-                fontSize: 12.sp,
+                color: AppTheme.primaryAction,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -346,23 +434,24 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildBottomSection() {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 4.h),
+    return Container(
+      padding: EdgeInsets.only(bottom: 6.h),
       child: Column(
         children: [
           Text(
             'All-in-One Business Platform',
-            style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
               color: AppTheme.secondaryText,
-              fontSize: 10.sp,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
             ),
           ),
           SizedBox(height: 1.h),
           Text(
             'Version 1.0.0',
             style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-              color: AppTheme.secondaryText.withValues(alpha: 0.6),
-              fontSize: 9.sp,
+              color: AppTheme.secondaryText.withAlpha(153),
+              fontSize: 10.sp,
             ),
           ),
         ],

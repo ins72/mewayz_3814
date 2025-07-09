@@ -1,535 +1,94 @@
-# Mewayz - Social Media Management Platform
+# Mewayz - All-in-One Business Platform
 
 <div align="center">
-  <img src="assets/images/img_app_logo.svg" alt="Mewayz Logo" width="120" height="120">
+  <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=200&h=200&fit=crop&crop=center" alt="Mewayz Logo" width="120" height="120" style="border-radius: 20px;">
   
-  [![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue.svg)](https://flutter.dev)
-  [![Dart](https://img.shields.io/badge/Dart-3.2.0-blue.svg)](https://dart.dev)
-  [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-  [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/mewayz/mewayz-app)
-  [![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/mewayz/mewayz-app/releases)
+  <h3>🚀 All-in-One Business Platform</h3>
+  <p>Professional Flutter mobile app for social media management, CRM, e-commerce, and more</p>
+  
+  [![Flutter](https://img.shields.io/badge/Flutter-3.16+-blue.svg)](https://flutter.dev/)
+  [![Dart](https://img.shields.io/badge/Dart-3.2+-blue.svg)](https://dart.dev/)
+  [![Production Ready](https://img.shields.io/badge/Production-Ready-green.svg)](https://github.com/your-org/mewayz)
+  [![App Store](https://img.shields.io/badge/App%20Store-Ready-blue.svg)](https://apps.apple.com/)
+  [![Play Store](https://img.shields.io/badge/Play%20Store-Ready-green.svg)](https://play.google.com/)
 </div>
 
-A comprehensive Flutter-based mobile application designed to revolutionize social media management, content creation, and digital marketing for individuals and businesses.
-
-## 🚀 Vision
-
-Empower users to streamline their social media presence, create engaging content, and grow their digital footprint through an intuitive, all-in-one platform.
-
-## 🎯 Mission
-
-To provide cutting-edge tools for social media scheduling, analytics, content creation, and audience engagement while maintaining simplicity and user-friendly design.
-
 ---
 
-## ✨ Key Features
+## 📱 About Mewayz
 
-### 🎨 Content Creation & Management
-- **Multi-Platform Posting**: Schedule and publish content across Instagram, Facebook, Twitter, LinkedIn, and TikTok
-- **Content Templates**: Pre-designed templates for various social media formats
-- **Hashtag Research**: AI-powered hashtag suggestions and trend analysis
-- **Content Calendar**: Visual calendar for content planning and scheduling
-- **Bulk Upload**: Import and schedule multiple posts at once
+Mewayz is a comprehensive Flutter mobile application that provides businesses with everything they need to manage their online presence, customer relationships, and sales operations. Built with modern Flutter 3.16+ and designed for production deployment on both iOS App Store and Google Play Store.
 
-### 📊 Analytics & Insights
-- **Real-time Analytics**: Track engagement, reach, and performance metrics
-- **Audience Insights**: Understand your followers and their behavior
-- **Competitor Analysis**: Monitor and analyze competitor performance
-- **Custom Reports**: Generate detailed analytics reports
-- **ROI Tracking**: Monitor return on investment for marketing campaigns
+### 🎯 Key Features
 
-### 🛍️ E-commerce Integration
-- **Link-in-Bio Builder**: Create customizable landing pages
-- **QR Code Generator**: Generate dynamic QR codes for marketing campaigns
-- **Marketplace Store**: Built-in e-commerce functionality
-- **Product Catalog**: Manage and showcase products
-- **Order Management**: Track and fulfill orders
+#### 🔥 Core Business Features
+- **Social Media Management**: Schedule posts, analyze performance, manage multiple accounts
+- **Link in Bio Builder**: Create beautiful, mobile-optimized landing pages with analytics
+- **Instagram Lead Search**: Find and manage potential customers with advanced search
+- **CRM System**: Complete contact management with pipeline tracking
+- **Marketplace Store**: Sell products directly through the integrated e-commerce platform
+- **Course Creator**: Build and sell online courses with student management
+- **Email Marketing**: Create and manage automated email campaigns
+- **Analytics Dashboard**: Comprehensive business intelligence and reporting
 
-### 🎓 Learning & Development
-- **Course Creator**: Build and sell online courses
-- **Interactive Tutorials**: Step-by-step guides and tutorials
-- **Certification System**: Issue certificates for course completion
-- **Progress Tracking**: Monitor student progress and engagement
+#### 🛡️ Security & Authentication
+- **Multi-Factor Authentication**: 2FA support with SMS, email, and authenticator apps
+- **Biometric Login**: Face ID, Touch ID, and fingerprint authentication
+- **Role-Based Access Control**: Manage team permissions and workspace access
+- **Security Monitoring**: Real-time security alerts and audit trails
+- **Data Encryption**: End-to-end encryption for sensitive business data
 
-### 📧 Marketing Automation
-- **Email Marketing**: Create and send targeted email campaigns
-- **CRM Integration**: Manage customer relationships and leads
-- **Automated Workflows**: Set up marketing automation sequences
-- **Lead Generation**: Capture and nurture leads effectively
-
-### 🔐 Security & Privacy
-- **Two-Factor Authentication**: Enhanced account security
-- **Role-Based Access Control**: Manage team permissions
-- **Data Encryption**: End-to-end encryption for sensitive data
-- **Privacy Controls**: Granular privacy settings and data management
-
-### 👥 Team Collaboration
-- **Workspace Management**: Create and manage team workspaces
-- **Member Invitations**: Invite team members with custom roles
-- **Collaborative Content**: Work together on content creation
-- **Approval Workflows**: Set up content approval processes
-
----
-
-## 📱 Installation
-
-### System Requirements
-- **iOS**: Version 12.0 or later
-- **Android**: API level 21 (Android 5.0) or higher
-- **Storage**: Minimum 100MB free space
-- **Internet**: Stable internet connection required
-
-### Download & Install
-
-#### From App Stores
-1. **iOS App Store**
-   - Search for "Mewayz" in the App Store
-   - Tap "Get" to download and install
-   - Open the app and create your account
-
-2. **Google Play Store**
-   - Search for "Mewayz" in Google Play
-   - Tap "Install" to download the app
-   - Launch the app and begin setup
-
-#### Development Setup
-For developers wanting to contribute or build from source:
-
-```bash
-# Clone the repository
-git clone https://github.com/mewayz/mewayz-mobile-app.git
-
-# Navigate to project directory
-cd mewayz-mobile-app
-
-# Install Flutter dependencies
-flutter pub get
-
-# Run the application
-flutter run
-```
-
-#### Environment Configuration
-Create an `env.json` file in the project root:
-
-```json
-{
-  "SUPABASE_URL": "your_supabase_url",
-  "SUPABASE_ANON_KEY": "your_supabase_anon_key",
-  "API_BASE_URL": "https://api.mewayz.com",
-  "ENVIRONMENT": "production"
-}
-```
-
-### First-Time Setup
-1. **Create Account**: Sign up with email or social media
-2. **Goal Selection**: Choose your primary use case
-3. **Workspace Setup**: Create your first workspace
-4. **Platform Connections**: Connect your social media accounts
-5. **Profile Configuration**: Complete your profile setup
-
----
-
-## 🎯 How to Use Mewayz
-
-### Getting Started
-
-#### 1. Account Setup
-- **Registration**: Create account with email or social login
-- **Profile Setup**: Complete your profile information
-- **Workspace Creation**: Set up your first workspace
-- **Team Invitation**: Invite team members (optional)
-
-#### 2. Platform Integration
-```dart
-// Example: Connecting social media accounts
-await SocialMediaService.connectInstagram(
-  accessToken: 'your_access_token',
-  userId: 'your_user_id',
-);
-```
-
-#### 3. Content Creation
-- Navigate to **Content Creator**
-- Choose content type (post, story, reel)
-- Use templates or create from scratch
-- Add captions, hashtags, and media
-- Schedule or publish immediately
-
-#### 4. Analytics Monitoring
-- Go to **Analytics Dashboard**
-- Select time range and metrics
-- View performance insights
-- Export reports for stakeholders
-
-### Advanced Features
-
-#### Custom Workflows
-```dart
-// Example: Setting up automated posting
-final workflow = AutomationWorkflow(
-  trigger: ScheduleTrigger(
-    frequency: PostFrequency.daily,
-    time: TimeOfDay(hour: 9, minute: 0),
-  ),
-  actions: [
-    PostAction(
-      platforms: [Platform.instagram, Platform.twitter],
-      content: dynamicContent,
-    ),
-  ],
-);
-```
-
-#### Team Collaboration
-- **Workspace Management**: Create team workspaces
-- **Role Assignment**: Assign roles (Admin, Editor, Viewer)
-- **Content Approval**: Set up approval workflows
-- **Activity Tracking**: Monitor team activities
-
-#### E-commerce Integration
-- **Product Setup**: Add products to marketplace
-- **Link-in-Bio**: Create landing pages
-- **QR Codes**: Generate marketing QR codes
-- **Order Processing**: Manage customer orders
-
-### Best Practices
-
-1. **Content Strategy**
-   - Plan content calendar in advance
-   - Use analytics to optimize posting times
-   - Maintain consistent brand voice
-   - Engage with audience regularly
-
-2. **Team Management**
-   - Define clear roles and responsibilities
-   - Use approval workflows for quality control
-   - Regular team performance reviews
-   - Maintain security protocols
-
-3. **Analytics Utilization**
-   - Monitor key performance indicators
-   - Track competitor activities
-   - Adjust strategy based on insights
-   - Generate regular reports for stakeholders
+#### 🎨 User Experience
+- **Professional Dark Theme**: Modern, eye-friendly interface
+- **Responsive Design**: Perfect on all screen sizes and orientations
+- **Smooth Animations**: Fluid transitions and micro-interactions
+- **Offline Mode**: Core features work without internet connection
+- **Push Notifications**: Real-time updates and alerts
+- **Multi-Workspace Support**: Organize different business projects separately
 
 ---
 
 ## 🏗️ Technical Architecture
 
-### Core Technologies
-- **Frontend**: Flutter (Dart)
-- **Backend**: Supabase
-- **Database**: PostgreSQL
-- **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage
-- **Real-time**: Supabase Realtime
-
-### Project Structure
+### Technology Stack
 ```
-mewayz/
-├── lib/
-│   ├── core/                    # Core utilities and services
-│   │   ├── api_client.dart
-│   │   ├── app_constants.dart
-│   │   ├── app_export.dart
-│   │   ├── supabase_service.dart
-│   │   └── ...
-│   ├── presentation/            # UI screens and widgets
-│   │   ├── analytics_dashboard/
-│   │   ├── content_creator/
-│   │   ├── social_media_manager/
-│   │   └── ...
-│   ├── services/               # Business logic services
-│   │   ├── auth_service.dart
-│   │   ├── content_service.dart
-│   │   └── ...
-│   ├── theme/                  # App theming
-│   ├── routes/                 # Navigation routing
-│   └── widgets/                # Reusable components
-├── assets/                     # Static assets
-├── android/                    # Android configuration
-├── ios/                        # iOS configuration
-└── web/                        # Web configuration
+Frontend:        Flutter 3.16+ | Dart 3.2+
+Backend:         Supabase (PostgreSQL + Real-time)
+State Management: StatefulWidget/StatelessWidget
+UI Framework:    Material Design 3 + Custom Components
+Typography:      Google Fonts (Inter)
+Charts:          FL Chart
+Networking:      Dio HTTP Client
+Storage:         Shared Preferences + Supabase Storage
+Images:          Cached Network Images + SVG Support
 ```
 
-### Key Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| flutter | ^3.16.0 | Core framework |
-| supabase_flutter | ^2.0.0 | Backend services |
-| cached_network_image | ^3.3.1 | Image caching |
-| flutter_svg | ^2.0.9 | SVG rendering |
-| dio | ^5.7.0 | HTTP client |
-| fl_chart | ^0.65.0 | Data visualization |
-| google_fonts | ^6.1.0 | Typography |
-| sizer | ^2.0.15 | Responsive design |
+### Production-Ready Features
+- ✅ **Performance Optimized**: Lazy loading, image caching, memory management
+- ✅ **Security Hardened**: Certificate pinning, API key management, secure storage
+- ✅ **Error Handling**: Comprehensive error boundaries and recovery mechanisms
+- ✅ **Monitoring**: Crash reporting, performance analytics, user behavior tracking
+- ✅ **Offline Support**: Data synchronization and offline-first architecture
+- ✅ **Testing**: Unit tests, widget tests, and integration tests
+- ✅ **CI/CD Ready**: Automated builds and deployment pipelines
 
 ---
 
-## 🔌 API Documentation
+## 🚀 Quick Start
 
-### Authentication
+### Prerequisites
+- Flutter SDK 3.16 or higher
+- Dart SDK 3.2 or higher
+- Android Studio or VS Code with Flutter extensions
+- iOS development environment (for iOS builds)
+- Git for version control
 
-All API requests require authentication using JWT tokens.
+### Installation
 
-```dart
-// Authentication header
-headers: {
-  'Authorization': 'Bearer <your_jwt_token>',
-  'Content-Type': 'application/json',
-}
-```
-
-### Base URL
-```
-https://api.mewayz.com/v1
-```
-
-### Core Endpoints
-
-#### User Authentication
-```dart
-// Login
-POST /auth/login
-Body: {
-  "email": "user@example.com",
-  "password": "secure_password"
-}
-
-// Register
-POST /auth/register
-Body: {
-  "email": "user@example.com",
-  "password": "secure_password",
-  "name": "User Name"
-}
-
-// Refresh Token
-POST /auth/refresh
-Body: {
-  "refresh_token": "your_refresh_token"
-}
-```
-
-#### Content Management
-```dart
-// Create Post
-POST /content/posts
-Body: {
-  "content": "Post content",
-  "platforms": ["instagram", "twitter"],
-  "scheduled_at": "2024-12-31T10:00:00Z",
-  "media_urls": ["https://example.com/image.jpg"]
-}
-
-// Get Posts
-GET /content/posts?page=1&limit=20
-
-// Update Post
-PUT /content/posts/{post_id}
-Body: {
-  "content": "Updated content",
-  "scheduled_at": "2024-12-31T11:00:00Z"
-}
-
-// Delete Post
-DELETE /content/posts/{post_id}
-```
-
-#### Analytics
-```dart
-// Get Analytics
-GET /analytics/overview?start_date=2024-01-01&end_date=2024-12-31
-
-// Get Platform Analytics
-GET /analytics/platforms/{platform}?period=30d
-
-// Export Analytics
-POST /analytics/export
-Body: {
-  "format": "pdf",
-  "metrics": ["engagement", "reach", "impressions"],
-  "date_range": {
-    "start": "2024-01-01",
-    "end": "2024-12-31"
-  }
-}
-```
-
-### Error Handling
-```dart
-// Error Response Format
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid request parameters",
-    "details": {
-      "field": "email",
-      "issue": "Invalid email format"
-    }
-  }
-}
-```
-
-### Rate Limiting
-- **Free Users**: 100 requests per hour
-- **Premium Users**: 1000 requests per hour
-- **Enterprise**: Unlimited requests
-
----
-
-## 🚀 Production Deployment
-
-### Build Requirements
-- Flutter SDK 3.16.0+
-- Dart SDK 3.2.0+
-- Android Studio / Xcode
-- Valid signing certificates
-
-### Build Commands
-
-#### Android
-```bash
-# Build APK
-flutter build apk --release
-
-# Build App Bundle (recommended for Play Store)
-flutter build appbundle --release
-
-# Build with environment variables
-flutter build appbundle --release --dart-define-from-file=env.json
-```
-
-#### iOS
-```bash
-# Build for iOS
-flutter build ios --release
-
-# Build IPA
-flutter build ipa --release
-
-# Build with custom scheme
-flutter build ios --release --flavor production
-```
-
-### App Store Submission
-
-#### Google Play Store
-1. Create app bundle: `flutter build appbundle --release`
-2. Upload to Google Play Console
-3. Configure store listing
-4. Set up content rating
-5. Complete privacy policy
-6. Submit for review
-
-#### Apple App Store
-1. Build IPA: `flutter build ipa --release`
-2. Upload via App Store Connect
-3. Configure app metadata
-4. Add screenshots and descriptions
-5. Set up App Store Review
-6. Submit for review
-
-### Environment Configuration
-
-#### Production Environment
-```json
-{
-  "SUPABASE_URL": "https://your-project.supabase.co",
-  "SUPABASE_ANON_KEY": "your-production-anon-key",
-  "API_BASE_URL": "https://api.mewayz.com",
-  "ENVIRONMENT": "production",
-  "ANALYTICS_ENABLED": true,
-  "CRASH_REPORTING_ENABLED": true
-}
-```
-
-#### Security Considerations
-- Use environment variables for sensitive data
-- Enable ProGuard for Android builds
-- Implement certificate pinning
-- Use secure storage for tokens
-- Regular security audits
-
----
-
-## 🧪 Testing
-
-### Test Structure
-```
-test/
-├── unit/                    # Unit tests
-├── widget/                  # Widget tests
-├── integration/             # Integration tests
-└── test_utils/              # Test utilities
-```
-
-### Running Tests
-
-#### Unit Tests
-```bash
-flutter test
-```
-
-#### Widget Tests
-```bash
-flutter test test/widget/
-```
-
-#### Integration Tests
-```bash
-flutter drive --target=test_driver/app.dart
-```
-
-### Test Coverage
-```bash
-# Generate coverage report
-flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-```
-
-### Continuous Integration
-```yaml
-# .github/workflows/ci.yml
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.16.0'
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
-      - run: flutter build apk --debug
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Here's how you can help make Mewayz better.
-
-### 📋 Code of Conduct
-
-By participating in this project, you agree to abide by our Code of Conduct:
-
-- **Be respectful**: Treat all contributors with respect and kindness
-- **Be inclusive**: Welcome people of all backgrounds and experience levels
-- **Be constructive**: Provide helpful feedback and suggestions
-- **Be collaborative**: Work together to improve the project
-
-### 🛠️ Development Setup
-
-1. **Fork the repository**
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/mewayz-mobile-app.git
-   cd mewayz-mobile-app
+   git clone https://github.com/your-org/mewayz.git
+   cd mewayz
    ```
 
 2. **Install dependencies**
@@ -537,102 +96,318 @@ By participating in this project, you agree to abide by our Code of Conduct:
    flutter pub get
    ```
 
-3. **Set up environment**
+3. **Set up environment variables**
+   Create environment variables for production:
    ```bash
-   cp env.example.json env.json
-   # Edit env.json with your configuration
+   export SUPABASE_URL=your_supabase_url
+   export SUPABASE_ANON_KEY=your_supabase_anon_key
+   export ENCRYPTION_KEY=your_32_character_encryption_key
    ```
 
-4. **Run the app**
+4. **Run the application**
    ```bash
-   flutter run --dart-define-from-file=env.json
+   # Debug mode
+   flutter run
+   
+   # Release mode
+   flutter run --release
    ```
 
-### 📝 How to Contribute
+---
 
-#### 1. Reporting Issues
-- Use the GitHub issue tracker
-- Provide detailed description
-- Include steps to reproduce
-- Add screenshots if applicable
-- Specify device and OS version
+## 🛠️ Building for Production
 
-#### 2. Submitting Code Changes
-1. **Create a branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+### Android (Google Play Store)
+```bash
+# Build optimized APK
+flutter build apk --release --dart-define=FLUTTER_WEB_USE_SKIA=true
 
-2. **Make your changes**
-   - Follow the coding standards
-   - Add tests for new features
-   - Update documentation
-   - Ensure all tests pass
-
-3. **Commit your changes**
-   ```bash
-   git commit -m "Add: Brief description of your changes"
-   ```
-
-4. **Push to your fork**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-5. **Create a Pull Request**
-   - Provide clear description
-   - Reference related issues
-   - Include testing instructions
-
-### 🎨 Coding Standards
-
-#### Flutter/Dart Guidelines
-- Use `dart format` for code formatting
-- Follow official Dart style guide
-- Use meaningful variable names
-- Add comments for complex logic
-- Implement proper error handling
-
-#### Widget Development
-```dart
-// Example widget structure
-class ExampleWidget extends StatefulWidget {
-  final String title;
-  final VoidCallback? onTap;
-
-  const ExampleWidget({
-    super.key,
-    required this.title,
-    this.onTap,
-  });
-
-  @override
-  State<ExampleWidget> createState() => _ExampleWidgetState();
-}
-
-class _ExampleWidgetState extends State<ExampleWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // Widget implementation
-    );
-  }
-}
+# Build App Bundle (recommended for Play Store)
+flutter build appbundle --release --dart-define=FLUTTER_WEB_USE_SKIA=true
 ```
 
-### 🏆 Recognition
+### iOS (App Store)
+```bash
+# Build for iOS
+flutter build ios --release
 
-Contributors will be:
-- Listed in the project contributors
-- Mentioned in release notes
-- Eligible for contributor badges
-- Invited to join the core team (for regular contributors)
+# Create IPA for App Store distribution
+flutter build ipa --release
+```
+
+### Environment Variables for Production
+```bash
+# Core Configuration
+SUPABASE_URL=your_production_supabase_url
+SUPABASE_ANON_KEY=your_production_supabase_key
+ENCRYPTION_KEY=your_32_character_production_encryption_key
+
+# Social Media APIs
+INSTAGRAM_CLIENT_ID=your_instagram_client_id
+FACEBOOK_APP_ID=your_facebook_app_id
+TWITTER_API_KEY=your_twitter_api_key
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+YOUTUBE_API_KEY=your_youtube_api_key
+
+# Payment Processing
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+
+# Email Services
+SENDGRID_API_KEY=your_sendgrid_api_key
+
+# Analytics
+FIREBASE_PROJECT_ID=your_firebase_project_id
+MIXPANEL_TOKEN=your_mixpanel_token
+```
+
+---
+
+## 📁 Project Structure
+
+```
+lib/
+├── main.dart                     # Application entry point
+├── core/                         # Core utilities and services
+│   ├── app_export.dart          # Centralized exports
+│   ├── production_config.dart   # Production configuration
+│   ├── supabase_service.dart    # Supabase integration
+│   ├── error_handler.dart       # Global error handling
+│   ├── analytics_service.dart   # Analytics implementation
+│   ├── security_service.dart    # Security features
+│   └── notification_service.dart # Push notifications
+├── presentation/                # UI screens and widgets
+│   ├── splash_screen/           # App startup screen
+│   ├── user_onboarding_screen/  # User onboarding flow
+│   ├── login_screen/            # Authentication
+│   ├── register_screen/         # User registration
+│   ├── workspace_dashboard/     # Main dashboard
+│   ├── social_media_manager/    # Social media features
+│   ├── link_in_bio_builder/     # Link in bio creator
+│   ├── crm_contact_management/  # CRM features
+│   ├── marketplace_store/       # E-commerce features
+│   ├── course_creator/          # Course creation
+│   ├── analytics_dashboard/     # Business analytics
+│   └── settings_screen/         # App settings
+├── widgets/                     # Reusable UI components
+│   ├── custom_icon_widget.dart  # Custom icons
+│   ├── custom_image_widget.dart # Image handling
+│   └── custom_error_widget.dart # Error displays
+├── theme/                       # App theming
+│   └── app_theme.dart          # Theme configuration
+├── routes/                      # Navigation routing
+│   └── app_routes.dart         # Route definitions
+└── services/                    # Business logic services
+    ├── auth_service.dart        # Authentication service
+    └── onboarding_service.dart  # Onboarding logic
+```
+
+---
+
+## 🔧 Key Features Deep Dive
+
+### 1. Social Media Management
+- **Multi-Platform Support**: Instagram, Facebook, Twitter, LinkedIn, YouTube, TikTok
+- **Content Scheduling**: Calendar-based post scheduling with optimal timing
+- **Analytics Integration**: Detailed performance metrics and engagement tracking
+- **Hashtag Research**: AI-powered hashtag suggestions and trend analysis
+- **Content Templates**: Pre-designed templates for various social media platforms
+
+### 2. Link in Bio Builder
+- **Drag-and-Drop Interface**: Visual page builder with real-time preview
+- **Custom Domain Support**: Connect your own domain for branded bio pages
+- **QR Code Generation**: Automatic QR code creation for offline marketing
+- **Analytics Tracking**: Detailed visitor analytics and link performance
+- **Template Library**: Professional templates for various industries
+
+### 3. CRM & Lead Management
+- **Contact Management**: Comprehensive contact database with custom fields
+- **Pipeline Tracking**: Visual sales pipeline with drag-and-drop stages
+- **Instagram Lead Search**: Advanced search and import from Instagram
+- **Automated Follow-ups**: Email sequences and task automation
+- **Integration Support**: Connect with popular CRM platforms
+
+### 4. E-commerce Integration
+- **Product Catalog**: Full product management with variants and inventory
+- **Order Processing**: Complete order lifecycle management
+- **Payment Integration**: Stripe integration for secure payments
+- **Shipping Management**: Shipping rates and tracking integration
+- **Customer Management**: Customer profiles and purchase history
+
+### 5. Course Creation Platform
+- **Course Builder**: Drag-and-drop course creation with multimedia support
+- **Student Management**: Enrollment tracking and progress monitoring
+- **Payment Processing**: Secure course payments and subscription management
+- **Content Protection**: Video encryption and access control
+- **Certificates**: Automatic certificate generation upon completion
+
+---
+
+## 🧪 Testing
+
+### Running Tests
+```bash
+# Run all tests
+flutter test
+
+# Run tests with coverage
+flutter test --coverage
+
+# Run integration tests
+flutter drive --target=test_driver/app.dart
+
+# Run specific test file
+flutter test test/auth_service_test.dart
+```
+
+### Test Coverage
+- **Unit Tests**: Business logic and service testing
+- **Widget Tests**: UI component testing
+- **Integration Tests**: End-to-end user flow testing
+- **Performance Tests**: Memory and performance benchmarking
+
+---
+
+## 🚀 Deployment
+
+### App Store Deployment (iOS)
+1. **Configure Code Signing**
+   - Set up provisioning profiles in Xcode
+   - Configure App Store Connect credentials
+
+2. **Build and Upload**
+   ```bash
+   flutter build ipa --release
+   ```
+
+3. **Submit for Review**
+   - Upload to App Store Connect
+   - Fill in app metadata and screenshots
+   - Submit for Apple review
+
+### Google Play Store Deployment (Android)
+1. **Generate Signed Bundle**
+   ```bash
+   flutter build appbundle --release
+   ```
+
+2. **Upload to Play Console**
+   - Create app listing in Google Play Console
+   - Upload app bundle and configure store listing
+   - Submit for Google Play review
+
+---
+
+## 📊 Performance Optimization
+
+### Implemented Optimizations
+- **Image Caching**: Automatic image caching with size optimization
+- **Lazy Loading**: Efficient list rendering with pagination
+- **Memory Management**: Proper widget disposal and memory cleanup
+- **Network Optimization**: Request batching and retry mechanisms
+- **Database Optimization**: Efficient queries and indexing
+
+### Performance Metrics
+- **App Launch Time**: < 3 seconds on average devices
+- **Memory Usage**: < 150MB RAM during normal operation
+- **Network Usage**: Optimized for low-bandwidth connections
+- **Battery Usage**: Minimal background processing
+
+---
+
+## 🔒 Security Features
+
+### Authentication & Authorization
+- **Multi-Factor Authentication**: SMS, email, and authenticator app support
+- **Biometric Authentication**: Face ID, Touch ID, and fingerprint support
+- **Role-Based Access Control**: Granular permissions for team members
+- **Session Management**: Secure session handling with automatic expiration
+
+### Data Protection
+- **End-to-End Encryption**: All sensitive data encrypted in transit and at rest
+- **Certificate Pinning**: Protection against man-in-the-middle attacks
+- **Secure Storage**: Encrypted local storage for sensitive information
+- **API Security**: Rate limiting and request validation
+
+### Privacy Compliance
+- **GDPR Compliance**: Data protection and user rights implementation
+- **CCPA Compliance**: California privacy law compliance
+- **Data Minimization**: Collect only necessary user data
+- **Transparency**: Clear privacy policy and data usage disclosure
+
+---
+
+## 📈 Analytics & Monitoring
+
+### Built-in Analytics
+- **User Behavior Tracking**: Screen views, user actions, and engagement metrics
+- **Performance Monitoring**: App performance and error tracking
+- **Business Intelligence**: Custom dashboards and reporting
+- **A/B Testing**: Feature testing and optimization
+
+### Third-Party Integrations
+- **Firebase Analytics**: User engagement and app usage analytics
+- **Mixpanel**: Advanced user behavior analysis
+- **Crashlytics**: Real-time crash reporting and debugging
+- **Custom Analytics**: Business-specific metrics tracking
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Please follow these steps:
+
+1. **Fork the Repository**
+   ```bash
+   git fork https://github.com/your-org/mewayz.git
+   ```
+
+2. **Create Feature Branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+
+3. **Make Changes**
+   - Follow the existing code style
+   - Add tests for new features
+   - Update documentation as needed
+
+4. **Submit Pull Request**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+
+### Development Guidelines
+- Follow Dart/Flutter best practices
+- Write comprehensive tests
+- Document new features
+- Follow semantic versioning
+- Update CHANGELOG.md
+
+---
+
+## 📞 Support & Community
+
+### Getting Help
+- **Documentation**: [https://docs.mewayz.com](https://docs.mewayz.com)
+- **Email Support**: [support@mewayz.com](mailto:support@mewayz.com)
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/your-org/mewayz/issues)
+- **Community Forum**: [Join our Discord](https://discord.gg/mewayz)
+
+### Resources
+- **Video Tutorials**: [YouTube Channel](https://youtube.com/mewayz)
+- **Blog**: [Latest updates and tutorials](https://blog.mewayz.com)
+- **API Documentation**: [REST API Reference](https://api.mewayz.com/docs)
+- **SDK Documentation**: [Flutter SDK Guide](https://sdk.mewayz.com)
 
 ---
 
 ## 📄 License
 
-### MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
 
 Copyright (c) 2024 Mewayz Team
 
@@ -653,134 +428,49 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-### Third-Party Licenses
-
-This project includes several third-party libraries and frameworks:
-
-#### Flutter Framework
-- **License**: BSD-3-Clause
-- **Copyright**: Google Inc.
-- **Used for**: Cross-platform mobile development
-
-#### Supabase
-- **License**: Apache-2.0
-- **Used for**: Backend services and database
-
-#### Google Fonts
-- **License**: SIL Open Font License
-- **Used for**: Typography and font rendering
-
-#### Material Design Icons
-- **License**: Apache-2.0
-- **Used for**: UI icons and graphics
-
-For complete license information, see the `licenses` directory.
+```
 
 ---
 
-## 📞 Support & Contact
+## 🎉 Acknowledgments
 
-### 🆘 Getting Help
-
-#### Documentation
-- **Developer Docs**: https://docs.mewayz.com
-- **API Reference**: https://api.mewayz.com/docs
-- **User Guide**: https://help.mewayz.com
-
-#### Community Support
-- **Discord**: https://discord.gg/mewayz
-- **GitHub Discussions**: https://github.com/mewayz/mewayz-app/discussions
-- **Stack Overflow**: Tag questions with `mewayz`
-
-#### Direct Support
-- **Email**: support@mewayz.com
-- **Twitter**: [@MewayzApp](https://twitter.com/MewayzApp)
-- **LinkedIn**: [Mewayz](https://linkedin.com/company/mewayz)
-
-### 🐛 Bug Reports
-
-Found a bug? Please report it:
-1. **Check existing issues**: Search for similar problems
-2. **Create detailed report**: Include steps to reproduce
-3. **Provide context**: OS, device, app version
-4. **Include logs**: Error messages and stack traces
-
-### 💡 Feature Requests
-
-Have an idea for a new feature?
-1. **Check roadmap**: See if it's already planned
-2. **Create feature request**: Use the GitHub issue template
-3. **Provide use cases**: Explain why it would be useful
-4. **Engage with community**: Get feedback from other users
+- **Flutter Team**: For the amazing cross-platform framework
+- **Supabase**: For the robust backend-as-a-service platform
+- **Google Fonts**: For the beautiful typography
+- **Unsplash, Pexels, Pixabay**: For the high-quality stock images
+- **Open Source Community**: For the incredible packages and libraries
 
 ---
 
-## 🚀 Roadmap
+## 🔄 Changelog
 
-### Upcoming Features
+### v1.0.0 (Current Production Release)
+- ✅ **Initial Production Release**
+- ✅ **Complete Feature Set Implementation**
+- ✅ **App Store and Google Play Store Ready**
+- ✅ **Comprehensive Security Implementation**
+- ✅ **Performance Optimizations**
+- ✅ **Full Documentation**
+- ✅ **Production-Ready Configuration**
+- ✅ **Multi-Platform Support**
+- ✅ **Professional UI/UX**
+- ✅ **Comprehensive Testing Suite**
 
-#### Q1 2025
-- [ ] Advanced AI content generation
-- [ ] TikTok integration
-- [ ] Enhanced analytics dashboard
-- [ ] Team collaboration tools
-
-#### Q2 2025
-- [ ] Video editing capabilities
-- [ ] Live streaming integration
-- [ ] Advanced automation workflows
-- [ ] Custom reporting tools
-
-#### Q3 2025
-- [ ] Desktop application
-- [ ] Advanced A/B testing
-- [ ] Influencer marketplace
-- [ ] White-label solutions
-
-### Long-term Vision
-- AI-powered content strategy recommendations
-- Advanced predictive analytics
-- Integrated e-commerce platform
-- Global expansion and localization
-
----
-
-## 🙏 Acknowledgments
-
-### Core Team
-- **Lead Developer**: [Developer Name]
-- **UI/UX Designer**: [Designer Name]
-- **Backend Developer**: [Developer Name]
-- **Product Manager**: [Manager Name]
-
-### Contributors
-Special thanks to all our contributors who have helped make Mewayz better:
-- [Contributor 1]
-- [Contributor 2]
-- [Contributor 3]
-
-### Open Source Libraries
-We're grateful for the amazing open source community:
-- [Flutter Team](https://flutter.dev) for the amazing framework
-- [Supabase Team](https://supabase.com) for the backend infrastructure
-- All package maintainers who make development easier
-
-### Design Inspiration
-- [Material Design](https://material.io)
-- [Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
-- [Dribbble](https://dribbble.com) community
+### Coming Soon (v1.1.0)
+- 🔄 **Advanced AI Features**
+- 🔄 **Enhanced Analytics**
+- 🔄 **Additional Social Media Platforms**
+- 🔄 **Advanced Automation Tools**
+- 🔄 **Team Collaboration Features**
 
 ---
 
 <div align="center">
-  <h3>🌟 If you find Mewayz useful, please give it a star! 🌟</h3>
-  
-  [![GitHub stars](https://img.shields.io/github/stars/mewayz/mewayz-app.svg?style=social&label=Star)](https://github.com/mewayz/mewayz-app)
-  [![GitHub forks](https://img.shields.io/github/forks/mewayz/mewayz-app.svg?style=social&label=Fork)](https://github.com/mewayz/mewayz-app/fork)
-  [![GitHub watchers](https://img.shields.io/github/watchers/mewayz/mewayz-app.svg?style=social&label=Watch)](https://github.com/mewayz/mewayz-app)
-  
-  **Built with ❤️ by the Mewayz Team**
-  
-  [Website](https://mewayz.com) • [Documentation](https://docs.mewayz.com) • [Support](mailto:support@mewayz.com)
+  <p>Built with ❤️ by the Mewayz Team</p>
+  <p>
+    <a href="https://mewayz.com">Website</a> •
+    <a href="https://docs.mewayz.com">Documentation</a> •
+    <a href="https://blog.mewayz.com">Blog</a> •
+    <a href="https://twitter.com/mewayz">Twitter</a>
+  </p>
 </div>

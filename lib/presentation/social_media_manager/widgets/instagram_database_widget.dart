@@ -39,7 +39,7 @@ class _InstagramDatabaseWidgetState extends State<InstagramDatabaseWidget> {
             const Spacer(),
             TextButton(
                 onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.instagramLeadSearch),
+                    Navigator.pushNamed(context, 'instagramLeadSearch'),
                 child: Text('View All',
                     style: TextStyle(
                         color: AppTheme.accent, fontWeight: FontWeight.w500))),
@@ -119,7 +119,7 @@ class _InstagramDatabaseWidgetState extends State<InstagramDatabaseWidget> {
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         TextButton(
             onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.instagramLeadSearch),
+                Navigator.pushNamed(context, 'instagramLeadSearch'),
             child: Text('View All Results',
                 style: TextStyle(
                     color: AppTheme.accent, fontWeight: FontWeight.w500))),

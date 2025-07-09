@@ -14,12 +14,13 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final FocusNode _fullNameFocusNode = FocusNode();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final FocusNode _firstNameFocusNode = FocusNode();
+  final FocusNode _lastNameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _confirmPasswordFocusNode = FocusNode();
@@ -28,129 +29,108 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
   bool _acceptTerms = false;
-  bool _acceptPrivacy = false;
+  bool _acceptNewsletter = false;
 
-  String? _fullNameError;
+  String? _firstNameError;
+  String? _lastNameError;
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
   String? _generalError;
 
-  int _passwordStrength = 0;
-  String _passwordStrengthText = '';
-
   @override
   void initState() {
     super.initState();
-    _fullNameFocusNode.addListener(_onFullNameFocusChange);
-    _emailFocusNode.addListener(_onEmailFocusChange);
-    _passwordFocusNode.addListener(_onPasswordFocusChange);
-    _confirmPasswordFocusNode.addListener(_onConfirmPasswordFocusChange);
-    _passwordController.addListener(_onPasswordChange);
+    _setupFocusListeners();
   }
 
   @override
   void dispose() {
-    _fullNameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _fullNameFocusNode.dispose();
+    _firstNameFocusNode.dispose();
+    _lastNameFocusNode.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
-  void _onFullNameFocusChange() {
-    if (!_fullNameFocusNode.hasFocus && _fullNameController.text.isNotEmpty) {
-      _validateFullName();
-    }
-  }
-
-  void _onEmailFocusChange() {
-    if (!_emailFocusNode.hasFocus && _emailController.text.isNotEmpty) {
-      _validateEmail();
-    }
-  }
-
-  void _onPasswordFocusChange() {
-    if (!_passwordFocusNode.hasFocus && _passwordController.text.isNotEmpty) {
-      _validatePassword();
-    }
-  }
-
-  void _onConfirmPasswordFocusChange() {
-    if (!_confirmPasswordFocusNode.hasFocus &&
-        _confirmPasswordController.text.isNotEmpty) {
-      _validateConfirmPassword();
-    }
-  }
-
-  void _onPasswordChange() {
-    _calculatePasswordStrength();
-    if (_passwordController.text.isNotEmpty) {
-      _validatePassword();
-    }
-    if (_confirmPasswordController.text.isNotEmpty) {
-      _validateConfirmPassword();
-    }
-  }
-
-  void _calculatePasswordStrength() {
-    final password = _passwordController.text;
-    int strength = 0;
-    String strengthText = '';
-
-    if (password.isEmpty) {
-      strength = 0;
-      strengthText = '';
-    } else if (password.length < 6) {
-      strength = 1;
-      strengthText = 'Weak';
-    } else {
-      strength = 2;
-      strengthText = 'Fair';
-
-      if (password.length >= 8) {
-        strength = 3;
-        strengthText = 'Good';
+  void _setupFocusListeners() {
+    _firstNameFocusNode.addListener(() {
+      if (!_firstNameFocusNode.hasFocus && _firstNameController.text.isNotEmpty) {
+        _validateFirstName();
       }
+    });
 
-      if (password.length >= 12 &&
-          password.contains(RegExp(r'[A-Z]')) &&
-          password.contains(RegExp(r'[a-z]')) &&
-          password.contains(RegExp(r'[0-9]')) &&
-          password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-        strength = 4;
-        strengthText = 'Strong';
+    _lastNameFocusNode.addListener(() {
+      if (!_lastNameFocusNode.hasFocus && _lastNameController.text.isNotEmpty) {
+        _validateLastName();
       }
-    }
+    });
 
-    setState(() {
-      _passwordStrength = strength;
-      _passwordStrengthText = strengthText;
+    _emailFocusNode.addListener(() {
+      if (!_emailFocusNode.hasFocus && _emailController.text.isNotEmpty) {
+        _validateEmail();
+      }
+    });
+
+    _passwordFocusNode.addListener(() {
+      if (!_passwordFocusNode.hasFocus && _passwordController.text.isNotEmpty) {
+        _validatePassword();
+      }
+    });
+
+    _confirmPasswordFocusNode.addListener(() {
+      if (!_confirmPasswordFocusNode.hasFocus && _confirmPasswordController.text.isNotEmpty) {
+        _validateConfirmPassword();
+      }
     });
   }
 
-  bool _validateFullName() {
-    final fullName = _fullNameController.text.trim();
-    if (fullName.isEmpty) {
+  bool _validateFirstName() {
+    final firstName = _firstNameController.text.trim();
+    if (firstName.isEmpty) {
       setState(() {
-        _fullNameError = 'Full name is required';
+        _firstNameError = 'First name is required';
       });
       return false;
     }
 
-    if (fullName.length < 2) {
+    if (firstName.length < 2) {
       setState(() {
-        _fullNameError = 'Full name must be at least 2 characters';
+        _firstNameError = 'First name must be at least 2 characters';
       });
       return false;
     }
 
     setState(() {
-      _fullNameError = null;
+      _firstNameError = null;
+    });
+    return true;
+  }
+
+  bool _validateLastName() {
+    final lastName = _lastNameController.text.trim();
+    if (lastName.isEmpty) {
+      setState(() {
+        _lastNameError = 'Last name is required';
+      });
+      return false;
+    }
+
+    if (lastName.length < 2) {
+      setState(() {
+        _lastNameError = 'Last name must be at least 2 characters';
+      });
+      return false;
+    }
+
+    setState(() {
+      _lastNameError = null;
     });
     return true;
   }
@@ -187,9 +167,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setState(() {
-        _passwordError = 'Password must be at least 6 characters';
+        _passwordError = 'Password must be at least 8 characters';
+      });
+      return false;
+    }
+
+    // Check for at least one uppercase letter
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      setState(() {
+        _passwordError = 'Password must contain at least one uppercase letter';
+      });
+      return false;
+    }
+
+    // Check for at least one lowercase letter
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      setState(() {
+        _passwordError = 'Password must contain at least one lowercase letter';
+      });
+      return false;
+    }
+
+    // Check for at least one digit
+    if (!RegExp(r'[0-9]').hasMatch(password)) {
+      setState(() {
+        _passwordError = 'Password must contain at least one number';
+      });
+      return false;
+    }
+
+    // Check for at least one special character
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
+      setState(() {
+        _passwordError = 'Password must contain at least one special character';
       });
       return false;
     }
@@ -202,8 +214,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _validateConfirmPassword() {
     final confirmPassword = _confirmPasswordController.text;
-    final password = _passwordController.text;
-
     if (confirmPassword.isEmpty) {
       setState(() {
         _confirmPasswordError = 'Please confirm your password';
@@ -211,7 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    if (confirmPassword != password) {
+    if (confirmPassword != _passwordController.text) {
       setState(() {
         _confirmPasswordError = 'Passwords do not match';
       });
@@ -225,29 +235,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool get _isFormValid {
-    return _fullNameController.text.isNotEmpty &&
+    return _firstNameController.text.isNotEmpty &&
+        _lastNameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _confirmPasswordController.text.isNotEmpty &&
-        _fullNameError == null &&
+        _firstNameError == null &&
+        _lastNameError == null &&
         _emailError == null &&
         _passwordError == null &&
         _confirmPasswordError == null &&
-        _acceptTerms &&
-        _acceptPrivacy;
+        _acceptTerms;
   }
 
   Future<void> _handleRegister() async {
-    if (!_validateFullName() ||
-        !_validateEmail() ||
-        !_validatePassword() ||
+    if (!_validateFirstName() || 
+        !_validateLastName() || 
+        !_validateEmail() || 
+        !_validatePassword() || 
         !_validateConfirmPassword()) {
       return;
     }
 
-    if (!_acceptTerms || !_acceptPrivacy) {
+    if (!_acceptTerms) {
       setState(() {
-        _generalError = 'Please accept the terms of service and privacy policy';
+        _generalError = 'Please accept the Terms of Service and Privacy Policy';
       });
       return;
     }
@@ -259,27 +271,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 3));
 
-      final email = _emailController.text.trim();
+      // Simulate registration success
+      final userData = {
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'acceptNewsletter': _acceptNewsletter,
+      };
 
-      // Simulate email already exists check
-      if (email == 'admin@mewayz.com' || email == 'user@mewayz.com') {
-        setState(() {
-          _generalError = 'An account with this email already exists';
-        });
-        return;
-      }
-
-      // Success - trigger haptic feedback
+      // Trigger haptic feedback
       HapticFeedback.lightImpact();
 
-      // Show success message and navigate to email verification
-      _showSuccessMessage();
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              CustomIconWidget(
+                iconName: 'check_circle',
+                color: Colors.green,
+                size: 20),
+              SizedBox(width: 2.w),
+              const Text('Registration successful! Please check your email to verify your account.'),
+            ]),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            })));
+
+      // Navigate to email verification screen
+      Navigator.pushReplacementNamed(
+        context, 
+        AppRoutes.emailVerificationScreen,
+        arguments: userData);
+
     } catch (e) {
       setState(() {
-        _generalError =
-            'Network error. Please check your connection and try again.';
+        _generalError = 'Registration failed. Please try again.';
       });
     } finally {
       setState(() {
@@ -288,78 +322,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void _showSuccessMessage() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(
-          'Account Created Successfully!',
-          style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-            color: AppTheme.success,
-          ),
-        ),
-        content: Text(
-          'A verification email has been sent to ${_emailController.text.trim()}. Please check your inbox and click the verification link to activate your account.',
-          style: AppTheme.darkTheme.textTheme.bodyMedium,
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
-            },
-            child: const Text('Continue to Login'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleGoogleSignUp() {
-    // Simulate Google sign up
-    HapticFeedback.lightImpact();
-    _showComingSoonDialog('Google Sign Up');
-  }
-
-  void _handleAppleSignUp() {
-    // Simulate Apple sign up
-    HapticFeedback.lightImpact();
-    _showComingSoonDialog('Apple Sign Up');
-  }
-
-  void _showComingSoonDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(
-          feature,
-          style: AppTheme.darkTheme.textTheme.titleLarge,
-        ),
-        content: Text(
-          '$feature functionality will be available in the next update.',
-          style: AppTheme.darkTheme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleTermsOfService() {
-    // Open terms of service in in-app browser
-    _showComingSoonDialog('Terms of Service');
-  }
-
-  void _handlePrivacyPolicy() {
-    // Open privacy policy in in-app browser
-    _showComingSoonDialog('Privacy Policy');
+  void _handleSignIn() {
+    Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
   }
 
   @override
@@ -372,189 +336,127 @@ class _RegisterScreenState extends State<RegisterScreen> {
             FocusScope.of(context).unfocus();
           },
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top -
-                    MediaQuery.of(context).padding.bottom,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 4.h),
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(height: 4.h),
 
-                  // Back button
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back,
-                          color: AppTheme.primaryText),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppTheme.surface,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
+                // Mewayz Logo
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 16.w,
+                        height: 16.w,
+                        decoration: BoxDecoration(
+                          color: AppTheme.accent,
+                          borderRadius: BorderRadius.circular(3.w)),
+                        child: Center(
+                          child: Text(
+                            'M',
+                            style: AppTheme.darkTheme.textTheme.headlineLarge?.copyWith(
+                              color: AppTheme.primaryAction,
+                              fontWeight: FontWeight.bold)))),
+                      SizedBox(height: 2.h),
+                      Text(
+                        'Create Account',
+                        style: AppTheme.darkTheme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w600)),
+                      SizedBox(height: 1.h),
+                      Text(
+                        'Join thousands of businesses using Mewayz',
+                        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.secondaryText),
+                        textAlign: TextAlign.center),
+                    ])),
 
-                  SizedBox(height: 2.h),
+                SizedBox(height: 6.h),
 
-                  // Mewayz Logo
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 16.w,
-                          height: 16.w,
-                          decoration: BoxDecoration(
-                            color: AppTheme.accent,
-                            borderRadius: BorderRadius.circular(3.w),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'M',
-                              style: AppTheme.darkTheme.textTheme.headlineMedium
-                                  ?.copyWith(
-                                color: AppTheme.primaryAction,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          'Create Account',
-                          style: AppTheme.darkTheme.textTheme.headlineMedium
-                              ?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: 1.h),
-                        Text(
-                          'Join Mewayz to get started with your digital workspace',
-                          style:
-                              AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.secondaryText,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
+                // Registration Form
+                RegistrationFormWidget(
+                  formKey: _formKey,
+                  fullNameController: _firstNameController,
+                  fullNameFocusNode: _firstNameFocusNode,
+                  emailController: _emailController,
+                  passwordController: _passwordController,
+                  confirmPasswordController: _confirmPasswordController,
 
-                  SizedBox(height: 4.h),
+                  emailFocusNode: _emailFocusNode,
+                  passwordFocusNode: _passwordFocusNode,
+                  confirmPasswordFocusNode: _confirmPasswordFocusNode,
+                  isPasswordVisible: _isPasswordVisible,
+                  isConfirmPasswordVisible: _isConfirmPasswordVisible,
 
-                  // Registration Form
-                  RegistrationFormWidget(
-                    formKey: _formKey,
-                    fullNameController: _fullNameController,
-                    emailController: _emailController,
-                    passwordController: _passwordController,
-                    confirmPasswordController: _confirmPasswordController,
-                    fullNameFocusNode: _fullNameFocusNode,
-                    emailFocusNode: _emailFocusNode,
-                    passwordFocusNode: _passwordFocusNode,
-                    confirmPasswordFocusNode: _confirmPasswordFocusNode,
-                    isPasswordVisible: _isPasswordVisible,
-                    isConfirmPasswordVisible: _isConfirmPasswordVisible,
-                    fullNameError: _fullNameError,
-                    emailError: _emailError,
-                    passwordError: _passwordError,
-                    confirmPasswordError: _confirmPasswordError,
-                    generalError: _generalError,
-                    isLoading: _isLoading,
-                    isFormValid: _isFormValid,
-                    onPasswordVisibilityToggle: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                    onConfirmPasswordVisibilityToggle: () {
-                      setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                      });
-                    },
-                    onRegister: _handleRegister,
-                  ),
+                  emailError: _emailError,
+                  passwordError: _passwordError,
+                  confirmPasswordError: _confirmPasswordError,
+                  generalError: _generalError,
+                  isLoading: _isLoading,
+                  isFormValid: _isFormValid,
+                  onPasswordVisibilityToggle: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                  onConfirmPasswordVisibilityToggle: () {
+                    setState(() {
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                    });
+                  },
+                  onRegister: _handleRegister),
 
-                  SizedBox(height: 2.h),
+                SizedBox(height: 2.h),
 
-                  // Password Strength Indicator
-                  PasswordStrengthIndicatorWidget(
-                    strength: _passwordStrength,
-                    strengthText: _passwordStrengthText,
-                  ),
+                // Password Strength Indicator
+                PasswordStrengthIndicatorWidget(
+                  strength: 0,
+                  strengthText: '',
+                ),
 
-                  SizedBox(height: 3.h),
+                SizedBox(height: 3.h),
 
-                  // Terms and Privacy
-                  TermsAndPrivacyWidget(
-                    acceptTerms: _acceptTerms,
-                    acceptPrivacy: _acceptPrivacy,
-                    onTermsChanged: (value) {
-                      setState(() {
-                        _acceptTerms = value ?? false;
-                      });
-                    },
-                    onPrivacyChanged: (value) {
-                      setState(() {
-                        _acceptPrivacy = value ?? false;
-                      });
-                    },
-                    onTermsOfServiceTap: _handleTermsOfService,
-                    onPrivacyPolicyTap: _handlePrivacyPolicy,
-                  ),
+                // Terms and Privacy
+                TermsAndPrivacyWidget(
+                  acceptTerms: _acceptTerms,
+                  acceptPrivacy: false,
+                  onPrivacyChanged: (value) {},
+                  onPrivacyPolicyTap: () {},
+                  onTermsOfServiceTap: () {},
+                  onTermsChanged: (value) {
+                    setState(() {
+                      _acceptTerms = value ?? false;
+                    });
+                  }),
 
-                  SizedBox(height: 4.h),
+                SizedBox(height: 4.h),
 
-                  // Social Registration
-                  SocialRegistrationWidget(
-                    onGoogleSignUp: _handleGoogleSignUp,
-                    onAppleSignUp: _handleAppleSignUp,
-                  ),
+                // Social Registration
+                SocialRegistrationWidget(
+                  onGoogleSignUp: () {},
+                  onAppleSignUp: () {},
+                ),
 
-                  SizedBox(height: 4.h),
+                SizedBox(height: 4.h),
 
-                  // Login Link
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacementNamed(
-                            context, AppRoutes.loginScreen);
-                      },
-                      child: RichText(
-                        text: TextSpan(
-                          text: 'Already have an account? ',
-                          style:
-                              AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.secondaryText,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'Login',
-                              style: AppTheme.darkTheme.textTheme.bodyMedium
-                                  ?.copyWith(
-                                color: AppTheme.accent,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                // Sign In Link
+                Center(
+                  child: GestureDetector(
+                    onTap: _handleSignIn,
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Already have an account? ',
+                        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.secondaryText),
+                        children: [
+                          TextSpan(
+                            text: 'Sign In',
+                            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                              color: AppTheme.accent,
+                              fontWeight: FontWeight.w500)),
+                        ])))),
 
-                  SizedBox(height: 4.h),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+                SizedBox(height: 4.h),
+              ])))));
   }
 }

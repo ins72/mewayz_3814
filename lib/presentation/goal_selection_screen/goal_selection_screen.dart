@@ -104,10 +104,6 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen>
       
     } catch (e) {
       _showErrorMessage('Failed to save goals: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 

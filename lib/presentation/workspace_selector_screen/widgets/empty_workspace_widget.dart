@@ -44,7 +44,7 @@ class EmptyWorkspaceWidget extends StatelessWidget {
             SizedBox(height: 4.h),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
+                Navigator.pushNamed(context, '/workspace-creation');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryAction,
