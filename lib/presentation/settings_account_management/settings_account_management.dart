@@ -16,7 +16,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
 { 'title': 'Personal Profile',
 'description': 'Avatar, name, email, bio, and social links',
 'icon': Icons.person_outline,
-'route': AppRoutes.profileSettings ?? '/profile-settings',
+'route': '/profile-settings',
 'subcategories': [ {'title': 'Profile Picture', 'description': 'Upload and manage your avatar'},
 {'title': 'Personal Information', 'description': 'Name, email, phone, bio'},
 {'title': 'Social Links', 'description': 'Connect your social media accounts'},
@@ -26,7 +26,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
 { 'title': 'Account Security',
 'description': 'Password, two-factor authentication, active sessions',
 'icon': Icons.security_outlined,
-'route': AppRoutes.securitySettings ?? '/security-settings',
+'route': '/security-settings',
 'subcategories': [ {'title': 'Password Management', 'description': 'Change and reset password'},
 {'title': 'Two-Factor Authentication', 'description': 'SMS, email, authenticator app'},
 {'title': 'Active Sessions', 'description': 'View and manage active logins'},
@@ -46,7 +46,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
 { 'title': 'Notification Preferences',
 'description': 'Email, push, and in-app alerts across all features',
 'icon': Icons.notifications_outlined,
-'route': AppRoutes.notificationSettings ?? '/notification-settings',
+'route': '/notification-settings',
 'subcategories': [ {'title': 'Email Notifications', 'description': 'Configure email alerts'},
 {'title': 'Push Notifications', 'description': 'Mobile push notifications'},
 {'title': 'In-App Alerts', 'description': 'Notifications within the app'},
@@ -56,7 +56,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
 { 'title': 'Privacy & Data',
 'description': 'Visibility settings, data export, account deletion',
 'icon': Icons.privacy_tip_outlined,
-'route': AppRoutes.accountSettings ?? '/account-settings',
+'route': '/account-settings',
 'subcategories': [ {'title': 'Visibility Settings', 'description': 'Control who can see your profile'},
 {'title': 'Data Export', 'description': 'Download your account data'},
 {'title': 'Account Deletion', 'description': 'Permanently delete your account'},
@@ -370,7 +370,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
               Icons.lock_outline,
               () {
                 Navigator.pop(context);
-                _navigateToSetting(AppRoutes.securitySettings ?? '/security-settings');
+                _navigateToSetting('/security-settings');
               },
             ),
             _buildQuickActionItem(
@@ -379,7 +379,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
               Icons.notifications_outlined,
               () {
                 Navigator.pop(context);
-                _navigateToSetting(AppRoutes.notificationSettings ?? '/notification-settings');
+                _navigateToSetting('/notification-settings');
               },
             ),
             _buildQuickActionItem(
@@ -388,7 +388,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
               Icons.privacy_tip_outlined,
               () {
                 Navigator.pop(context);
-                _navigateToSetting(AppRoutes.accountSettings ?? '/account-settings');
+                _navigateToSetting('/account-settings');
               },
             ),
             _buildQuickActionItem(

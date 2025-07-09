@@ -1,10 +1,7 @@
-
 import '../../core/app_export.dart';
-import '../analytics_dashboard/widgets/chart_container_widget.dart';
 import '../analytics_dashboard/widgets/date_range_selector_widget.dart';
 import '../analytics_dashboard/widgets/export_button_widget.dart';
 import '../analytics_dashboard/widgets/filter_chip_widget.dart';
-import '../analytics_dashboard/widgets/metric_card_widget.dart';
 import '../link_in_bio_analytics_screen/widgets/analytics_charts_widget.dart';
 import '../link_in_bio_analytics_screen/widgets/conversion_funnel_widget.dart';
 import '../link_in_bio_analytics_screen/widgets/real_time_tracking_widget.dart';
@@ -23,42 +20,53 @@ class UnifiedAnalyticsScreen extends StatefulWidget {
 class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  
   String _selectedDateRange = 'Last 7 days';
   bool _autoRefresh = true;
   bool _comparisonMode = false;
   String _selectedFilter = 'All';
+  String _selectedPlatform = 'All';
 
   final List<Map<String, dynamic>> _mockMetrics = [
 { "title": "Total Revenue",
 "value": "\$24,580",
 "change": "+12.5%",
 "isPositive": true,
-"icon": "attach_money" },
+"icon": "attach_money",
+"color": AppTheme.success },
 { "title": "Leads Generated",
 "value": "1,247",
 "change": "+8.3%",
 "isPositive": true,
-"icon": "people" },
+"icon": "people",
+"color": AppTheme.accent },
 { "title": "Social Followers",
 "value": "15.2K",
 "change": "+15.7%",
 "isPositive": true,
-"icon": "thumb_up" },
+"icon": "thumb_up",
+"color": AppTheme.primaryAction },
 { "title": "Link Clicks",
 "value": "3,482",
 "change": "+22.1%",
 "isPositive": true,
-"icon": "link" },
+"icon": "link",
+"color": AppTheme.warning },
 { "title": "Conversion Rate",
 "value": "3.8%",
 "change": "+0.5%",
 "isPositive": true,
-"icon": "trending_up" },
+"icon": "trending_up",
+"color": AppTheme.success },
 { "title": "Engagement Rate",
 "value": "4.2%",
 "change": "+8.3%",
 "isPositive": true,
-"icon": "favorite" }
+"icon": "favorite",
+"color": AppTheme.error }
 ];
 
   final List<String> _filterOptions = [
@@ -75,11 +83,38 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    _setupAnimations();
+  }
+
+  void _setupAnimations() {
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+    ));
+
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -87,152 +122,241 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
-      appBar: _buildAppBar(),
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        color: AppTheme.accent,
-        backgroundColor: AppTheme.surface,
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildFilterChips(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildOverviewTab(),
-                  _buildSocialMediaTab(),
-                  _buildLinkInBioTab(),
-                  _buildRevenueTab(),
-                  _buildRealTimeTab(),
-                ],
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(),
+          SliverFillRemaining(
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              color: AppTheme.accent,
+              backgroundColor: AppTheme.surface,
+              child: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        children: [
+                          _buildHeader(),
+                          _buildFilterChips(),
+                          Expanded(
+                            child: TabBarView(
+                              controller: _tabController,
+                              children: [
+                                _buildOverviewTab(),
+                                _buildSocialMediaTab(),
+                                _buildLinkInBioTab(),
+                                _buildRevenueTab(),
+                                _buildRealTimeTab(),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Text(
-        'Analytics Dashboard',
-        style: AppTheme.darkTheme.textTheme.titleLarge,
-      ),
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 160,
+      floating: false,
+      pinned: true,
       backgroundColor: AppTheme.primaryBackground,
       elevation: 0,
-      leading: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: CustomIconWidget(
-          iconName: 'arrow_back',
-          color: AppTheme.primaryText,
-          size: 24,
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.primaryText),
         ),
       ),
       actions: [
-        IconButton(
-          onPressed: _toggleAutoRefresh,
-          icon: CustomIconWidget(
-            iconName: _autoRefresh ? 'refresh' : 'refresh_outlined',
-            color: _autoRefresh ? AppTheme.accent : AppTheme.secondaryText,
-            size: 24,
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            onPressed: _toggleAutoRefresh,
+            icon: Icon(
+              _autoRefresh ? Icons.refresh : Icons.refresh_outlined,
+              color: _autoRefresh ? AppTheme.accent : AppTheme.secondaryText,
+            ),
           ),
         ),
-        IconButton(
-          onPressed: _showExportOptions,
-          icon: CustomIconWidget(
-            iconName: 'file_download',
-            color: AppTheme.primaryText,
-            size: 24,
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            onPressed: _showExportOptions,
+            icon: const Icon(Icons.file_download, color: AppTheme.primaryText),
           ),
         ),
-        PopupMenuButton<String>(
-          onSelected: _handleMenuSelection,
-          color: AppTheme.surface,
-          icon: CustomIconWidget(
-            iconName: 'more_vert',
-            color: AppTheme.primaryText,
-            size: 24,
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
           ),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'comparison',
-              child: Row(
-                children: [
-                  CustomIconWidget(
-                    iconName: 'compare_arrows',
-                    color: AppTheme.primaryText,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Comparison Mode',
-                    style: AppTheme.darkTheme.textTheme.bodyMedium,
-                  ),
-                ],
+          child: PopupMenuButton<String>(
+            onSelected: _handleMenuSelection,
+            color: AppTheme.surface,
+            icon: const Icon(Icons.more_vert, color: AppTheme.primaryText),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'comparison',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.compare_arrows,
+                      color: AppTheme.primaryText,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Comparison Mode',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.primaryText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            PopupMenuItem(
-              value: 'custom_report',
-              child: Row(
-                children: [
-                  CustomIconWidget(
-                    iconName: 'dashboard_customize',
-                    color: AppTheme.primaryText,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Custom Report',
-                    style: AppTheme.darkTheme.textTheme.bodyMedium,
-                  ),
-                ],
+              PopupMenuItem(
+                value: 'custom_report',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.dashboard_customize,
+                      color: AppTheme.primaryText,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Custom Report',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.primaryText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            PopupMenuItem(
-              value: 'scheduled_reports',
-              child: Row(
-                children: [
-                  CustomIconWidget(
-                    iconName: 'schedule',
-                    color: AppTheme.primaryText,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Scheduled Reports',
-                    style: AppTheme.darkTheme.textTheme.bodyMedium,
-                  ),
-                ],
+              PopupMenuItem(
+                value: 'scheduled_reports',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.schedule,
+                      color: AppTheme.primaryText,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Scheduled Reports',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.primaryText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
-      bottom: TabBar(
-        controller: _tabController,
-        labelColor: AppTheme.primaryText,
-        unselectedLabelColor: AppTheme.secondaryText,
-        indicatorColor: AppTheme.accent,
-        indicatorWeight: 2,
-        labelStyle: AppTheme.darkTheme.textTheme.titleSmall,
-        unselectedLabelStyle: AppTheme.darkTheme.textTheme.bodySmall,
-        isScrollable: true,
-        tabs: const [
-          Tab(text: 'Overview'),
-          Tab(text: 'Social Media'),
-          Tab(text: 'Link in Bio'),
-          Tab(text: 'Revenue'),
-          Tab(text: 'Real Time'),
-        ],
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          'Analytics Dashboard',
+          style: GoogleFonts.inter(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.primaryText,
+          ),
+        ),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppTheme.primaryBackground, AppTheme.surface],
+            ),
+          ),
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppTheme.primaryBackground,
+            border: Border(
+              bottom: BorderSide(
+                color: AppTheme.border,
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: TabBar(
+            controller: _tabController,
+            labelColor: AppTheme.primaryText,
+            unselectedLabelColor: AppTheme.secondaryText,
+            indicatorColor: AppTheme.accent,
+            indicatorWeight: 3,
+            indicatorSize: TabBarIndicatorSize.label,
+            labelStyle: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            isScrollable: true,
+            tabs: const [
+              Tab(text: 'Overview'),
+              Tab(text: 'Social Media'),
+              Tab(text: 'Link in Bio'),
+              Tab(text: 'Revenue'),
+              Tab(text: 'Real Time'),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: AppTheme.border.withAlpha(77),
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -245,8 +369,14 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
               },
             ),
           ),
-          SizedBox(width: 3.w),
-          ExportButtonWidget(onExport: _showExportOptions),
+          const SizedBox(width: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.accent.withAlpha(26),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ExportButtonWidget(onExport: _showExportOptions),
+          ),
         ],
       ),
     );
@@ -254,15 +384,15 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildFilterChips() {
     return Container(
-      height: 6.h,
-      padding: EdgeInsets.symmetric(horizontal: 4.w),
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _filterOptions.length,
         itemBuilder: (context, index) {
           final filter = _filterOptions[index];
           return Padding(
-            padding: EdgeInsets.only(right: 2.w),
+            padding: const EdgeInsets.only(right: 12),
             child: FilterChipWidget(
               label: filter,
               isSelected: _selectedFilter == filter,
@@ -280,19 +410,17 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildOverviewTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildMetricsRow(),
-          SizedBox(height: 4.h),
-          AnalyticsChartsWidget(
-            dateRange: _selectedDateRange,
-            selectedMetric: 'Visitors',
-            onMetricChanged: (metric) {},
-          ),
-          SizedBox(height: 4.h),
+          _buildMetricsGrid(),
+          const SizedBox(height: 32),
+          _buildMainChart(),
+          const SizedBox(height: 32),
           _buildQuickInsights(),
+          const SizedBox(height: 32),
+          _buildTopPerformers(),
         ],
       ),
     );
@@ -300,7 +428,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildSocialMediaTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -308,18 +436,22 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             dateRange: _selectedDateRange,
             selectedPlatforms: const ['Instagram', 'Twitter'],
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           PlatformTabsWidget(
             activePlatform: 'Instagram',
             selectedPlatforms: const ['Instagram', 'Twitter', 'Facebook'],
-            onPlatformSelected: (platform) {},
+            onPlatformSelected: (platform) {
+              setState(() {
+                _selectedPlatform = platform;
+              });
+            },
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           EngagementChartWidget(
             dateRange: _selectedDateRange,
             selectedPlatforms: const ['Instagram', 'Twitter'],
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           AudienceInsightsWidget(
             dateRange: _selectedDateRange,
             selectedPlatforms: const ['Instagram', 'Twitter'],
@@ -331,7 +463,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildLinkInBioTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -340,11 +472,11 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             selectedMetric: 'Clicks',
             onMetricChanged: (metric) {},
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           ConversionFunnelWidget(
             dateRange: _selectedDateRange,
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           _buildLinkPerformanceMetrics(),
         ],
       ),
@@ -353,12 +485,14 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildRevenueTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           _buildRevenueChart(),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           _buildRevenueBreakdown(),
+          const SizedBox(height: 24),
+          _buildMonthlyTrends(),
         ],
       ),
     );
@@ -366,33 +500,37 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildRealTimeTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           const RealTimeTrackingWidget(),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           _buildLiveMetrics(),
+          const SizedBox(height: 24),
+          _buildActiveUsers(),
         ],
       ),
     );
   }
 
-  Widget _buildMetricsRow() {
+  Widget _buildMetricsGrid() {
     return SizedBox(
-      height: 20.h,
+      height: 180,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _mockMetrics.length,
         itemBuilder: (context, index) {
           final metric = _mockMetrics[index];
-          return Padding(
-            padding: EdgeInsets.only(right: 3.w),
-            child: MetricCardWidget(
+          return Container(
+            width: 200,
+            margin: const EdgeInsets.only(right: 16),
+            child: _buildEnhancedMetricCard(
               title: metric["title"] as String,
               value: metric["value"] as String,
               change: metric["change"] as String,
               isPositive: metric["isPositive"] as bool,
               iconName: metric["icon"] as String,
+              color: metric["color"] as Color,
             ),
           );
         },
@@ -400,21 +538,172 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
     );
   }
 
-  Widget _buildQuickInsights() {
+  Widget _buildEnhancedMetricCard({
+    required String title,
+    required String value,
+    required String change,
+    required bool isPositive,
+    required String iconName,
+    required Color color,
+  }) {
     return Container(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(13),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Quick Insights',
-            style: AppTheme.darkTheme.textTheme.titleMedium,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(26),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _getIconData(iconName),
+                  color: color,
+                  size: 24,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPositive ? AppTheme.success.withAlpha(26) : AppTheme.error.withAlpha(26),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  change,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isPositive ? AppTheme.success : AppTheme.error,
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 2.h),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.secondaryText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainChart() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Performance Overview',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+              Icon(
+                Icons.trending_up,
+                color: AppTheme.accent,
+                size: 24,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 200,
+            child: Center(
+              child: Text(
+                'Interactive Chart Placeholder',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickInsights() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lightbulb_outline,
+                color: AppTheme.accent,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Quick Insights',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           _buildInsightItem(
             'Best performing platform',
             'Instagram with 4.2% engagement',
@@ -439,36 +728,48 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
   }
 
   Widget _buildInsightItem(String title, String value, IconData icon, Color color) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2.h),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
               color: color,
-              size: 16,
+              size: 20,
             ),
           ),
-          SizedBox(width: 3.w),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                     color: AppTheme.secondaryText,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   value,
-                  style: AppTheme.darkTheme.textTheme.bodyMedium,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryText,
+                  ),
                 ),
               ],
             ),
@@ -478,21 +779,142 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
     );
   }
 
-  Widget _buildLinkPerformanceMetrics() {
+  Widget _buildTopPerformers() {
     return Container(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Link Performance',
-            style: AppTheme.darkTheme.textTheme.titleMedium,
+          Row(
+            children: [
+              Icon(
+                Icons.star_outline,
+                color: AppTheme.warning,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Top Performers',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 2.h),
+          const SizedBox(height: 20),
+          _buildPerformerItem('Instagram Post', '2.4K engagements', '1'),
+          _buildPerformerItem('Course Landing Page', '186 conversions', '2'),
+          _buildPerformerItem('Newsletter Link', '89 clicks', '3'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerformerItem(String title, String metric, String rank) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppTheme.accent.withAlpha(26),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(
+                rank,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.accent,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  metric,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppTheme.secondaryText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios,
+            color: AppTheme.secondaryText,
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkPerformanceMetrics() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.link,
+                color: AppTheme.accent,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Link Performance',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           _buildLinkMetricRow('Total Clicks', '3,482', '+22.1%'),
           _buildLinkMetricRow('Unique Visitors', '2,847', '+18.5%'),
           _buildLinkMetricRow('Conversion Rate', '3.8%', '+0.5%'),
@@ -504,28 +926,48 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildLinkMetricRow(String label, String value, String change) {
     final isPositive = change.startsWith('+');
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2.h),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: AppTheme.darkTheme.textTheme.bodyMedium,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.primaryText,
+            ),
           ),
           Row(
             children: [
               Text(
                 value,
-                style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                style: GoogleFonts.inter(
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
                 ),
               ),
-              SizedBox(width: 2.w),
-              Text(
-                change,
-                style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-                  color: isPositive ? AppTheme.success : AppTheme.error,
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPositive ? AppTheme.success.withAlpha(26) : AppTheme.error.withAlpha(26),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  change,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isPositive ? AppTheme.success : AppTheme.error,
+                  ),
                 ),
               ),
             ],
@@ -536,73 +978,202 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
   }
 
   Widget _buildRevenueChart() {
-    return ChartContainerWidget(
-      title: 'Revenue Overview',
-      child: Container(
-        height: 30.h,
-        child: Center(
-          child: Text(
-            'Revenue chart implementation',
-            style: AppTheme.darkTheme.textTheme.bodyMedium,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.attach_money,
+                color: AppTheme.success,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Revenue Overview',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 200,
+            child: Center(
+              child: Text(
+                'Revenue Chart Implementation',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildRevenueBreakdown() {
     return Container(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Revenue Breakdown',
-            style: AppTheme.darkTheme.textTheme.titleMedium,
+          Row(
+            children: [
+              Icon(
+                Icons.pie_chart,
+                color: AppTheme.accent,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Revenue Breakdown',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 2.h),
-          _buildRevenueItem('Course Sales', '\$12,580', '51.2%'),
-          _buildRevenueItem('Marketplace', '\$7,890', '32.1%'),
-          _buildRevenueItem('Subscriptions', '\$3,210', '13.1%'),
-          _buildRevenueItem('Services', '\$900', '3.6%'),
+          const SizedBox(height: 20),
+          _buildRevenueItem('Course Sales', '\$12,580', '51.2%', AppTheme.success),
+          _buildRevenueItem('Marketplace', '\$7,890', '32.1%', AppTheme.accent),
+          _buildRevenueItem('Subscriptions', '\$3,210', '13.1%', AppTheme.warning),
+          _buildRevenueItem('Services', '\$900', '3.6%', AppTheme.error),
         ],
       ),
     );
   }
 
-  Widget _buildRevenueItem(String category, String amount, String percentage) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2.h),
+  Widget _buildRevenueItem(String category, String amount, String percentage, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              category,
-              style: AppTheme.darkTheme.textTheme.bodyMedium,
+          Container(
+            width: 4,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
-            flex: 2,
-            child: Text(
-              amount,
-              style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.right,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  amount,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppTheme.secondaryText,
+                  ),
+                ),
+              ],
             ),
           ),
-          Expanded(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: color.withAlpha(26),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Text(
               percentage,
-              style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.secondaryText,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: color,
               ),
-              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyTrends() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.trending_up,
+                color: AppTheme.success,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Monthly Trends',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 120,
+            child: Center(
+              child: Text(
+                'Monthly Trends Chart',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: AppTheme.secondaryText,
+                ),
+              ),
             ),
           ),
         ],
@@ -612,10 +1183,14 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
 
   Widget _buildLiveMetrics() {
     return Container(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -623,50 +1198,133 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
           Row(
             children: [
               Container(
-                width: 8,
-                height: 8,
+                width: 12,
+                height: 12,
                 decoration: BoxDecoration(
                   color: AppTheme.success,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              SizedBox(width: 2.w),
+              const SizedBox(width: 8),
               Text(
                 'Live Metrics',
-                style: AppTheme.darkTheme.textTheme.titleMedium,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
               ),
             ],
           ),
-          SizedBox(height: 2.h),
-          _buildLiveMetricItem('Active Users', '147'),
-          _buildLiveMetricItem('Current Sessions', '89'),
-          _buildLiveMetricItem('Page Views/min', '23'),
-          _buildLiveMetricItem('Bounce Rate', '24.2%'),
+          const SizedBox(height: 20),
+          _buildLiveMetricItem('Active Users', '147', AppTheme.success),
+          _buildLiveMetricItem('Current Sessions', '89', AppTheme.accent),
+          _buildLiveMetricItem('Page Views/min', '23', AppTheme.warning),
+          _buildLiveMetricItem('Bounce Rate', '24.2%', AppTheme.error),
         ],
       ),
     );
   }
 
-  Widget _buildLiveMetricItem(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2.h),
+  Widget _buildLiveMetricItem(String label, String value, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: AppTheme.darkTheme.textTheme.bodyMedium,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.primaryText,
+            ),
           ),
           Text(
             value,
-            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+            style: GoogleFonts.inter(
+              fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppTheme.success,
+              color: color,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildActiveUsers() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.border.withAlpha(77),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.people,
+                color: AppTheme.accent,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Active Users',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 120,
+            child: Center(
+              child: Text(
+                'Active Users Chart',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case 'attach_money':
+        return Icons.attach_money;
+      case 'people':
+        return Icons.people;
+      case 'thumb_up':
+        return Icons.thumb_up;
+      case 'link':
+        return Icons.link;
+      case 'trending_up':
+        return Icons.trending_up;
+      case 'favorite':
+        return Icons.favorite;
+      default:
+        return Icons.help_outline;
+    }
   }
 
   Future<void> _refreshData() async {
@@ -694,56 +1352,42 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
       ),
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(4.w),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Export Options',
-                style: AppTheme.darkTheme.textTheme.titleMedium,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryText,
+                ),
               ),
-              SizedBox(height: 2.h),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'picture_as_pdf',
-                  color: AppTheme.error,
-                  size: 24,
-                ),
-                title: Text(
-                  'Export as PDF',
-                  style: AppTheme.darkTheme.textTheme.bodyMedium,
-                ),
+              const SizedBox(height: 20),
+              _buildExportOption(
+                icon: Icons.picture_as_pdf,
+                title: 'Export as PDF',
+                color: AppTheme.error,
                 onTap: () {
                   Navigator.pop(context);
                   _exportToPDF();
                 },
               ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'table_chart',
-                  color: AppTheme.success,
-                  size: 24,
-                ),
-                title: Text(
-                  'Export as CSV',
-                  style: AppTheme.darkTheme.textTheme.bodyMedium,
-                ),
+              _buildExportOption(
+                icon: Icons.table_chart,
+                title: 'Export as CSV',
+                color: AppTheme.success,
                 onTap: () {
                   Navigator.pop(context);
                   _exportToCSV();
                 },
               ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'business',
-                  color: AppTheme.accent,
-                  size: 24,
-                ),
-                title: Text(
-                  'White-label Report',
-                  style: AppTheme.darkTheme.textTheme.bodyMedium,
-                ),
+              _buildExportOption(
+                icon: Icons.business,
+                title: 'White-label Report',
+                color: AppTheme.accent,
                 onTap: () {
                   Navigator.pop(context);
                   _exportWhiteLabel();
@@ -753,6 +1397,36 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildExportOption({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withAlpha(26),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.primaryText,
+          ),
+        ),
+        onTap: onTap,
+      ),
     );
   }
 

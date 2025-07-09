@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import '../setup_progress_screen/widgets/completion_celebration_widget.dart';
 import '../setup_progress_screen/widgets/progress_overview_widget.dart';
@@ -18,7 +17,10 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
     with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _fadeAnimationController;
+  late AnimationController _slideAnimationController;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
   
   final OnboardingService _onboardingService = OnboardingService();
   
@@ -40,7 +42,12 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
   void _setupAnimations() {
     _fadeAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _slideAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
@@ -49,10 +56,27 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _fadeAnimationController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOut,
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideAnimationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _slideAnimationController,
+      curve: Curves.easeOutBack,
     ));
 
     _fadeAnimationController.forward();
+    _slideAnimationController.forward();
   }
 
   Future<void> _checkOnboardingCompletion() async {
@@ -60,7 +84,6 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
     final isCompleted = await storageService.getOnboardingCompleted();
     
     if (isCompleted) {
-      // Navigate directly to workspace dashboard if onboarding is completed
       Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
     }
   }
@@ -69,13 +92,14 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
   void dispose() {
     _pageController.dispose();
     _fadeAnimationController.dispose();
+    _slideAnimationController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
     if (_currentPage < OnboardingStepsData.totalSteps - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     } else {
@@ -86,7 +110,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
   void _previousPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     }
@@ -114,6 +138,12 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
         _isLoading = false;
       });
       
+      // Trigger animations for setup progress
+      _fadeAnimationController.reset();
+      _slideAnimationController.reset();
+      _fadeAnimationController.forward();
+      _slideAnimationController.forward();
+      
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -124,6 +154,8 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
   Future<void> _updateStepStatus(String stepKey, SetupStepStatus status) async {
     try {
+      HapticFeedback.lightImpact();
+      
       await _onboardingService.updateSetupStepStatus(stepKey, status);
       
       // Refresh data
@@ -166,7 +198,15 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       await storageService.saveOnboardingCompleted(true);
       await _onboardingService.completeOnboarding();
       
-      // Navigate to goal selection screen
+      HapticFeedback.heavyImpact();
+      
+      // Show celebration and then navigate
+      setState(() {
+        _showCelebration = true;
+      });
+      
+      await Future.delayed(const Duration(seconds: 2));
+      
       Navigator.pushReplacementNamed(context, AppRoutes.goalSelectionScreen);
     } catch (e) {
       ErrorHandler.handleError(e);
@@ -182,15 +222,21 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         title: Text(
           'Skip Setup?',
-          style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
             color: AppTheme.primaryText,
           ),
         ),
         content: Text(
           'You can always complete these setup steps later from your dashboard.',
-          style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+          style: GoogleFonts.inter(
+            fontSize: 16,
             color: AppTheme.secondaryText,
           ),
         ),
@@ -199,7 +245,9 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Continue Setup',
-              style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
                 color: AppTheme.secondaryText,
               ),
             ),
@@ -210,10 +258,20 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
               Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryAction,
-              foregroundColor: const Color(0xFF141414),
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.primaryBackground,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text('Skip for Now'),
+            child: Text(
+              'Skip for Now',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -234,15 +292,35 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
         body: SafeArea(
           child: Stack(
             children: [
+              // Background gradient
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryBackground,
+                      AppTheme.surface,
+                    ],
+                  ),
+                ),
+              ),
+              
               // Main content
               AnimatedBuilder(
-                animation: _fadeAnimation,
+                animation: Listenable.merge([_fadeAnimation, _slideAnimation, _scaleAnimation]),
                 builder: (context, child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: _showSetupProgress
-                        ? _buildSetupProgressContent()
-                        : _buildOnboardingContent(),
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: _showSetupProgress
+                            ? _buildSetupProgressContent()
+                            : _buildOnboardingContent(),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -265,11 +343,32 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
     return Column(
       children: [
         // Progress Indicator
-        Padding(
-          padding: EdgeInsets.all(6.w),
-          child: ProgressIndicatorWidget(
-            currentStep: _currentPage + 1,
-            totalSteps: OnboardingStepsData.totalSteps,
+        Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              ProgressIndicatorWidget(
+                currentStep: _currentPage + 1,
+                totalSteps: OnboardingStepsData.totalSteps,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Welcome to Mewayz',
+                style: GoogleFonts.inter(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primaryText,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Let\'s get you started with your journey',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -285,17 +384,20 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
             },
             itemBuilder: (context, index) {
               final stepData = OnboardingStepsData.getStep(index);
-              return OnboardingStepWidget(
-                isActive: _currentPage == index,
-                stepData: stepData.toMap(),
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: OnboardingStepWidget(
+                  isActive: _currentPage == index,
+                  stepData: stepData.toMap(),
+                ),
               );
             },
           ),
         ),
 
         // Navigation Buttons
-        Padding(
-          padding: EdgeInsets.all(6.w),
+        Container(
+          padding: const EdgeInsets.all(24),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -305,56 +407,78 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
                   onPressed: _skipOnboarding,
                   child: Text(
                     'Skip',
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       color: AppTheme.secondaryText,
-                      fontSize: 16.sp,
                     ),
                   ),
                 )
               else
-                TextButton(
+                TextButton.icon(
                   onPressed: _previousPage,
-                  child: Text(
+                  icon: const Icon(Icons.arrow_back_ios, size: 16),
+                  label: Text(
                     'Previous',
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       color: AppTheme.accent,
-                      fontSize: 16.sp,
                     ),
                   ),
                 ),
 
               // Next/Continue Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _nextPage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accent,
-                  foregroundColor: AppTheme.primaryAction,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 2.h,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                  ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.accent.withAlpha(77),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                child: _isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: AppTheme.primaryAction,
-                          strokeWidth: 2,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _nextPage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accent,
+                    foregroundColor: AppTheme.primaryBackground,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryBackground,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _currentPage == OnboardingStepsData.totalSteps - 1
+                                  ? 'Continue to Setup'
+                                  : 'Next',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_ios, size: 16),
+                          ],
                         ),
-                      )
-                    : Text(
-                        _currentPage == OnboardingStepsData.totalSteps - 1
-                            ? 'Continue to Setup'
-                            : 'Next',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                ),
               ),
             ],
           ),
@@ -368,27 +492,48 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       children: [
         // Setup Header
         Container(
-          padding: EdgeInsets.all(4.w),
+          padding: const EdgeInsets.all(24),
           child: Row(
             children: [
               IconButton(
                 onPressed: () => setState(() {
                   _showSetupProgress = false;
                 }),
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: AppTheme.primaryText,
-                  size: 20,
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_ios,
+                    color: AppTheme.primaryText,
+                    size: 20,
+                  ),
                 ),
               ),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'Setup Progress',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryText,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Setup Progress',
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Complete these steps to get started',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppTheme.secondaryText,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               TextButton(
@@ -397,7 +542,8 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
                   'Skip',
                   style: GoogleFonts.inter(
                     color: AppTheme.secondaryText,
-                    fontSize: 14,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -420,16 +566,32 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAction),
-            strokeWidth: 3,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
+              strokeWidth: 3,
+            ),
           ),
-          SizedBox(height: 3.h),
+          const SizedBox(height: 32),
           Text(
-            'Loading your setup...',
-            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+            'Setting up your workspace...',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryText,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This won\'t take long',
+            style: GoogleFonts.inter(
+              fontSize: 14,
               color: AppTheme.secondaryText,
-              fontSize: 12.sp,
             ),
           ),
         ],
@@ -439,25 +601,47 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
   Widget _buildSetupProgressList() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
           // Progress overview
-          ProgressOverviewWidget(
-            progress: _onboardingProgress,
-            totalSteps: _setupSteps.length,
-            completedSteps: _setupSteps.where((step) => step['status'] == 'completed').length,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.border.withAlpha(77),
+                width: 1,
+              ),
+            ),
+            child: ProgressOverviewWidget(
+              progress: _onboardingProgress,
+              totalSteps: _setupSteps.length,
+              completedSteps: _setupSteps.where((step) => step['status'] == 'completed').length,
+            ),
           ),
           
-          SizedBox(height: 4.h),
+          const SizedBox(height: 24),
           
           // Setup checklist
-          SetupChecklistWidget(
-            steps: _setupSteps,
-            onStepTap: _updateStepStatus,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.border.withAlpha(77),
+                width: 1,
+              ),
+            ),
+            child: SetupChecklistWidget(
+              steps: _setupSteps,
+              onStepTap: _updateStepStatus,
+            ),
           ),
           
-          SizedBox(height: 4.h),
+          const SizedBox(height: 32),
           
           // Complete setup button
           if (_onboardingProgress != null && 
@@ -469,26 +653,42 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
   }
 
   Widget _buildCompleteSetupButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.accent.withAlpha(77),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _completeOnboarding,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryAction,
-          foregroundColor: const Color(0xFF141414),
-          padding: EdgeInsets.symmetric(vertical: 2.h),
+          backgroundColor: AppTheme.accent,
+          foregroundColor: AppTheme.primaryBackground,
+          padding: const EdgeInsets.symmetric(vertical: 20),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(3.w),
+            borderRadius: BorderRadius.circular(16),
           ),
-          elevation: 3,
+          elevation: 0,
         ),
-        child: Text(
-          'Complete Setup & Continue',
-          style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
-            color: const Color(0xFF141414),
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.check_circle, size: 24),
+            const SizedBox(width: 12),
+            Text(
+              'Complete Setup & Continue',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
