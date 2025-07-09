@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/contact_form_widget.dart';
 import './widgets/contact_info_widget.dart';

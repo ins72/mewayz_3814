@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/bulk_posting_history_widget.dart';
 import './widgets/content_composer_widget.dart';
 import './widgets/cross_posting_rules_widget.dart';

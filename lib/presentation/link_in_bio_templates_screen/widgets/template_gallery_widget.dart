@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 import './template_card_widget.dart';
 
 class TemplateGalleryWidget extends StatefulWidget {

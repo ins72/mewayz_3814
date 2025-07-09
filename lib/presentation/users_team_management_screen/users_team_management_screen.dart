@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
 import '../crm_contact_management/widgets/bulk_actions_widget.dart';

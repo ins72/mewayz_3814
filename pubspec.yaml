@@ -44,6 +44,9 @@ dependencies:
   google_fonts: ^6.1.0
   url_launcher: ^6.2.2
   
+  # Supabase integration
+  supabase_flutter: ^2.3.4
+  
   # Production dependencies
   crypto: ^3.0.3
   path_provider: ^2.1.1

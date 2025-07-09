@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
 import './widgets/add_contact_widget.dart';

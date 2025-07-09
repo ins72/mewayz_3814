@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/account_actions_widget.dart';
 import './widgets/personal_info_widget.dart';

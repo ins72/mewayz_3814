@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../../core/app_export.dart';
 import './verification_code_input_widget.dart';
 

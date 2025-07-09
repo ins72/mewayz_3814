@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/billing_settings_widget.dart';
 import './widgets/branding_settings_widget.dart';

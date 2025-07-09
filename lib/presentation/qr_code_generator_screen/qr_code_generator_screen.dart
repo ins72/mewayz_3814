@@ -1,10 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
-import '../workspace_settings_screen/widgets/integrations_settings_widget.dart';
 import './widgets/analytics_integration_widget.dart';
 import './widgets/batch_generation_widget.dart';
 import './widgets/custom_frame_widget.dart';
@@ -13,14 +8,6 @@ import './widgets/qr_code_preview_widget.dart';
 import './widgets/style_customization_widget.dart';
 import './widgets/template_library_widget.dart';
 import './widgets/url_input_widget.dart';
-import 'widgets/analytics_integration_widget.dart';
-import 'widgets/batch_generation_widget.dart';
-import 'widgets/custom_frame_widget.dart';
-import 'widgets/download_options_widget.dart';
-import 'widgets/qr_code_preview_widget.dart';
-import 'widgets/style_customization_widget.dart';
-import 'widgets/template_library_widget.dart';
-import 'widgets/url_input_widget.dart';
 
 class QRCodeGeneratorScreen extends StatefulWidget {
   const QRCodeGeneratorScreen({super.key});

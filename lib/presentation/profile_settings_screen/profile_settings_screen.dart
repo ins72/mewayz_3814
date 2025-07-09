@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/avatar_upload_widget.dart';
 import './widgets/danger_zone_widget.dart';

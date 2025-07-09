@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 import './widgets/ab_testing_results_widget.dart';
 import './widgets/analytics_charts_widget.dart';
 import './widgets/analytics_header_widget.dart';
@@ -13,16 +10,6 @@ import './widgets/geographic_analytics_widget.dart';
 import './widgets/link_performance_widget.dart';
 import './widgets/metrics_cards_widget.dart';
 import './widgets/real_time_tracking_widget.dart';
-import 'widgets/ab_testing_results_widget.dart';
-import 'widgets/analytics_charts_widget.dart';
-import 'widgets/analytics_header_widget.dart';
-import 'widgets/conversion_funnel_widget.dart';
-import 'widgets/export_options_widget.dart';
-import 'widgets/filter_options_widget.dart';
-import 'widgets/geographic_analytics_widget.dart';
-import 'widgets/link_performance_widget.dart';
-import 'widgets/metrics_cards_widget.dart';
-import 'widgets/real_time_tracking_widget.dart';
 
 class LinkInBioAnalyticsScreen extends StatefulWidget {
   const LinkInBioAnalyticsScreen({super.key});

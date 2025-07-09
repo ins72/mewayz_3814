@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/audit_trail_widget.dart';
 import './widgets/custom_role_modal_widget.dart';

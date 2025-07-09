@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/quick_actions_widget.dart';
 import './widgets/settings_category_widget.dart';

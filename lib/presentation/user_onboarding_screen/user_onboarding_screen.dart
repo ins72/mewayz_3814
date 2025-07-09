@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/app_export.dart';
 import './widgets/onboarding_step_widget.dart';
@@ -18,6 +16,7 @@ class _UserOnboardingScreenState extends State<UserOnboardingScreen>
   late AnimationController _progressAnimationController;
   late Animation<double> _progressAnimation;
 
+  final AuthService _authService = AuthService();
   int _currentStep = 0;
   final int _totalSteps = 5;
   bool _isAnimating = false;
@@ -151,6 +150,15 @@ class _UserOnboardingScreenState extends State<UserOnboardingScreen>
     _pageController = PageController();
     _setupProgressAnimation();
     _saveOnboardingProgress();
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      await _authService.initialize();
+    } catch (e) {
+      debugPrint('Failed to initialize auth service: $e');
+    }
   }
 
   void _setupProgressAnimation() {
@@ -269,9 +277,14 @@ class _UserOnboardingScreenState extends State<UserOnboardingScreen>
   }
 
   void _completeOnboarding() {
-    // Mark onboarding as completed
-    // In real implementation, save to SharedPreferences
-    Navigator.pushReplacementNamed(context, '/workspace-dashboard');
+    // Check if user is authenticated
+    if (_authService.isAuthenticated) {
+      // Navigate to goal selection for authenticated users
+      Navigator.pushReplacementNamed(context, AppRoutes.goalSelectionScreen);
+    } else {
+      // Navigate to login for unauthenticated users
+      Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
+    }
   }
 
   @override

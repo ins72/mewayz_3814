@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/bulk_invitation_widget.dart';
 import './widgets/custom_message_widget.dart';

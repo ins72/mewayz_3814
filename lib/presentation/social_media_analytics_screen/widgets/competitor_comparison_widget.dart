@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 
 class CompetitorComparisonWidget extends StatelessWidget {
   final List<String> selectedPlatforms;

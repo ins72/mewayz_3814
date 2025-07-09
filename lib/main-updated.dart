@@ -1,16 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:html' as html;
+import 'dart:js_interop';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'dart:js_interop';
 import 'package:web/web.dart' as web;
-import 'dart:async';
-import 'custom_inspector.dart';
-import 'dart:html' as html;
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../core/app_export.dart';
-import '../widgets/custom_error_widget.dart';
+import './custom_inspector.dart';
 
 var backendURL = "https://mewayz2556back.builtwithrocket.new/log-error";
 
@@ -40,6 +38,9 @@ void main() async {
 
 Future<void> _initializeServices() async {
   try {
+    // Initialize Supabase
+    SupabaseService();
+    
     // Initialize storage service
     final storageService = StorageService();
     await storageService.initialize();
@@ -518,4 +519,3 @@ class _TrackingWidgetState extends State<TrackingWidget> {
     );
   }
 }
-

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/favorites_templates_widget.dart';
 import './widgets/template_analytics_widget.dart';

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../core/app_export.dart';
 import './widgets/analytics_header_widget.dart';
 import './widgets/audience_insights_widget.dart';

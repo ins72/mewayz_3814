@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import '../core/app_export.dart';
-import '../widgets/custom_error_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +23,9 @@ void main() async {
 
 Future<void> _initializeServices() async {
   try {
+    // Initialize Supabase
+    SupabaseService();
+    
     // Initialize storage service
     final storageService = StorageService();
     await storageService.initialize();

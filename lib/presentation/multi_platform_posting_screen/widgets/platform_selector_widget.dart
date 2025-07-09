@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 
 class PlatformSelectorWidget extends StatelessWidget {
   final List<String> selectedPlatforms;
