@@ -23,6 +23,7 @@ import '../presentation/marketplace_store/marketplace_store.dart';
 import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
 import '../presentation/notification_settings_screen/notification_settings_screen.dart';
 import '../presentation/premium_social_media_hub/premium_social_media_hub.dart';
+import '../presentation/privacy_policy_screen/privacy_policy_screen.dart';
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
@@ -41,6 +42,7 @@ import '../presentation/social_media_scheduler/social_media_scheduler.dart';
 import '../presentation/social_media_scheduler_screen/social_media_scheduler_screen.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/team_member_invitation_screen/team_member_invitation_screen.dart';
+import '../presentation/terms_of_service_screen/terms_of_service_screen.dart';
 import '../presentation/two_factor_authentication_screen/two_factor_authentication_screen.dart';
 import '../presentation/unified_analytics_screen/unified_analytics_screen.dart';
 import '../presentation/unified_onboarding_screen/unified_onboarding_screen.dart';
@@ -63,6 +65,8 @@ class AppRoutes {
   static const String premiumSocialMediaHub = '/premium-social-media-hub';
   static const String loginScreen = '/login-screen';
   static const String registerScreen = '/register-screen';
+  static const String termsOfServiceScreen = '/terms-of-service-screen';
+  static const String privacyPolicyScreen = '/privacy-policy-screen';
   static const String forgotPasswordScreen = '/forgot-password-screen';
   static const String resetPasswordScreen = '/reset-password-screen';
   static const String emailVerificationScreen = '/email-verification-screen';
@@ -120,6 +124,8 @@ class AppRoutes {
     premiumSocialMediaHub: (context) => const PremiumSocialMediaHub(),
     loginScreen: (context) => const LoginScreen(),
     registerScreen: (context) => const RegisterScreen(),
+    termsOfServiceScreen: (context) => const TermsOfServiceScreen(),
+    privacyPolicyScreen: (context) => const PrivacyPolicyScreen(),
     forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
     resetPasswordScreen: (context) => const ResetPasswordScreen(),
     emailVerificationScreen: (context) => const EmailVerificationScreen(),

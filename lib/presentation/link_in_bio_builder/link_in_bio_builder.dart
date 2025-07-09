@@ -1,4 +1,5 @@
 import '../../core/app_export.dart';
+import '../../theme/app_theme.dart';
 
 class LinkInBioBuilder extends StatefulWidget {
   const LinkInBioBuilder({Key? key}) : super(key: key);
@@ -88,7 +89,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
                   
                   // Component Editor
                   Expanded(
-                    child: const ComponentEditorBottomSheet(
+                    child: ComponentEditorBottomSheet(
                       bioData: _bioData,
                       onDataChanged: (data) {
                         setState(() {
@@ -105,7 +106,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
           // Mobile Preview
           Expanded(
             flex: 1,
-            child: const MobilePreviewWidget(
+            child: MobilePreviewWidget(
               bioData: _bioData,
               templateId: _selectedTemplate,
             ),
@@ -125,7 +126,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const TemplateSelectionModal(
+      builder: (context) => TemplateSelectionModal(
         onTemplateSelected: (templateId) {
           setState(() {
             _selectedTemplate = templateId;
@@ -141,7 +142,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const QrCodeModal(
+      builder: (context) => QrCodeModal(
         url: 'https://linktr.ee/yourname',
         onDownload: () {
           Navigator.pop(context);

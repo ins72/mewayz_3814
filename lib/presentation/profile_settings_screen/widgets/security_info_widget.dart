@@ -1,9 +1,5 @@
-import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../services/auth_service.dart';
-import '../../../theme/app_theme.dart';
-import '../../../widgets/custom_icon_widget.dart';
 
 class SecurityInfoWidget extends StatelessWidget {
   const SecurityInfoWidget({Key? key}) : super(key: key);

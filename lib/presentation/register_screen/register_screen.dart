@@ -29,6 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
   bool _acceptTerms = false;
+  bool _acceptPrivacy = false;
   bool _acceptNewsletter = false;
 
   String? _firstNameError;
@@ -38,9 +39,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _confirmPasswordError;
   String? _generalError;
 
+  late AuthService _authService;
+
   @override
   void initState() {
     super.initState();
+    _authService = AuthService();
     _setupFocusListeners();
   }
 
@@ -245,7 +249,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _emailError == null &&
         _passwordError == null &&
         _confirmPasswordError == null &&
-        _acceptTerms;
+        _acceptTerms &&
+        _acceptPrivacy;
   }
 
   Future<void> _handleRegister() async {
@@ -257,9 +262,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    if (!_acceptTerms) {
+    if (!_acceptTerms || !_acceptPrivacy) {
       setState(() {
-        _generalError = 'Please accept the Terms of Service and Privacy Policy';
+        _generalError = 'Please accept both Terms of Service and Privacy Policy to continue';
       });
       return;
     }
@@ -270,10 +275,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final authService = AuthService();
       final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
       
-      final response = await authService.signUp(
+      final response = await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: fullName,
@@ -293,7 +297,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.green,
                   size: 20),
                 SizedBox(width: 2.w),
-                const Text('Registration successful! Please check your email to verify your account.'),
+                Expanded(
+                  child: Text(
+                    'Registration successful! Please check your email to verify your account.',
+                    style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ]),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 5),
@@ -328,8 +339,135 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignUp() async {
+    if (!_acceptTerms || !_acceptPrivacy) {
+      setState(() {
+        _generalError = 'Please accept both Terms of Service and Privacy Policy to continue';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _generalError = null;
+    });
+
+    try {
+      final response = await _authService.signInWithGoogle();
+      
+      if (response?.user != null) {
+        HapticFeedback.lightImpact();
+        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+      } else {
+        setState(() {
+          _generalError = 'Google sign up was cancelled';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _generalError = 'Google sign up failed: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleAppleSignUp() async {
+    if (!_acceptTerms || !_acceptPrivacy) {
+      setState(() {
+        _generalError = 'Please accept both Terms of Service and Privacy Policy to continue';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _generalError = null;
+    });
+
+    try {
+      final response = await _authService.signInWithApple();
+      
+      if (response?.user != null) {
+        HapticFeedback.lightImpact();
+        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+      } else {
+        setState(() {
+          _generalError = 'Apple sign up was cancelled';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _generalError = 'Apple sign up failed: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _handleTermsOfServiceTap() async {
+    final result = await Navigator.pushNamed(
+      context,
+      AppRoutes.termsOfServiceScreen,
+    );
+    
+    if (result == true) {
+      setState(() {
+        _acceptTerms = true;
+      });
+    }
+  }
+
+  void _handlePrivacyPolicyTap() async {
+    final result = await Navigator.pushNamed(
+      context,
+      AppRoutes.privacyPolicyScreen,
+    );
+    
+    if (result == true) {
+      setState(() {
+        _acceptPrivacy = true;
+      });
+    }
+  }
+
   void _handleSignIn() {
     Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
+  }
+
+  int _getPasswordStrength() {
+    final password = _passwordController.text;
+    if (password.isEmpty) return 0;
+    
+    int strength = 0;
+    if (password.length >= 8) strength++;
+    if (RegExp(r'[A-Z]').hasMatch(password)) strength++;
+    if (RegExp(r'[a-z]').hasMatch(password)) strength++;
+    if (RegExp(r'[0-9]').hasMatch(password)) strength++;
+    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) strength++;
+    
+    return strength;
+  }
+
+  String _getPasswordStrengthText() {
+    final strength = _getPasswordStrength();
+    switch (strength) {
+      case 0:
+      case 1:
+        return 'Weak';
+      case 2:
+      case 3:
+        return 'Medium';
+      case 4:
+      case 5:
+        return 'Strong';
+      default:
+        return 'Weak';
+    }
   }
 
   @override
@@ -416,31 +554,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Password Strength Indicator
                 PasswordStrengthIndicatorWidget(
-                  strength: 0,
-                  strengthText: '',
+                  strength: _getPasswordStrength(),
+                  strengthText: _getPasswordStrengthText(),
                 ),
 
-                SizedBox(height: 3.h),
+                SizedBox(height: 4.h),
 
                 // Terms and Privacy
                 TermsAndPrivacyWidget(
                   acceptTerms: _acceptTerms,
-                  acceptPrivacy: false,
-                  onPrivacyChanged: (value) {},
-                  onPrivacyPolicyTap: () {},
-                  onTermsOfServiceTap: () {},
+                  acceptPrivacy: _acceptPrivacy,
                   onTermsChanged: (value) {
                     setState(() {
                       _acceptTerms = value ?? false;
+                      _generalError = null;
                     });
-                  }),
+                  },
+                  onPrivacyChanged: (value) {
+                    setState(() {
+                      _acceptPrivacy = value ?? false;
+                      _generalError = null;
+                    });
+                  },
+                  onTermsOfServiceTap: _handleTermsOfServiceTap,
+                  onPrivacyPolicyTap: _handlePrivacyPolicyTap,
+                ),
 
                 SizedBox(height: 4.h),
 
                 // Social Registration
                 SocialRegistrationWidget(
-                  onGoogleSignUp: () {},
-                  onAppleSignUp: () {},
+                  onGoogleSignUp: _handleGoogleSignUp,
+                  onAppleSignUp: _handleAppleSignUp,
                 ),
 
                 SizedBox(height: 4.h),

@@ -223,7 +223,7 @@ class AuthService {
     }
   }
 
-  // Sign in existing user
+  // Sign in existing user with enhanced error handling
   Future<AuthResponse?> signIn({
     required String email,
     required String password,
@@ -231,11 +231,17 @@ class AuthService {
     try {
       await _ensureInitialized();
       
+      // Validate input parameters
+      if (email.isEmpty || password.isEmpty) {
+        throw Exception('Email and password are required');
+      }
+
       final response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
+      // Enhanced response validation
       if (response.user != null) {
         debugPrint('User signed in successfully: ${response.user!.email}');
         
@@ -261,11 +267,53 @@ class AuthService {
           'login_success',
           {'method': 'email', 'email': email},
         );
+      } else {
+        throw Exception('Invalid credentials or user not found');
       }
 
       return response;
+    } on AuthException catch (e) {
+      // Handle Supabase auth exceptions specifically
+      String errorMessage = 'Authentication failed';
+      
+      switch (e.statusCode) {
+        case '400':
+          errorMessage = 'Invalid email or password format';
+          break;
+        case '401':
+          errorMessage = 'Invalid email or password';
+          break;
+        case '422':
+          errorMessage = 'Email not confirmed. Please check your email';
+          break;
+        case '429':
+          errorMessage = 'Too many login attempts. Please try again later';
+          break;
+        default:
+          errorMessage = e.message ?? 'Authentication failed';
+      }
+      
+      // Log failed login attempt
+      await _logSecurityEvent(
+        null,
+        'login_failure',
+        {'method': 'email', 'email': email, 'error': errorMessage},
+        success: false,
+      );
+      
+      ErrorHandler.handleAuthError(errorMessage);
+      throw Exception(errorMessage);
     } catch (e) {
-      ErrorHandler.handleError('Failed to sign in user: $e');
+      // Handle JSON parsing and other errors
+      String errorMessage = 'Authentication failed';
+      
+      if (e.toString().contains('JSON') || e.toString().contains('SyntaxError')) {
+        errorMessage = 'Server response error. Please try again';
+      } else if (e.toString().contains('Network') || e.toString().contains('Connection')) {
+        errorMessage = 'Network error. Please check your connection';
+      } else if (e.toString().contains('Timeout')) {
+        errorMessage = 'Request timeout. Please try again';
+      }
       
       // Log failed login attempt
       await _logSecurityEvent(
@@ -275,7 +323,8 @@ class AuthService {
         success: false,
       );
       
-      rethrow;
+      ErrorHandler.handleAuthError(errorMessage);
+      throw Exception(errorMessage);
     }
   }
 
@@ -301,15 +350,21 @@ class AuthService {
     }
   }
 
-  // Google Sign In
+  // Google Sign In with enhanced error handling
   Future<AuthResponse?> signInWithGoogle() async {
     try {
       await _ensureInitialized();
       
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null) {
+        throw Exception('Google sign in was cancelled');
+      }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      
+      if (googleAuth.idToken == null) {
+        throw Exception('Google authentication failed - no ID token');
+      }
       
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
@@ -346,21 +401,29 @@ class AuthService {
 
       return response;
     } catch (e) {
-      ErrorHandler.handleError('Failed to sign in with Google: $e');
+      String errorMessage = 'Google sign in failed';
+      
+      if (e.toString().contains('cancelled')) {
+        errorMessage = 'Google sign in was cancelled';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error during Google sign in';
+      }
+      
+      ErrorHandler.handleAuthError(errorMessage);
       
       // Log failed login attempt
       await _logSecurityEvent(
         null,
         'login_failure',
-        {'method': 'google', 'error': e.toString()},
+        {'method': 'google', 'error': errorMessage},
         success: false,
       );
       
-      rethrow;
+      throw Exception(errorMessage);
     }
   }
 
-  // Apple Sign In
+  // Apple Sign In with enhanced error handling
   Future<AuthResponse?> signInWithApple() async {
     try {
       await _ensureInitialized();
@@ -371,6 +434,10 @@ class AuthService {
           AppleIDAuthorizationScopes.fullName,
         ],
       );
+
+      if (credential.identityToken == null) {
+        throw Exception('Apple authentication failed - no identity token');
+      }
 
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
@@ -407,17 +474,25 @@ class AuthService {
 
       return response;
     } catch (e) {
-      ErrorHandler.handleError('Failed to sign in with Apple: $e');
+      String errorMessage = 'Apple sign in failed';
+      
+      if (e.toString().contains('cancelled')) {
+        errorMessage = 'Apple sign in was cancelled';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error during Apple sign in';
+      }
+      
+      ErrorHandler.handleAuthError(errorMessage);
       
       // Log failed login attempt
       await _logSecurityEvent(
         null,
         'login_failure',
-        {'method': 'apple', 'error': e.toString()},
+        {'method': 'apple', 'error': errorMessage},
         success: false,
       );
       
-      rethrow;
+      throw Exception(errorMessage);
     }
   }
 
