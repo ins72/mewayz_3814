@@ -265,6 +265,15 @@ class StorageService {
     }
   }
 
+  // Generic write method (alias for saveString)
+  Future<void> write(String key, String value) async {
+    try {
+      await prefs.setString(key, value);
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to write data: $e'));
+    }
+  }
+
   // Onboarding completion tracking
   Future<void> saveOnboardingCompleted(bool completed) async {
     try {

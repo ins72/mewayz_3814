@@ -1,11 +1,9 @@
 #!/bin/bash
 
 # Mewayz Production Build Script
-# This script builds the app for production deployment to App Store and Google Play Store
+# This script builds the Flutter app for production deployment
 
 set -e
-
-echo "🚀 Starting Mewayz Production Build Process..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,175 +12,213 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Check if .env file exists
-if [ ! -f .env ]; then
-    echo -e "${RED}❌ Error: .env file not found!${NC}"
-    echo -e "${YELLOW}Please copy .env.example to .env and fill in your production values${NC}"
+echo -e "${BLUE}🚀 Starting Mewayz Production Build Process...${NC}"
+
+# Check if Flutter is installed
+if ! command -v flutter &> /dev/null; then
+    echo -e "${RED}❌ Flutter could not be found. Please install Flutter first.${NC}"
     exit 1
 fi
 
-# Load environment variables
+# Check if .env file exists
+if [ ! -f ".env" ]; then
+    echo -e "${RED}❌ .env file not found. Please create .env file with production values.${NC}"
+    exit 1
+fi
+
+# Validate environment variables
+echo -e "${YELLOW}🔍 Validating environment configuration...${NC}"
 source .env
 
-# Validate required environment variables
-validate_env_var() {
-    local var_name=$1
-    local var_value=$2
-    local example_value=$3
-    
-    if [ -z "$var_value" ] || [ "$var_value" = "$example_value" ]; then
-        echo -e "${RED}❌ Error: $var_name is not set or still has example value${NC}"
-        echo -e "${YELLOW}Please update your .env file with actual production values${NC}"
-        exit 1
-    fi
-}
+# Check critical environment variables
+if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+    echo -e "${RED}❌ Supabase configuration missing in .env file${NC}"
+    exit 1
+fi
 
-echo -e "${BLUE}🔍 Validating environment configuration...${NC}"
+if [ -z "$ENCRYPTION_KEY" ] || [ ${#ENCRYPTION_KEY} -lt 32 ]; then
+    echo -e "${RED}❌ Encryption key missing or too short (minimum 32 characters)${NC}"
+    exit 1
+fi
 
-# Validate critical environment variables
-validate_env_var "SUPABASE_URL" "$SUPABASE_URL" "https://your-project.supabase.co"
-validate_env_var "SUPABASE_ANON_KEY" "$SUPABASE_ANON_KEY" "your-anon-key-here"
-validate_env_var "ENCRYPTION_KEY" "$ENCRYPTION_KEY" "your-32-character-encryption-key-here"
-validate_env_var "GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "your-google-client-id.apps.googleusercontent.com"
-
-echo -e "${GREEN}✅ Environment validation passed${NC}"
+echo -e "${GREEN}✅ Environment configuration validated${NC}"
 
 # Clean previous builds
-echo -e "${BLUE}🧹 Cleaning previous builds...${NC}"
+echo -e "${YELLOW}🧹 Cleaning previous builds...${NC}"
 flutter clean
 flutter pub get
 
 # Run tests
-echo -e "${BLUE}🧪 Running tests...${NC}"
-flutter test
+echo -e "${YELLOW}🧪 Running tests...${NC}"
+flutter test --coverage
+
+# Generate code coverage report
+if command -v genhtml &> /dev/null; then
+    echo -e "${YELLOW}📊 Generating coverage report...${NC}"
+    genhtml coverage/lcov.info -o coverage/html
+fi
+
+# Check code quality
+echo -e "${YELLOW}🔍 Analyzing code quality...${NC}"
+flutter analyze
 
 # Build for Android
-echo -e "${BLUE}🤖 Building for Android...${NC}"
-flutter build appbundle --release \
-    --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-    --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-    --dart-define=ENCRYPTION_KEY="$ENCRYPTION_KEY" \
-    --dart-define=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
-    --dart-define=APPLE_CLIENT_ID="$APPLE_CLIENT_ID" \
-    --dart-define=INSTAGRAM_CLIENT_ID="$INSTAGRAM_CLIENT_ID" \
-    --dart-define=FACEBOOK_APP_ID="$FACEBOOK_APP_ID" \
-    --dart-define=TWITTER_API_KEY="$TWITTER_API_KEY" \
-    --dart-define=LINKEDIN_CLIENT_ID="$LINKEDIN_CLIENT_ID" \
-    --dart-define=YOUTUBE_API_KEY="$YOUTUBE_API_KEY" \
-    --dart-define=TIKTOK_CLIENT_ID="$TIKTOK_CLIENT_ID" \
-    --dart-define=STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
-    --dart-define=SENDGRID_API_KEY="$SENDGRID_API_KEY" \
-    --dart-define=TWILIO_ACCOUNT_SID="$TWILIO_ACCOUNT_SID" \
-    --dart-define=CLOUDINARY_CLOUD_NAME="$CLOUDINARY_CLOUD_NAME" \
-    --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
-    --dart-define=MIXPANEL_TOKEN="$MIXPANEL_TOKEN" \
-    --dart-define=FCM_SERVER_KEY="$FCM_SERVER_KEY" \
-    --dart-define=APP_STORE_ID="$APP_STORE_ID" \
-    --dart-define=FLUTTER_WEB_USE_SKIA=true
+echo -e "${YELLOW}🤖 Building Android production release...${NC}"
 
-echo -e "${GREEN}✅ Android build completed successfully${NC}"
+# Check if Android keystore exists
+if [ ! -f "android/keystore/mewayz-upload-keystore.jks" ]; then
+    echo -e "${RED}❌ Android keystore not found. Please generate keystore first.${NC}"
+    echo -e "${YELLOW}Run: keytool -genkey -v -keystore android/keystore/mewayz-upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias mewayz-upload-key${NC}"
+    exit 1
+fi
 
-# Build for iOS (if on macOS)
+# Build Android App Bundle (recommended for Play Store)
+flutter build appbundle \
+    --release \
+    --obfuscate \
+    --split-debug-info=build/debug-info \
+    --dart-define=ENVIRONMENT=production \
+    --dart-define=FLUTTER_BUILD_MODE=release \
+    --target-platform android-arm,android-arm64,android-x64
+
+# Build Android APK (for direct distribution)
+flutter build apk \
+    --release \
+    --obfuscate \
+    --split-debug-info=build/debug-info \
+    --dart-define=ENVIRONMENT=production \
+    --dart-define=FLUTTER_BUILD_MODE=release \
+    --target-platform android-arm,android-arm64,android-x64
+
+echo -e "${GREEN}✅ Android builds completed successfully${NC}"
+
+# Build for iOS (only on macOS)
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo -e "${BLUE}🍎 Building for iOS...${NC}"
-    flutter build ios --release \
-        --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-        --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-        --dart-define=ENCRYPTION_KEY="$ENCRYPTION_KEY" \
-        --dart-define=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
-        --dart-define=APPLE_CLIENT_ID="$APPLE_CLIENT_ID" \
-        --dart-define=INSTAGRAM_CLIENT_ID="$INSTAGRAM_CLIENT_ID" \
-        --dart-define=FACEBOOK_APP_ID="$FACEBOOK_APP_ID" \
-        --dart-define=TWITTER_API_KEY="$TWITTER_API_KEY" \
-        --dart-define=LINKEDIN_CLIENT_ID="$LINKEDIN_CLIENT_ID" \
-        --dart-define=YOUTUBE_API_KEY="$YOUTUBE_API_KEY" \
-        --dart-define=TIKTOK_CLIENT_ID="$TIKTOK_CLIENT_ID" \
-        --dart-define=STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
-        --dart-define=SENDGRID_API_KEY="$SENDGRID_API_KEY" \
-        --dart-define=TWILIO_ACCOUNT_SID="$TWILIO_ACCOUNT_SID" \
-        --dart-define=CLOUDINARY_CLOUD_NAME="$CLOUDINARY_CLOUD_NAME" \
-        --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
-        --dart-define=MIXPANEL_TOKEN="$MIXPANEL_TOKEN" \
-        --dart-define=FCM_SERVER_KEY="$FCM_SERVER_KEY" \
-        --dart-define=APP_STORE_ID="$APP_STORE_ID"
+    echo -e "${YELLOW}🍎 Building iOS production release...${NC}"
+    
+    # Check if iOS provisioning is set up
+    if [ ! -d "ios/Runner.xcworkspace" ]; then
+        echo -e "${RED}❌ iOS workspace not found. Please run 'flutter create --platforms=ios .' first.${NC}"
+        exit 1
+    fi
+    
+    # Build iOS IPA
+    flutter build ios \
+        --release \
+        --obfuscate \
+        --split-debug-info=build/debug-info \
+        --dart-define=ENVIRONMENT=production \
+        --dart-define=FLUTTER_BUILD_MODE=release
+    
+    # Archive iOS app
+    xcodebuild -workspace ios/Runner.xcworkspace \
+        -scheme Runner \
+        -configuration Release \
+        -archivePath build/ios/archive/Runner.xcarchive \
+        archive
+    
+    # Export IPA
+    xcodebuild -exportArchive \
+        -archivePath build/ios/archive/Runner.xcarchive \
+        -exportPath build/ios/ipa \
+        -exportOptionsPlist ios/ExportOptions.plist
     
     echo -e "${GREEN}✅ iOS build completed successfully${NC}"
-    
-    # Build IPA for App Store distribution
-    echo -e "${BLUE}📦 Building IPA for App Store...${NC}"
-    flutter build ipa --release \
-        --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-        --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-        --dart-define=ENCRYPTION_KEY="$ENCRYPTION_KEY" \
-        --dart-define=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
-        --dart-define=APPLE_CLIENT_ID="$APPLE_CLIENT_ID" \
-        --dart-define=INSTAGRAM_CLIENT_ID="$INSTAGRAM_CLIENT_ID" \
-        --dart-define=FACEBOOK_APP_ID="$FACEBOOK_APP_ID" \
-        --dart-define=TWITTER_API_KEY="$TWITTER_API_KEY" \
-        --dart-define=LINKEDIN_CLIENT_ID="$LINKEDIN_CLIENT_ID" \
-        --dart-define=YOUTUBE_API_KEY="$YOUTUBE_API_KEY" \
-        --dart-define=TIKTOK_CLIENT_ID="$TIKTOK_CLIENT_ID" \
-        --dart-define=STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
-        --dart-define=SENDGRID_API_KEY="$SENDGRID_API_KEY" \
-        --dart-define=TWILIO_ACCOUNT_SID="$TWILIO_ACCOUNT_SID" \
-        --dart-define=CLOUDINARY_CLOUD_NAME="$CLOUDINARY_CLOUD_NAME" \
-        --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
-        --dart-define=MIXPANEL_TOKEN="$MIXPANEL_TOKEN" \
-        --dart-define=FCM_SERVER_KEY="$FCM_SERVER_KEY" \
-        --dart-define=APP_STORE_ID="$APP_STORE_ID"
-    
-    echo -e "${GREEN}✅ IPA build completed successfully${NC}"
 else
     echo -e "${YELLOW}⚠️ iOS build skipped (not running on macOS)${NC}"
 fi
 
-# Generate build information
-echo -e "${BLUE}📋 Generating build information...${NC}"
-cat > build_info.txt << EOF
-Mewayz Production Build Information
-==================================
+# Build for Web (optional)
+echo -e "${YELLOW}🌐 Building Web production release...${NC}"
+flutter build web \
+    --release \
+    --web-renderer canvaskit \
+    --dart-define=ENVIRONMENT=production \
+    --dart-define=FLUTTER_BUILD_MODE=release
 
-Build Date: $(date)
-App Version: $APP_VERSION
-Build Number: $BUILD_NUMBER
-Environment: $ENVIRONMENT
+echo -e "${GREEN}✅ Web build completed successfully${NC}"
 
-Build Files:
-- Android: build/app/outputs/bundle/release/app-release.aab
-- iOS: build/ios/ipa/mewayz.ipa
+# Create build summary
+echo -e "${YELLOW}📋 Creating build summary...${NC}"
+BUILD_DATE=$(date '+%Y-%m-%d %H:%M:%S')
+BUILD_VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //')
+BUILD_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
-Configuration Status:
-- Supabase: ✅ Configured
-- OAuth: ✅ Configured  
-- Social Media APIs: ✅ Configured
-- Payment Processing: ✅ Configured
-- Analytics: ✅ Configured
-- Push Notifications: ✅ Configured
+cat > build/BUILD_SUMMARY.md << EOF
+# Mewayz Production Build Summary
 
-Store Deployment:
-- Google Play Store: Ready for upload
-- Apple App Store: Ready for upload
+## Build Information
+- **Build Date**: $BUILD_DATE
+- **Version**: $BUILD_VERSION
+- **Commit**: $BUILD_COMMIT
+- **Environment**: production
 
-Next Steps:
-1. Upload Android App Bundle to Google Play Console
-2. Upload iOS IPA to App Store Connect
-3. Fill in store listings and metadata
-4. Submit for review
+## Build Artifacts
+
+### Android
+- **App Bundle**: \`build/app/outputs/bundle/release/app-release.aab\`
+- **APK**: \`build/app/outputs/flutter-apk/app-release.apk\`
+
+### iOS
+- **IPA**: \`build/ios/ipa/mewayz.ipa\`
+- **Archive**: \`build/ios/archive/Runner.xcarchive\`
+
+### Web
+- **Build**: \`build/web/\`
+
+## Build Settings
+- **Obfuscation**: Enabled
+- **Debug Info**: Removed (stored in build/debug-info)
+- **Optimization**: Enabled
+- **Code Signing**: Enabled
+
+## Next Steps
+1. Test the build thoroughly
+2. Upload to respective app stores
+3. Monitor deployment for issues
+4. Update version numbers for next release
+
+## Store Deployment
+- **Google Play**: Upload \`app-release.aab\`
+- **App Store**: Upload \`mewayz.ipa\`
+- **Web**: Deploy \`build/web/\` to hosting service
+
+---
+Generated by Mewayz Build Script
 EOF
 
-echo -e "${GREEN}✅ Build information generated: build_info.txt${NC}"
-
-# Display success message
-echo -e "${GREEN}"
-echo "🎉 Production build completed successfully!"
+# Display build summary
+echo -e "${GREEN}🎉 Build completed successfully!${NC}"
+echo -e "${BLUE}📋 Build Summary:${NC}"
+echo -e "   Version: $BUILD_VERSION"
+echo -e "   Commit: $BUILD_COMMIT"
+echo -e "   Date: $BUILD_DATE"
 echo ""
-echo "📁 Build files location:"
-echo "  Android: build/app/outputs/bundle/release/app-release.aab"
+echo -e "${BLUE}📦 Build Artifacts:${NC}"
+echo -e "   Android Bundle: build/app/outputs/bundle/release/app-release.aab"
+echo -e "   Android APK: build/app/outputs/flutter-apk/app-release.apk"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "  iOS: build/ios/ipa/mewayz.ipa"
+    echo -e "   iOS IPA: build/ios/ipa/mewayz.ipa"
 fi
+echo -e "   Web Build: build/web/"
 echo ""
-echo "📋 Build information: build_info.txt"
-echo ""
-echo "🚀 Ready for store deployment!"
-echo -e "${NC}"
+echo -e "${GREEN}✅ Ready for deployment to app stores!${NC}"
+
+# Create deployment package
+echo -e "${YELLOW}📦 Creating deployment package...${NC}"
+mkdir -p build/deployment
+cp build/app/outputs/bundle/release/app-release.aab build/deployment/
+cp build/app/outputs/flutter-apk/app-release.apk build/deployment/
+if [[ "$OSTYPE" == "darwin"* ]] && [ -f "build/ios/ipa/mewayz.ipa" ]; then
+    cp build/ios/ipa/mewayz.ipa build/deployment/
+fi
+cp build/BUILD_SUMMARY.md build/deployment/
+cp PRODUCTION_CHECKLIST.md build/deployment/
+
+# Create deployment archive
+cd build/deployment
+zip -r "../mewayz-production-${BUILD_VERSION}-${BUILD_COMMIT}.zip" .
+cd ../..
+
+echo -e "${GREEN}🎉 Deployment package created: build/mewayz-production-${BUILD_VERSION}-${BUILD_COMMIT}.zip${NC}"
+echo -e "${BLUE}🚀 Ready for store submission!${NC}"

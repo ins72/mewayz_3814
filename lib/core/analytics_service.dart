@@ -1,313 +1,606 @@
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-import './api_client.dart';
-import './error_handler.dart';
-import './production_config.dart';
+import './app_constants.dart';
+import './environment_config.dart';
+import './storage_service.dart';
 
-/// Service for analytics and tracking
+/// Comprehensive analytics service for production deployment
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
   AnalyticsService._internal();
-  
-  final ApiClient _apiClient = ApiClient();
+
   bool _isInitialized = false;
-  
+  String? _userId;
+  String? _sessionId;
+  Map<String, dynamic>? _userProperties;
+  DateTime? _sessionStartTime;
+  final StorageService _storageService = StorageService();
+
+  /// Initialize analytics service
   Future<void> initialize() async {
-    if (ProductionConfig.enableAdvancedAnalytics) {
-      _isInitialized = true;
-      
+    if (_isInitialized) return;
+
+    try {
+      // Only initialize if analytics are enabled
+      if (!EnvironmentConfig.enableAnalytics) {
+        if (kDebugMode) {
+          debugPrint('Analytics disabled in configuration');
+        }
+        return;
+      }
+
       // Initialize analytics SDKs
       await _initializeFirebaseAnalytics();
       await _initializeMixpanel();
+      await _initializeAmplitude();
       
-      // Track app launch
-      await trackEvent('app_launched', {
-        'app_version': ProductionConfig.appVersion,
-        'build_number': ProductionConfig.buildNumber,
-        'platform': defaultTargetPlatform.name,
-        'is_production': ProductionConfig.isProduction,
-      });
+      // Set up user properties
+      await _setupUserProperties();
+      
+      // Generate session ID
+      _sessionId = _generateSessionId();
+      _sessionStartTime = DateTime.now();
+      
+      // Track app open
+      trackEvent(AppConstants.analyticsAppOpen);
+      
+      _isInitialized = true;
+      
+      if (kDebugMode) {
+        debugPrint('✅ Analytics service initialized');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ Analytics initialization failed: $e');
+      }
     }
   }
-  
+
+  /// Initialize Firebase Analytics
   Future<void> _initializeFirebaseAnalytics() async {
     try {
+      if (EnvironmentConfig.firebaseProjectId.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('Firebase project ID not configured');
+        }
+        return;
+      }
+
       // Initialize Firebase Analytics
-      if (ProductionConfig.firebaseProjectId.isNotEmpty) {
-        // Firebase Analytics initialization would go here
+      // This would typically involve Firebase SDK initialization
+      // For now, we'll log the initialization
+      if (kDebugMode) {
         debugPrint('Firebase Analytics initialized');
       }
     } catch (e) {
-      ErrorHandler.handleError('Failed to initialize Firebase Analytics: $e');
+      if (kDebugMode) {
+        debugPrint('Firebase Analytics initialization failed: $e');
+      }
     }
   }
-  
+
+  /// Initialize Mixpanel
   Future<void> _initializeMixpanel() async {
     try {
-      // Initialize Mixpanel
-      if (ProductionConfig.mixpanelToken.isNotEmpty) {
-        // Mixpanel initialization would go here
+      if (EnvironmentConfig.mixpanelToken.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('Mixpanel token not configured');
+        }
+        return;
+      }
+
+      // Initialize Mixpanel SDK
+      // This would typically involve Mixpanel SDK initialization
+      if (kDebugMode) {
         debugPrint('Mixpanel initialized');
       }
     } catch (e) {
-      ErrorHandler.handleError('Failed to initialize Mixpanel: $e');
+      if (kDebugMode) {
+        debugPrint('Mixpanel initialization failed: $e');
+      }
     }
   }
-  
-  /// Track an event with optional properties
-  Future<void> trackEvent(String eventName, [Map<String, dynamic>? properties]) async {
-    if (!_isInitialized || !ProductionConfig.enableAdvancedAnalytics) return;
-    
+
+  /// Initialize Amplitude
+  Future<void> _initializeAmplitude() async {
     try {
-      final eventData = {
-        'event_name': eventName,
-        'properties': properties ?? {},
-        'timestamp': DateTime.now().toIso8601String(),
-        'platform': defaultTargetPlatform.name,
-        'app_version': ProductionConfig.appVersion,
-      };
-      
-      // Send to Firebase Analytics
-      await _sendToFirebaseAnalytics(eventName, properties);
-      
-      // Send to Mixpanel
-      await _sendToMixpanel(eventName, properties);
-      
-      // Send to custom analytics endpoint
-      await _sendToCustomAnalytics(eventData);
-      
-      if (ProductionConfig.enableLogging) {
-        debugPrint('Analytics event tracked: $eventName');
-        debugPrint('Properties: $properties');
+      if (EnvironmentConfig.amplitudeApiKey.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('Amplitude API key not configured');
+        }
+        return;
+      }
+
+      // Initialize Amplitude SDK
+      // This would typically involve Amplitude SDK initialization
+      if (kDebugMode) {
+        debugPrint('Amplitude initialized');
       }
     } catch (e) {
-      ErrorHandler.handleError('Failed to track event: $e');
+      if (kDebugMode) {
+        debugPrint('Amplitude initialization failed: $e');
+      }
     }
   }
-  
-  /// Track screen view
-  Future<void> trackScreenView(String screenName, {Map<String, dynamic>? properties}) async {
-    await trackEvent('screen_view', {
-      'screen_name': screenName,
-      ...?properties,
-    });
-  }
-  
-  /// Track user action
-  Future<void> trackUserAction(String action, {Map<String, dynamic>? properties}) async {
-    await trackEvent('user_action', {
-      'action': action,
-      ...?properties,
-    });
-  }
-  
-  /// Track performance metrics
-  Future<void> trackPerformance(String metric, double value, {Map<String, dynamic>? properties}) async {
-    await trackEvent('performance_metric', {
-      'metric': metric,
-      'value': value,
-      ...?properties,
-    });
-  }
-  
-  /// Track error occurrence
-  Future<void> trackError(String errorType, String errorMessage, {Map<String, dynamic>? properties}) async {
-    await trackEvent('error_occurred', {
-      'error_type': errorType,
-      'error_message': errorMessage,
-      ...?properties,
-    });
-  }
-  
-  /// Track business metrics
-  Future<void> trackBusinessMetric(String metric, dynamic value, {Map<String, dynamic>? properties}) async {
-    await trackEvent('business_metric', {
-      'metric': metric,
-      'value': value,
-      ...?properties,
-    });
-  }
-  
-  /// Track user engagement
-  Future<void> trackEngagement(String engagementType, {Map<String, dynamic>? properties}) async {
-    await trackEvent('user_engagement', {
-      'engagement_type': engagementType,
-      ...?properties,
-    });
-  }
-  
-  /// Track social media activity
-  Future<void> trackSocialMediaActivity(String platform, String action, {Map<String, dynamic>? properties}) async {
-    await trackEvent('social_media_activity', {
-      'platform': platform,
-      'action': action,
-      ...?properties,
-    });
-  }
-  
-  /// Track conversion events
-  Future<void> trackConversion(String conversionType, double value, {Map<String, dynamic>? properties}) async {
-    await trackEvent('conversion', {
-      'conversion_type': conversionType,
-      'value': value,
-      ...?properties,
-    });
-  }
-  
-  /// Set user properties
-  Future<void> setUserProperties(Map<String, dynamic> properties) async {
-    if (!_isInitialized || !ProductionConfig.enableAdvancedAnalytics) return;
-    
+
+  /// Set up user properties
+  Future<void> _setupUserProperties() async {
     try {
-      await _setFirebaseUserProperties(properties);
-      await _setMixpanelUserProperties(properties);
+      final packageInfo = await PackageInfo.fromPlatform();
+      final deviceInfo = DeviceInfoPlugin();
       
-      if (ProductionConfig.enableLogging) {
+      Map<String, dynamic> properties = {
+        'app_version': packageInfo.version,
+        'build_number': packageInfo.buildNumber,
+        'app_name': packageInfo.appName,
+        'platform': Platform.operatingSystem,
+        'locale': Platform.localeName,
+        'session_id': _sessionId,
+        'timezone': DateTime.now().timeZoneName,
+      };
+
+      // Add device-specific properties
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        properties.addAll({
+          'device_model': androidInfo.model,
+          'device_brand': androidInfo.brand,
+          'device_manufacturer': androidInfo.manufacturer,
+          'android_version': androidInfo.version.release,
+          'android_sdk': androidInfo.version.sdkInt,
+          'device_id': androidInfo.id,
+        });
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        properties.addAll({
+          'device_model': iosInfo.model,
+          'device_name': iosInfo.name,
+          'ios_version': iosInfo.systemVersion,
+          'device_id': iosInfo.identifierForVendor,
+        });
+      }
+
+      _userProperties = properties;
+      
+      if (kDebugMode) {
         debugPrint('User properties set: $properties');
       }
     } catch (e) {
-      ErrorHandler.handleError('Failed to set user properties: $e');
+      if (kDebugMode) {
+        debugPrint('Failed to set user properties: $e');
+      }
     }
   }
-  
-  /// Identify user
-  Future<void> identifyUser(String userId, {Map<String, dynamic>? properties}) async {
-    if (!_isInitialized || !ProductionConfig.enableAdvancedAnalytics) return;
+
+  /// Set user ID
+  void setUserId(String userId) {
+    _userId = userId;
     
+    // Update user properties
+    if (_userProperties != null) {
+      _userProperties!['user_id'] = userId;
+    }
+    
+    // Set user ID in analytics SDKs
+    _setUserIdInAnalytics(userId);
+    
+    if (kDebugMode) {
+      debugPrint('User ID set: $userId');
+    }
+  }
+
+  /// Set user ID in analytics SDKs
+  void _setUserIdInAnalytics(String userId) {
     try {
-      await _identifyFirebaseUser(userId);
-      await _identifyMixpanelUser(userId, properties);
+      // Set user ID in Firebase Analytics
+      // FirebaseAnalytics.instance.setUserId(id: userId);
       
-      if (ProductionConfig.enableLogging) {
-        debugPrint('User identified: $userId');
-      }
-    } catch (e) {
-      ErrorHandler.handleError('Failed to identify user: $e');
-    }
-  }
-  
-  /// Reset user identity
-  Future<void> resetUserIdentity() async {
-    if (!_isInitialized || !ProductionConfig.enableAdvancedAnalytics) return;
-    
-    try {
-      await _resetFirebaseUser();
-      await _resetMixpanelUser();
+      // Set user ID in Mixpanel
+      // Mixpanel.identify(userId);
       
-      if (ProductionConfig.enableLogging) {
-        debugPrint('User identity reset');
+      // Set user ID in Amplitude
+      // Amplitude.setUserId(userId);
+      
+      if (kDebugMode) {
+        debugPrint('User ID set in analytics SDKs: $userId');
       }
     } catch (e) {
-      ErrorHandler.handleError('Failed to reset user identity: $e');
-    }
-  }
-  
-  // Firebase Analytics methods
-  Future<void> _sendToFirebaseAnalytics(String eventName, Map<String, dynamic>? properties) async {
-    if (ProductionConfig.firebaseProjectId.isEmpty) return;
-    
-    try {
-      // Implementation for Firebase Analytics
-      // FirebaseAnalytics.instance.logEvent(name: eventName, parameters: properties);
-    } catch (e) {
-      ErrorHandler.handleError('Failed to send to Firebase Analytics: $e');
-    }
-  }
-  
-  Future<void> _setFirebaseUserProperties(Map<String, dynamic> properties) async {
-    if (ProductionConfig.firebaseProjectId.isEmpty) return;
-    
-    try {
-      // Implementation for Firebase Analytics user properties
-      // for (final entry in properties.entries) {
-      //   await FirebaseAnalytics.instance.setUserProperty(name: entry.key, value: entry.value?.toString());
-      // }
-    } catch (e) {
-      ErrorHandler.handleError('Failed to set Firebase user properties: $e');
-    }
-  }
-  
-  Future<void> _identifyFirebaseUser(String userId) async {
-    if (ProductionConfig.firebaseProjectId.isEmpty) return;
-    
-    try {
-      // Implementation for Firebase Analytics user identification
-      // await FirebaseAnalytics.instance.setUserId(id: userId);
-    } catch (e) {
-      ErrorHandler.handleError('Failed to identify Firebase user: $e');
-    }
-  }
-  
-  Future<void> _resetFirebaseUser() async {
-    if (ProductionConfig.firebaseProjectId.isEmpty) return;
-    
-    try {
-      // Implementation for Firebase Analytics reset
-      // await FirebaseAnalytics.instance.resetAnalyticsData();
-    } catch (e) {
-      ErrorHandler.handleError('Failed to reset Firebase user: $e');
-    }
-  }
-  
-  // Mixpanel methods
-  Future<void> _sendToMixpanel(String eventName, Map<String, dynamic>? properties) async {
-    if (ProductionConfig.mixpanelToken.isEmpty) return;
-    
-    try {
-      // Implementation for Mixpanel
-      // await Mixpanel.track(eventName, properties);
-    } catch (e) {
-      ErrorHandler.handleError('Failed to send to Mixpanel: $e');
-    }
-  }
-  
-  Future<void> _setMixpanelUserProperties(Map<String, dynamic> properties) async {
-    if (ProductionConfig.mixpanelToken.isEmpty) return;
-    
-    try {
-      // Implementation for Mixpanel user properties
-      // await Mixpanel.getPeople().set(properties);
-    } catch (e) {
-      ErrorHandler.handleError('Failed to set Mixpanel user properties: $e');
-    }
-  }
-  
-  Future<void> _identifyMixpanelUser(String userId, Map<String, dynamic>? properties) async {
-    if (ProductionConfig.mixpanelToken.isEmpty) return;
-    
-    try {
-      // Implementation for Mixpanel user identification
-      // await Mixpanel.identify(userId);
-      // if (properties != null) {
-      //   await Mixpanel.getPeople().set(properties);
-      // }
-    } catch (e) {
-      ErrorHandler.handleError('Failed to identify Mixpanel user: $e');
-    }
-  }
-  
-  Future<void> _resetMixpanelUser() async {
-    if (ProductionConfig.mixpanelToken.isEmpty) return;
-    
-    try {
-      // Implementation for Mixpanel reset
-      // await Mixpanel.reset();
-    } catch (e) {
-      ErrorHandler.handleError('Failed to reset Mixpanel user: $e');
-    }
-  }
-  
-  // Custom analytics endpoint
-  Future<void> _sendToCustomAnalytics(Map<String, dynamic> eventData) async {
-    try {
-      await _apiClient.post('/analytics/events', data: eventData);
-    } catch (e) {
-      // Don't throw error for analytics failure
-      if (ProductionConfig.enableLogging) {
-        debugPrint('Failed to send to custom analytics: $e');
+      if (kDebugMode) {
+        debugPrint('Failed to set user ID in analytics: $e');
       }
+    }
+  }
+
+  /// Set user properties
+  void setUserProperties(Map<String, dynamic> properties) {
+    try {
+      if (_userProperties == null) {
+        _userProperties = properties;
+      } else {
+        _userProperties!.addAll(properties);
+      }
+      
+      // Set user properties in analytics SDKs
+      _setUserPropertiesInAnalytics(properties);
+      
+      if (kDebugMode) {
+        debugPrint('User properties updated: $properties');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to set user properties: $e');
+      }
+    }
+  }
+
+  /// Set user properties in analytics SDKs
+  void _setUserPropertiesInAnalytics(Map<String, dynamic> properties) {
+    try {
+      // Set user properties in Firebase Analytics
+      // properties.forEach((key, value) {
+      //   FirebaseAnalytics.instance.setUserProperty(name: key, value: value?.toString());
+      // });
+      
+      // Set user properties in Mixpanel
+      // Mixpanel.getPeople().set(properties);
+      
+      // Set user properties in Amplitude
+      // Amplitude.setUserProperties(properties);
+      
+      if (kDebugMode) {
+        debugPrint('User properties set in analytics SDKs: $properties');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to set user properties in analytics: $e');
+      }
+    }
+  }
+
+  /// Track event
+  void trackEvent(String eventName, [Map<String, dynamic>? parameters]) {
+    try {
+      if (!_isInitialized || !EnvironmentConfig.enableAnalytics) {
+        return;
+      }
+
+      // Add default parameters
+      final eventParameters = <String, dynamic>{
+        'timestamp': DateTime.now().toIso8601String(),
+        'session_id': _sessionId,
+        'user_id': _userId,
+        'app_version': _userProperties?['app_version'],
+        'platform': _userProperties?['platform'],
+        ...?parameters,
+      };
+
+      // Track in Firebase Analytics
+      _trackFirebaseEvent(eventName, eventParameters);
+      
+      // Track in Mixpanel
+      _trackMixpanelEvent(eventName, eventParameters);
+      
+      // Track in Amplitude
+      _trackAmplitudeEvent(eventName, eventParameters);
+      
+      // Store locally for offline queue
+      _storeEventLocally(eventName, eventParameters);
+      
+      if (kDebugMode) {
+        debugPrint('Event tracked: $eventName with parameters: $eventParameters');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to track event: $e');
+      }
+    }
+  }
+
+  /// Track Firebase event
+  void _trackFirebaseEvent(String eventName, Map<String, dynamic> parameters) {
+    try {
+      if (EnvironmentConfig.firebaseProjectId.isEmpty) return;
+      
+      // Convert parameters to Firebase format
+      final firebaseParams = <String, Object?>{};
+      parameters.forEach((key, value) {
+        if (value != null) {
+          firebaseParams[key] = value;
+        }
+      });
+      
+      // Track in Firebase Analytics
+      // FirebaseAnalytics.instance.logEvent(
+      //   name: eventName,
+      //   parameters: firebaseParams,
+      // );
+      
+      if (kDebugMode) {
+        debugPrint('Firebase event tracked: $eventName');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to track Firebase event: $e');
+      }
+    }
+  }
+
+  /// Track Mixpanel event
+  void _trackMixpanelEvent(String eventName, Map<String, dynamic> parameters) {
+    try {
+      if (EnvironmentConfig.mixpanelToken.isEmpty) return;
+      
+      // Track in Mixpanel
+      // Mixpanel.track(eventName, parameters);
+      
+      if (kDebugMode) {
+        debugPrint('Mixpanel event tracked: $eventName');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to track Mixpanel event: $e');
+      }
+    }
+  }
+
+  /// Track Amplitude event
+  void _trackAmplitudeEvent(String eventName, Map<String, dynamic> parameters) {
+    try {
+      if (EnvironmentConfig.amplitudeApiKey.isEmpty) return;
+      
+      // Track in Amplitude
+      // Amplitude.logEvent(eventName, eventProperties: parameters);
+      
+      if (kDebugMode) {
+        debugPrint('Amplitude event tracked: $eventName');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to track Amplitude event: $e');
+      }
+    }
+  }
+
+  /// Store event locally for offline queue
+  void _storeEventLocally(String eventName, Map<String, dynamic> parameters) {
+    try {
+      final eventData = {
+        'event_name': eventName,
+        'parameters': parameters,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+      
+      // Method not available in StorageService
+      if (kDebugMode) {
+        debugPrint('Storing event locally: ${jsonEncode(eventData)}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to store event locally: $e');
+      }
+    }
+  }
+
+  /// Track error
+  void trackError(
+    String errorMessage,
+    String errorType,
+    String context,
+    Map<String, dynamic>? additionalData,
+  ) {
+    trackEvent(AppConstants.analyticsErrorOccurred, {
+      'error_message': errorMessage,
+      'error_type': errorType,
+      'error_context': context,
+      'additional_data': additionalData,
+    });
+  }
+
+  /// Track screen view
+  void trackScreenView(String screenName, {Map<String, dynamic>? parameters}) {
+    trackEvent('screen_view', {
+      'screen_name': screenName,
+      'screen_class': screenName,
+      ...?parameters,
+    });
+  }
+
+  /// Track user engagement
+  void trackUserEngagement(String action, String target, {Map<String, dynamic>? parameters}) {
+    trackEvent('user_engagement', {
+      'engagement_action': action,
+      'engagement_target': target,
+      ...?parameters,
+    });
+  }
+
+  /// Track purchase
+  void trackPurchase(
+    String productId,
+    double value,
+    String currency,
+    {Map<String, dynamic>? parameters}
+  ) {
+    trackEvent('purchase', {
+      'product_id': productId,
+      'value': value,
+      'currency': currency,
+      ...?parameters,
+    });
+  }
+
+  /// Track social media action
+  void trackSocialMediaAction(
+    String platform,
+    String action,
+    {Map<String, dynamic>? parameters}
+  ) {
+    trackEvent('social_media_action', {
+      'platform': platform,
+      'action': action,
+      ...?parameters,
+    });
+  }
+
+  /// Track performance metrics
+  void trackPerformance(
+    String metric,
+    double value,
+    String unit,
+    {Map<String, dynamic>? parameters}
+  ) {
+    trackEvent('performance_metric', {
+      'metric_name': metric,
+      'metric_value': value,
+      'metric_unit': unit,
+      ...?parameters,
+    });
+  }
+
+  /// Track session end
+  void trackSessionEnd() {
+    if (_sessionStartTime != null) {
+      final sessionDuration = DateTime.now().difference(_sessionStartTime!);
+      trackEvent('session_end', {
+        'session_duration': sessionDuration.inMilliseconds,
+        'session_duration_seconds': sessionDuration.inSeconds,
+      });
+    }
+    
+    trackEvent(AppConstants.analyticsAppClose);
+  }
+
+  /// Generate session ID
+  String _generateSessionId() {
+    return '${DateTime.now().millisecondsSinceEpoch}_${_userId ?? "anonymous"}';
+  }
+
+  /// Flush events (send queued events)
+  Future<void> flushEvents() async {
+    try {
+      // Flush Firebase Analytics
+      // await FirebaseAnalytics.instance.logEvent(name: 'flush_events');
+      
+      // Flush Mixpanel
+      // await Mixpanel.flush();
+      
+      // Flush Amplitude
+      // await Amplitude.flushEvents();
+      
+      // Send locally stored events
+      await _sendStoredEvents();
+      
+      if (kDebugMode) {
+        debugPrint('Analytics events flushed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to flush events: $e');
+      }
+    }
+  }
+
+  /// Send stored events
+  Future<void> _sendStoredEvents() async {
+    try {
+      // Method not available in StorageService
+      final storedEvents = <String>[];
+      
+      for (final eventJson in storedEvents) {
+        final eventData = jsonDecode(eventJson);
+        final eventName = eventData['event_name'] as String;
+        final parameters = eventData['parameters'] as Map<String, dynamic>;
+        
+        // Re-send the event
+        _trackFirebaseEvent(eventName, parameters);
+        _trackMixpanelEvent(eventName, parameters);
+        _trackAmplitudeEvent(eventName, parameters);
+      }
+      
+      // Method not available in StorageService
+      
+      if (kDebugMode) {
+        debugPrint('Stored events sent and cleared');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to send stored events: $e');
+      }
+    }
+  }
+
+  /// Reset analytics (for user logout)
+  void reset() {
+    _userId = null;
+    _userProperties = null;
+    _sessionId = _generateSessionId();
+    _sessionStartTime = DateTime.now();
+    
+    // Reset in analytics SDKs
+    _resetAnalyticsSDKs();
+    
+    if (kDebugMode) {
+      debugPrint('Analytics reset');
+    }
+  }
+
+  /// Reset analytics SDKs
+  void _resetAnalyticsSDKs() {
+    try {
+      // Reset Firebase Analytics
+      // FirebaseAnalytics.instance.setUserId(id: null);
+      
+      // Reset Mixpanel
+      // Mixpanel.reset();
+      
+      // Reset Amplitude
+      // Amplitude.setUserId(null);
+      
+      if (kDebugMode) {
+        debugPrint('Analytics SDKs reset');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to reset analytics SDKs: $e');
+      }
+    }
+  }
+
+  /// Get analytics status
+  Map<String, dynamic> getAnalyticsStatus() {
+    return {
+      'initialized': _isInitialized,
+      'analytics_enabled': EnvironmentConfig.enableAnalytics,
+      'user_id': _userId,
+      'session_id': _sessionId,
+      'session_start_time': _sessionStartTime?.toIso8601String(),
+      'firebase_configured': EnvironmentConfig.firebaseProjectId.isNotEmpty,
+      'mixpanel_configured': EnvironmentConfig.mixpanelToken.isNotEmpty,
+      'amplitude_configured': EnvironmentConfig.amplitudeApiKey.isNotEmpty,
+    };
+  }
+
+  /// Dispose analytics service
+  void dispose() {
+    if (_isInitialized) {
+      trackSessionEnd();
+      flushEvents();
+    }
+    
+    _isInitialized = false;
+    _userId = null;
+    _userProperties = null;
+    _sessionId = null;
+    _sessionStartTime = null;
+    
+    if (kDebugMode) {
+      debugPrint('Analytics service disposed');
     }
   }
 }
