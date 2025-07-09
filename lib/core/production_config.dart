@@ -1,66 +1,47 @@
+import './environment_config.dart';
+
 /// Production configuration class for the Mewayz application
 class ProductionConfig {
-  static const String appName = 'Mewayz';
-  static const String appVersion = '1.0.0';
-  static const String buildNumber = '1';
+  static String get appName => EnvironmentConfig.appName;
+  static String get appVersion => EnvironmentConfig.appVersion;
+  static String get buildNumber => EnvironmentConfig.buildNumber;
   
   // API Configuration
-  static const String baseUrl = 'https://api.mewayz.com';
-  static const String socketUrl = 'wss://socket.mewayz.com';
+  static String get baseUrl => EnvironmentConfig.apiBaseUrl;
+  static String get socketUrl => EnvironmentConfig.socketUrl;
   static const int connectionTimeout = 30000;
   static const int receiveTimeout = 30000;
   static const int sendTimeout = 30000;
   
   // Security Configuration
-  static const String encryptionKey = String.fromEnvironment(
-    'ENCRYPTION_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_SECURE_KEY_32_CHARS'
-  );
+  static String get encryptionKey => EnvironmentConfig.encryptionKey;
   static const bool enableHttpsOnly = true;
   static const bool enableCertificatePinning = true;
   static const Duration sessionTimeout = Duration(hours: 24);
   static const Duration refreshTokenTimeout = Duration(days: 30);
   
   // Supabase Configuration
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://your-project.supabase.co'
-  );
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue: 'your-anon-key-here'
-  );
+  static String get supabaseUrl => EnvironmentConfig.supabaseUrl;
+  static String get supabaseAnonKey => EnvironmentConfig.supabaseAnonKey;
   
   // OAuth Configuration
-  static const String googleClientId = String.fromEnvironment(
-    'GOOGLE_CLIENT_ID',
-    defaultValue: 'your-google-client-id.apps.googleusercontent.com'
-  );
-  static const String appleClientId = String.fromEnvironment(
-    'APPLE_CLIENT_ID',
-    defaultValue: 'com.mewayz.app'
-  );
+  static String get googleClientId => EnvironmentConfig.googleClientId;
+  static String get appleClientId => EnvironmentConfig.appleClientId;
   
   // Analytics Configuration
-  static const String firebaseProjectId = String.fromEnvironment(
-    'FIREBASE_PROJECT_ID',
-    defaultValue: 'your-firebase-project-id'
-  );
-  static const String mixpanelToken = String.fromEnvironment(
-    'MIXPANEL_TOKEN',
-    defaultValue: 'REPLACE_WITH_ACTUAL_MIXPANEL_TOKEN'
-  );
-  static const bool enableCrashlytics = true;
-  static const bool enablePerformanceMonitoring = true;
+  static String get firebaseProjectId => EnvironmentConfig.firebaseProjectId;
+  static String get mixpanelToken => EnvironmentConfig.mixpanelToken;
+  static bool get enableCrashlytics => EnvironmentConfig.enableCrashlytics;
+  static bool get enablePerformanceMonitoring => EnvironmentConfig.enablePerformanceMonitoring;
   
   // Feature Flags
-  static const bool enableBiometricAuth = true;
-  static const bool enablePushNotifications = true;
-  static const bool enableDeepLinking = true;
-  static const bool enableOfflineMode = true;
-  static const bool enableAdvancedAnalytics = true;
-  static const bool enableOAuthSignIn = true;
-  static const bool enableTwoFactorAuth = true;
+  static bool get enableBiometricAuth => EnvironmentConfig.enableBiometricAuth;
+  static bool get enablePushNotifications => EnvironmentConfig.enablePushNotifications;
+  static bool get enableDeepLinking => EnvironmentConfig.enableDeepLinking;
+  static bool get enableOfflineMode => EnvironmentConfig.enableOfflineMode;
+  static bool get enableAdvancedAnalytics => EnvironmentConfig.enableAdvancedAnalytics;
+  static bool get enableOAuthSignIn => EnvironmentConfig.enableOAuthSignin;
+  static bool get enableTwoFactorAuth => EnvironmentConfig.enableTwoFactorAuth;
   
   // Cache Configuration
   static const int maxCacheSize = 100 * 1024 * 1024; // 100MB
@@ -74,92 +55,35 @@ class ProductionConfig {
   static const Duration requestTimeout = Duration(seconds: 30);
   
   // Social Media API Keys - Use environment variables in production
-  static const String instagramClientId = String.fromEnvironment(
-    'INSTAGRAM_CLIENT_ID',
-    defaultValue: 'REPLACE_WITH_ACTUAL_INSTAGRAM_CLIENT_ID'
-  );
-  static const String instagramClientSecret = String.fromEnvironment(
-    'INSTAGRAM_CLIENT_SECRET',
-    defaultValue: 'REPLACE_WITH_ACTUAL_INSTAGRAM_CLIENT_SECRET'
-  );
-  static const String facebookAppId = String.fromEnvironment(
-    'FACEBOOK_APP_ID',
-    defaultValue: 'REPLACE_WITH_ACTUAL_FACEBOOK_APP_ID'
-  );
-  static const String facebookAppSecret = String.fromEnvironment(
-    'FACEBOOK_APP_SECRET',
-    defaultValue: 'REPLACE_WITH_ACTUAL_FACEBOOK_APP_SECRET'
-  );
-  static const String twitterApiKey = String.fromEnvironment(
-    'TWITTER_API_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_TWITTER_API_KEY'
-  );
-  static const String twitterApiSecret = String.fromEnvironment(
-    'TWITTER_API_SECRET',
-    defaultValue: 'REPLACE_WITH_ACTUAL_TWITTER_API_SECRET'
-  );
-  static const String linkedinClientId = String.fromEnvironment(
-    'LINKEDIN_CLIENT_ID',
-    defaultValue: 'REPLACE_WITH_ACTUAL_LINKEDIN_CLIENT_ID'
-  );
-  static const String linkedinClientSecret = String.fromEnvironment(
-    'LINKEDIN_CLIENT_SECRET',
-    defaultValue: 'REPLACE_WITH_ACTUAL_LINKEDIN_CLIENT_SECRET'
-  );
-  static const String youtubeApiKey = String.fromEnvironment(
-    'YOUTUBE_API_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_YOUTUBE_API_KEY'
-  );
-  static const String tiktokClientId = String.fromEnvironment(
-    'TIKTOK_CLIENT_ID',
-    defaultValue: 'REPLACE_WITH_ACTUAL_TIKTOK_CLIENT_ID'
-  );
-  static const String tiktokClientSecret = String.fromEnvironment(
-    'TIKTOK_CLIENT_SECRET',
-    defaultValue: 'REPLACE_WITH_ACTUAL_TIKTOK_CLIENT_SECRET'
-  );
+  static String get instagramClientId => EnvironmentConfig.instagramClientId;
+  static String get instagramClientSecret => EnvironmentConfig.instagramClientSecret;
+  static String get facebookAppId => EnvironmentConfig.facebookAppId;
+  static String get facebookAppSecret => EnvironmentConfig.facebookAppSecret;
+  static String get twitterApiKey => EnvironmentConfig.twitterApiKey;
+  static String get twitterApiSecret => EnvironmentConfig.twitterApiSecret;
+  static String get linkedinClientId => EnvironmentConfig.linkedinClientId;
+  static String get linkedinClientSecret => EnvironmentConfig.linkedinClientSecret;
+  static String get youtubeApiKey => EnvironmentConfig.youtubeApiKey;
+  static String get tiktokClientId => EnvironmentConfig.tiktokClientId;
+  static String get tiktokClientSecret => EnvironmentConfig.tiktokClientSecret;
   
   // Third-party Services - Use environment variables in production
-  static const String stripePublishableKey = String.fromEnvironment(
-    'STRIPE_PUBLISHABLE_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_STRIPE_PUBLISHABLE_KEY'
-  );
-  static const String stripeSecretKey = String.fromEnvironment(
-    'STRIPE_SECRET_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_STRIPE_SECRET_KEY'
-  );
-  static const String sendgridApiKey = String.fromEnvironment(
-    'SENDGRID_API_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_SENDGRID_API_KEY'
-  );
-  static const String twilioAccountSid = String.fromEnvironment(
-    'TWILIO_ACCOUNT_SID',
-    defaultValue: 'REPLACE_WITH_ACTUAL_TWILIO_ACCOUNT_SID'
-  );
-  static const String twilioAuthToken = String.fromEnvironment(
-    'TWILIO_AUTH_TOKEN',
-    defaultValue: 'REPLACE_WITH_ACTUAL_TWILIO_AUTH_TOKEN'
-  );
-  static const String cloudinaryCloudName = String.fromEnvironment(
-    'CLOUDINARY_CLOUD_NAME',
-    defaultValue: 'REPLACE_WITH_ACTUAL_CLOUDINARY_CLOUD_NAME'
-  );
-  static const String cloudinaryApiKey = String.fromEnvironment(
-    'CLOUDINARY_API_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_CLOUDINARY_API_KEY'
-  );
-  static const String cloudinaryApiSecret = String.fromEnvironment(
-    'CLOUDINARY_API_SECRET',
-    defaultValue: 'REPLACE_WITH_ACTUAL_CLOUDINARY_API_SECRET'
-  );
+  static String get stripePublishableKey => EnvironmentConfig.stripePublishableKey;
+  static String get stripeSecretKey => EnvironmentConfig.stripeSecretKey;
+  static String get sendgridApiKey => EnvironmentConfig.sendgridApiKey;
+  static String get twilioAccountSid => EnvironmentConfig.twilioAccountSid;
+  static String get twilioAuthToken => EnvironmentConfig.twilioAuthToken;
+  static String get cloudinaryCloudName => EnvironmentConfig.cloudinaryCloudName;
+  static String get cloudinaryApiKey => EnvironmentConfig.cloudinaryApiKey;
+  static String get cloudinaryApiSecret => EnvironmentConfig.cloudinaryApiSecret;
   
   // Environment Detection
-  static bool get isProduction => const bool.fromEnvironment('dart.vm.product');
+  static bool get isProduction => EnvironmentConfig.isProduction;
   static bool get isDebug => !isProduction;
   
   // Logging Configuration
-  static bool get enableLogging => isDebug;
-  static String get logLevel => isProduction ? 'ERROR' : 'DEBUG';
+  static bool get enableLogging => EnvironmentConfig.enableLogging;
+  static String get logLevel => EnvironmentConfig.logLevel;
   
   // App Store Configuration
   static const String appStoreId = String.fromEnvironment(
@@ -171,9 +95,9 @@ class ProductionConfig {
   static const String playStoreUrl = 'https://play.google.com/store/apps/details?id=$playStoreId';
   
   // Legal and Privacy
-  static const String privacyPolicyUrl = 'https://mewayz.com/privacy-policy';
-  static const String termsOfServiceUrl = 'https://mewayz.com/terms-of-service';
-  static const String supportUrl = 'https://mewayz.com/support';
+  static String get privacyPolicyUrl => EnvironmentConfig.privacyPolicyUrl;
+  static String get termsOfServiceUrl => EnvironmentConfig.termsOfServiceUrl;
+  static String get supportUrl => EnvironmentConfig.supportUrl;
   static const String contactEmail = 'support@mewayz.com';
   
   // Regional Configuration
@@ -187,20 +111,14 @@ class ProductionConfig {
   static const bool enableDatabaseEncryption = true;
   
   // Push Notification Configuration
-  static const String fcmServerKey = String.fromEnvironment(
-    'FCM_SERVER_KEY',
-    defaultValue: 'REPLACE_WITH_ACTUAL_FCM_SERVER_KEY'
-  );
-  static const String apnsCertificate = String.fromEnvironment(
-    'APNS_CERTIFICATE',
-    defaultValue: 'REPLACE_WITH_ACTUAL_APNS_CERTIFICATE'
-  );
+  static String get fcmServerKey => EnvironmentConfig.fcmServerKey;
+  static String get apnsCertificate => EnvironmentConfig.apnsPrivateKey;
   
   // CDN Configuration
-  static const String cdnBaseUrl = 'https://cdn.mewayz.com';
-  static const String imagesCdnUrl = '$cdnBaseUrl/images';
-  static const String videosCdnUrl = '$cdnBaseUrl/videos';
-  static const String assetsCdnUrl = '$cdnBaseUrl/assets';
+  static String get cdnBaseUrl => EnvironmentConfig.cdnBaseUrl;
+  static String get imagesCdnUrl => '$cdnBaseUrl/images';
+  static String get videosCdnUrl => '$cdnBaseUrl/videos';
+  static String get assetsCdnUrl => '$cdnBaseUrl/assets';
   
   // Rate Limiting
   static const int maxApiCallsPerMinute = 100;
@@ -218,49 +136,13 @@ class ProductionConfig {
   static const bool enableNetworkLogging = true;
   
   // Security validation
-  static bool get hasValidConfiguration {
-    // Check if critical configuration values have been replaced
-    return supabaseUrl != 'https://your-project.supabase.co' &&
-           supabaseAnonKey != 'your-anon-key-here' &&
-           googleClientId != 'your-google-client-id.apps.googleusercontent.com' &&
-           encryptionKey != 'REPLACE_WITH_ACTUAL_SECURE_KEY_32_CHARS';
-  }
+  static bool get hasValidConfiguration => EnvironmentConfig.isProductionReady;
   
   // Production readiness check
-  static Map<String, bool> get productionReadinessCheck {
-    return {
-      'Supabase Configuration': supabaseUrl != 'https://your-project.supabase.co' && 
-                               supabaseAnonKey != 'your-anon-key-here',
-      'OAuth Configuration': googleClientId != 'your-google-client-id.apps.googleusercontent.com',
-      'Environment Variables Set': hasValidConfiguration,
-      'Production Mode': isProduction,
-      'HTTPS Enabled': enableHttpsOnly,
-      'Certificate Pinning': enableCertificatePinning,
-      'Database Encryption': enableDatabaseEncryption,
-      'Crashlytics Enabled': enableCrashlytics,
-      'Performance Monitoring': enablePerformanceMonitoring,
-      'Automatic Backup': enableAutomaticBackup,
-      'OAuth Sign-in Ready': enableOAuthSignIn,
-      'Two-Factor Auth Ready': enableTwoFactorAuth,
-      'Biometric Auth Ready': enableBiometricAuth,
-      'Push Notifications Ready': enablePushNotifications,
-    };
-  }
+  static Map<String, bool> get productionReadinessCheck => EnvironmentConfig.configurationStatus;
   
   // Get configuration status
-  static String get configurationStatus {
-    final readiness = productionReadinessCheck;
-    final totalChecks = readiness.length;
-    final passedChecks = readiness.values.where((v) => v).length;
-    
-    if (passedChecks == totalChecks) {
-      return 'PRODUCTION_READY';
-    } else if (passedChecks >= totalChecks * 0.8) {
-      return 'MOSTLY_READY';
-    } else {
-      return 'NEEDS_CONFIGURATION';
-    }
-  }
+  static String get configurationStatus => EnvironmentConfig.configurationSummary;
   
   // Connection retry configuration
   static const List<Duration> retryDelays = [
@@ -279,4 +161,9 @@ class ProductionConfig {
     'server_error': 3,
     'rate_limit_error': 1,
   };
+  
+  // Initialize production configuration
+  static Future<void> initialize() async {
+    await EnvironmentConfig.initialize();
+  }
 }

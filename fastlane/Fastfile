@@ -1,0 +1,222 @@
+# Fastfile for Mewayz Production Deployment
+
+default_platform(:android)
+
+# Import environment variables
+import_from_git(
+  url: 'https://github.com/fastlane/fastlane',
+  branch: 'master'
+)
+
+# Android deployment configuration
+platform :android do
+  desc "Deploy to Google Play Store"
+  lane :deploy do
+    # Ensure we have the latest code
+    ensure_git_status_clean
+    
+    # Increment version number
+    increment_version_code(
+      gradle_file_path: "app/build.gradle"
+    )
+    
+    # Build the release APK
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      flags: [
+        "--dart-define=SUPABASE_URL=#{ENV['SUPABASE_URL']}",
+        "--dart-define=SUPABASE_ANON_KEY=#{ENV['SUPABASE_ANON_KEY']}",
+        "--dart-define=ENCRYPTION_KEY=#{ENV['ENCRYPTION_KEY']}",
+        "--dart-define=GOOGLE_CLIENT_ID=#{ENV['GOOGLE_CLIENT_ID']}",
+        "--dart-define=APPLE_CLIENT_ID=#{ENV['APPLE_CLIENT_ID']}",
+        "--dart-define=INSTAGRAM_CLIENT_ID=#{ENV['INSTAGRAM_CLIENT_ID']}",
+        "--dart-define=FACEBOOK_APP_ID=#{ENV['FACEBOOK_APP_ID']}",
+        "--dart-define=TWITTER_API_KEY=#{ENV['TWITTER_API_KEY']}",
+        "--dart-define=LINKEDIN_CLIENT_ID=#{ENV['LINKEDIN_CLIENT_ID']}",
+        "--dart-define=YOUTUBE_API_KEY=#{ENV['YOUTUBE_API_KEY']}",
+        "--dart-define=TIKTOK_CLIENT_ID=#{ENV['TIKTOK_CLIENT_ID']}",
+        "--dart-define=STRIPE_PUBLISHABLE_KEY=#{ENV['STRIPE_PUBLISHABLE_KEY']}",
+        "--dart-define=SENDGRID_API_KEY=#{ENV['SENDGRID_API_KEY']}",
+        "--dart-define=TWILIO_ACCOUNT_SID=#{ENV['TWILIO_ACCOUNT_SID']}",
+        "--dart-define=CLOUDINARY_CLOUD_NAME=#{ENV['CLOUDINARY_CLOUD_NAME']}",
+        "--dart-define=FIREBASE_PROJECT_ID=#{ENV['FIREBASE_PROJECT_ID']}",
+        "--dart-define=MIXPANEL_TOKEN=#{ENV['MIXPANEL_TOKEN']}",
+        "--dart-define=FCM_SERVER_KEY=#{ENV['FCM_SERVER_KEY']}",
+        "--dart-define=APP_STORE_ID=#{ENV['APP_STORE_ID']}"
+      ]
+    )
+    
+    # Upload to Google Play Store
+    upload_to_play_store(
+      track: 'production',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'],
+      package_name: 'com.mewayz.app'
+    )
+    
+    # Send notification
+    slack(
+      message: "🚀 Mewayz Android app successfully deployed to Google Play Store!",
+      channel: "#deployments"
+    )
+  end
+  
+  desc "Deploy to Play Store Internal Track"
+  lane :deploy_internal do
+    gradle(
+      task: "bundle",
+      build_type: "Release"
+    )
+    
+    upload_to_play_store(
+      track: 'internal',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'],
+      package_name: 'com.mewayz.app'
+    )
+  end
+end
+
+# iOS deployment configuration
+platform :ios do
+  desc "Deploy to App Store"
+  lane :deploy do
+    # Ensure we have the latest code
+    ensure_git_status_clean
+    
+    # Increment build number
+    increment_build_number(
+      xcodeproj: "Runner.xcodeproj"
+    )
+    
+    # Build the app
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "com.mewayz.app" => "Mewayz Production"
+        }
+      }
+    )
+    
+    # Upload to App Store Connect
+    upload_to_app_store(
+      api_key_path: ENV['APP_STORE_CONNECT_API_KEY'],
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: true,
+      automatic_release: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_install: false,
+        add_id_info_tracks_action: false,
+        add_id_info_limits_tracking: true,
+        content_rights_has_rights: true,
+        content_rights_contains_third_party_content: false,
+        export_compliance_platform: 'ios',
+        export_compliance_compliance_required: false,
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: false,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false,
+        export_compliance_available_on_french_store: false
+      }
+    )
+    
+    # Send notification
+    slack(
+      message: "🚀 Mewayz iOS app successfully deployed to App Store!",
+      channel: "#deployments"
+    )
+  end
+  
+  desc "Deploy to TestFlight"
+  lane :deploy_testflight do
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store"
+    )
+    
+    upload_to_testflight(
+      api_key_path: ENV['APP_STORE_CONNECT_API_KEY'],
+      skip_waiting_for_build_processing: false
+    )
+  end
+end
+
+# Common lanes for both platforms
+desc "Run tests"
+lane :test do
+  # Run Flutter tests
+  sh("cd .. && flutter test")
+end
+
+desc "Build and test"
+lane :build_and_test do
+  test
+  
+  # Clean and get dependencies
+  sh("cd .. && flutter clean")
+  sh("cd .. && flutter pub get")
+  
+  # Build for both platforms
+  sh("cd .. && flutter build apk --release")
+  sh("cd .. && flutter build ios --release") if is_ci?
+end
+
+desc "Create release"
+lane :create_release do
+  # Ensure we have the latest code
+  ensure_git_status_clean
+  
+  # Run tests
+  test
+  
+  # Tag the release
+  add_git_tag(
+    tag: "v#{get_version_number}",
+    message: "Release v#{get_version_number}"
+  )
+  
+  # Push to git
+  push_to_git_remote
+  
+  # Create GitHub release
+  github_release = set_github_release(
+    repository_name: "your-org/mewayz",
+    api_token: ENV['GITHUB_TOKEN'],
+    name: "v#{get_version_number}",
+    tag_name: "v#{get_version_number}",
+    description: "Release v#{get_version_number}",
+    commitish: "master"
+  )
+end
+
+# Error handling
+error do |lane, exception|
+  slack(
+    message: "❌ Deployment failed in lane #{lane}: #{exception.message}",
+    channel: "#deployments",
+    success: false
+  )
+end
+
+# Helper methods
+def get_version_number
+  # Get version from pubspec.yaml
+  pubspec = YAML.load_file("../pubspec.yaml")
+  pubspec["version"].split("+").first
+end
+
+def is_ci?
+  ENV["CI"] == "true"
+end

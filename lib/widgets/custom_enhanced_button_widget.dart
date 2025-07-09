@@ -2,7 +2,7 @@ import 'package:sizer/sizer.dart';
 
 import '../core/accessibility_service.dart' hide HapticFeedbackType;
 import '../core/app_export.dart';
-import '../core/button_service.dart';
+import '../core/button_service.dart' as button_service;
 import '../theme/app_theme.dart';
 
 class CustomEnhancedButtonWidget extends StatefulWidget {
@@ -13,7 +13,7 @@ class CustomEnhancedButtonWidget extends StatefulWidget {
   final bool enableHaptic;
   final bool enableDebounce;
   final Duration? customDebounceDelay;
-  final HapticFeedbackType hapticType;
+  final button_service.HapticFeedbackType hapticType;
   final bool isLoading;
   final Widget? loadingChild;
   final ButtonType buttonType;
@@ -28,7 +28,7 @@ class CustomEnhancedButtonWidget extends StatefulWidget {
     this.enableHaptic = true,
     this.enableDebounce = true,
     this.customDebounceDelay,
-    this.hapticType = HapticFeedbackType.lightImpact,
+    this.hapticType = button_service.HapticFeedbackType.lightImpact,
     this.isLoading = false,
     this.loadingChild,
     this.buttonType = ButtonType.elevated,
