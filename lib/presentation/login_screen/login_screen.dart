@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
         HapticFeedback.lightImpact();
 
         // Navigate to workspace dashboard
-        Navigator.pushReplacementNamed(context, '/workspace-dashboard');
+        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
       } else {
         setState(() {
           _generalError = 'Invalid email or password. Please try again.';
@@ -173,11 +173,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleForgotPassword() {
-    Navigator.pushNamed(context, '/forgot-password');
+    Navigator.pushNamed(context, AppRoutes.forgotPasswordScreen);
   }
 
   void _handleSignUp() {
-    Navigator.pushNamed(context, '/register');
+    Navigator.pushNamed(context, AppRoutes.registerScreen);
   }
 
   @override
@@ -272,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onBiometricAuth: () {
                           HapticFeedback.lightImpact();
                           Navigator.pushReplacementNamed(
-                              context, '/workspace-dashboard');
+                              context, AppRoutes.workspaceDashboard);
                         },
                       ),
 

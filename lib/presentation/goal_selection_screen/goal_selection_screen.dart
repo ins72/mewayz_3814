@@ -100,7 +100,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen>
       );
       
       HapticFeedback.mediumImpact();
-      Navigator.pushReplacementNamed(context, AppRoutes.setupProgress);
+      Navigator.pushReplacementNamed(context, '/setup_progress');
       
     } catch (e) {
       _showErrorMessage('Failed to save goals: $e');

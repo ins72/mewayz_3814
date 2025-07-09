@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import '../crm_contact_management/crm_contact_management.dart';
 import '../marketplace_store/marketplace_store.dart';
@@ -70,7 +69,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
 { "title": "Post Scheduler",
 "subtitle": "Schedule posts",
 "icon": "schedule",
-"route": "/social-media-scheduler",
+"route": AppRoutes.socialMediaScheduler,
 "color": AppTheme.success,
 },
 { "title": "Link in Bio",
@@ -247,86 +246,69 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Handle bar
             Center(
               child: Container(
-                width: 12.w,
-                height: 0.5.h,
+                width: 48,
+                height: 4,
                 decoration: BoxDecoration(
                   color: AppTheme.border,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusS)))),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             SizedBox(height: AppTheme.spacingL),
+            
             Text(
               "Switch Workspace",
-              style: AppTheme.darkTheme.textTheme.titleLarge),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             SizedBox(height: AppTheme.spacingL),
-            ...workspaces.map((workspace) => Container(
-              margin: EdgeInsets.only(bottom: AppTheme.spacingS),
-              child: ListTile(
-                leading: Container(
-                  width: 12.w,
-                  height: 12.w,
-                  decoration: BoxDecoration(
-                    color: workspace["isActive"]
-                        ? AppTheme.accent.withAlpha(51)
-                        : AppTheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                    border: Border.all(
-                      color: workspace["isActive"]
-                          ? AppTheme.accent
-                          : AppTheme.border,
-                      width: 1.5)),
-                  child: Center(
-                    child: CustomIconWidget(
-                      iconName: workspace["isActive"] ? 'check' : 'business',
-                      color: workspace["isActive"]
-                          ? AppTheme.accent
-                          : AppTheme.secondaryText,
-                      size: 20))),
-                title: Text(
-                  workspace["name"],
-                  style: AppTheme.darkTheme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: workspace["isActive"]
-                        ? FontWeight.w600
-                        : FontWeight.w400)),
-                trailing: workspace["isActive"]
-                    ? CustomIconWidget(
-                        iconName: 'check_circle',
-                        color: AppTheme.accent,
-                        size: 24)
-                    : null,
-                onTap: () async {
-                  setState(() {
-                    selectedWorkspace = workspace["name"];
-                    // Update active workspace
-                    for (var ws in workspaces) {
-                      ws["isActive"] = ws["id"] == workspace["id"];
-                    }
-                  });
-                  
-                  await _saveWorkspaceData();
+            
+            if (workspaces.isNotEmpty)
+              ...workspaces.map((workspace) => Container(
+                margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
+                child: ListTile(
+                  title: Text(workspace['name']),
+                  trailing: workspace['isActive'] ? Icon(Icons.check, color: AppTheme.accent) : null,
+                ),
+              )).toList()
+            else
+              Center(
+                child: Text(
+                  'No workspaces found',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            
+            SizedBox(height: AppTheme.spacingL),
+            
+            // Create New Workspace Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
                   Navigator.pop(context);
-                  
-                  // Refresh dashboard data for new workspace
-                  await _handleRefresh();
+                  Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
                 },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusM))))),
-            SizedBox(height: AppTheme.spacingL),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accent,
-                foregroundColor: AppTheme.primaryAction,
-                minimumSize: Size(double.infinity, 6.h)),
-              child: Text(
-                'Create New Workspace',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600))),
-          ])));
+                icon: Icon(Icons.add, size: AppTheme.iconSizeM),
+                label: const Text('Create New Workspace'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accent,
+                  foregroundColor: AppTheme.primaryAction,
+                  minimumSize: Size(double.infinity, AppTheme.buttonHeightM),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showQuickCreateMenu() {
@@ -341,18 +323,27 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Handle bar
             Center(
               child: Container(
-                width: 12.w,
-                height: 0.5.h,
+                width: 48,
+                height: 4,
                 decoration: BoxDecoration(
                   color: AppTheme.border,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusS)))),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             SizedBox(height: AppTheme.spacingL),
+            
             Text(
               "Quick Create",
-              style: AppTheme.darkTheme.textTheme.titleLarge),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             SizedBox(height: AppTheme.spacingL),
+            
             GridView.count(
               shrinkWrap: true,
               crossAxisCount: 4,
@@ -367,9 +358,13 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                     "Course", "play_circle_filled", AppRoutes.courseCreator),
                 _buildQuickCreateItem(
                     "Contact", "person_add", AppRoutes.crmContactManagement),
-              ]),
+              ],
+            ),
             SizedBox(height: AppTheme.spacingL),
-          ])));
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildQuickCreateItem(String title, String icon, String route) {
@@ -382,8 +377,8 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 16.w,
-            height: 16.w,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -391,23 +386,33 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 colors: [
                   AppTheme.accent.withAlpha(51),
                   AppTheme.accent.withAlpha(26),
-                ]),
+                ],
+              ),
               borderRadius: BorderRadius.circular(AppTheme.radiusM),
               border: Border.all(
                 color: AppTheme.accent.withAlpha(77),
-                width: 1)),
+                width: 1,
+              ),
+            ),
             child: Center(
               child: CustomIconWidget(
                 iconName: icon,
                 color: AppTheme.accent,
-                size: 24))),
+                size: AppTheme.iconSizeL,
+              ),
+            ),
+          ),
           SizedBox(height: AppTheme.spacingS),
           Text(
             title,
-            style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center),
-        ]));
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
   void _onBottomNavTap(int index) {
@@ -431,31 +436,43 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               Flexible(
                 child: Text(
                   selectedWorkspace,
-                  style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis)),
-              SizedBox(width: 2.w),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(width: AppTheme.spacingS),
               CustomIconWidget(
                 iconName: 'keyboard_arrow_down',
                 color: AppTheme.primaryText,
-                size: 20),
-            ])),
+                size: AppTheme.iconSizeM,
+              ),
+            ],
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () =>
-                Navigator.pushNamed(context, "/analytics-dashboard"),
+                Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
             icon: CustomIconWidget(
               iconName: 'analytics',
               color: AppTheme.primaryText,
-              size: 24)),
+              size: AppTheme.iconSizeL,
+            ),
+          ),
           IconButton(
             onPressed: () =>
-                Navigator.pushNamed(context, "/notification-settings"),
+                Navigator.pushNamed(context, AppRoutes.notificationSettingsScreen),
             icon: CustomIconWidget(
               iconName: 'notifications',
               color: AppTheme.primaryText,
-              size: 24)),
-        ]),
+              size: AppTheme.iconSizeL,
+            ),
+          ),
+          SizedBox(width: AppTheme.spacingS),
+        ],
+      ),
       body: _isLoading
           ? const CustomLoadingWidget(
               message: 'Loading dashboard...')
@@ -467,34 +484,44 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 _buildCRMTab(),
                 _buildStoreTab(),
                 _buildMoreTab(),
-              ]),
+              ],
+            ),
       bottomNavigationBar: CustomBottomNavigationWidget(
         currentIndex: _currentBottomNavIndex,
         onTap: _onBottomNavTap,
-        items: [
-          const BottomNavigationItem(
+        items: const [
+          BottomNavigationItem(
             iconName: 'dashboard',
-            label: 'Dashboard'),
-          const BottomNavigationItem(
+            label: 'Dashboard',
+          ),
+          BottomNavigationItem(
             iconName: 'favorite',
-            label: 'Social'),
-          const BottomNavigationItem(
+            label: 'Social',
+          ),
+          BottomNavigationItem(
             iconName: 'contacts',
-            label: 'CRM'),
-          const BottomNavigationItem(
+            label: 'CRM',
+          ),
+          BottomNavigationItem(
             iconName: 'store',
-            label: 'Store'),
-          const BottomNavigationItem(
+            label: 'Store',
+          ),
+          BottomNavigationItem(
             iconName: 'more_horiz',
-            label: 'More'),
-        ]),
+            label: 'More',
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showQuickCreateMenu,
         backgroundColor: AppTheme.accent,
         child: CustomIconWidget(
           iconName: 'add',
           color: AppTheme.primaryAction,
-          size: 24)));
+          size: AppTheme.iconSizeL,
+        ),
+      ),
+    );
   }
 
   Widget _buildDashboardTab() {
@@ -509,8 +536,8 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Enhanced Metrics Cards
-            Container(
-              height: 22.h,
+            SizedBox(
+              height: 180,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: metricsData.length,
@@ -518,8 +545,11 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 itemBuilder: (context, index) {
                   return MetricsCardWidget(
                     data: metricsData[index],
-                    onLongPress: () => _showMetricsDetail(metricsData[index]));
-                })),
+                    onLongPress: () => _showMetricsDetail(metricsData[index]),
+                  );
+                },
+              ),
+            ),
 
             SizedBox(height: AppTheme.spacingXl),
 
@@ -529,16 +559,22 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               children: [
                 Text(
                   "Quick Actions",
-                  style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600)),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 TextButton(
                   onPressed: () => _showQuickCreateMenu(),
                   child: Text(
                     "View All",
                     style: TextStyle(
                       color: AppTheme.accent,
-                      fontWeight: FontWeight.w600))),
-              ]),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: AppTheme.spacingM),
 
             GridView.builder(
@@ -548,14 +584,17 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 crossAxisCount: 2,
                 crossAxisSpacing: AppTheme.spacingM,
                 mainAxisSpacing: AppTheme.spacingM,
-                childAspectRatio: 1.2),
+                childAspectRatio: 1.2,
+              ),
               itemCount: quickActions.length > 4 ? 4 : quickActions.length,
               itemBuilder: (context, index) {
                 return QuickActionWidget(
                   data: quickActions[index],
                   onTap: () => Navigator.pushNamed(
-                      context, quickActions[index]["route"]));
-              }),
+                      context, quickActions[index]["route"]),
+                );
+              },
+            ),
 
             SizedBox(height: AppTheme.spacingXl),
 
@@ -565,8 +604,10 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               children: [
                 Text(
                   "Recent Activity",
-                  style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600)),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 TextButton(
                   onPressed: () {
                     // Navigate to full activity log
@@ -575,8 +616,12 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                     "View All",
                     style: TextStyle(
                       color: AppTheme.accent,
-                      fontWeight: FontWeight.w600))),
-              ]),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: AppTheme.spacingM),
 
             ListView.separated(
@@ -586,35 +631,46 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               separatorBuilder: (context, index) => SizedBox(height: AppTheme.spacingM),
               itemBuilder: (context, index) {
                 return ActivityItemWidget(
-                  data: recentActivities[index]);
-              }),
+                  data: recentActivities[index],
+                );
+              },
+            ),
 
-            SizedBox(height: 15.h), // Bottom padding for FAB
-          ])));
+            SizedBox(height: 120), // Bottom padding for FAB
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSocialTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const SocialMediaManager());
-      });
+          builder: (context) => const SocialMediaManager(),
+        );
+      },
+    );
   }
 
   Widget _buildCRMTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const CrmContactManagement());
-      });
+          builder: (context) => const CrmContactManagement(),
+        );
+      },
+    );
   }
 
   Widget _buildStoreTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const MarketplaceStore());
-      });
+          builder: (context) => const MarketplaceStore(),
+        );
+      },
+    );
   }
 
   Widget _buildMoreTab() {
@@ -625,8 +681,10 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         children: [
           Text(
             "More Features",
-            style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600)),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           SizedBox(height: AppTheme.spacingL),
           
           // Quick Access Grid
@@ -637,64 +695,91 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               crossAxisCount: 2,
               crossAxisSpacing: AppTheme.spacingM,
               mainAxisSpacing: AppTheme.spacingM,
-              childAspectRatio: 1.2),
+              childAspectRatio: 1.2,
+            ),
             itemCount: quickActions.length,
             itemBuilder: (context, index) {
               return QuickActionWidget(
                 data: quickActions[index],
                 onTap: () => Navigator.pushNamed(
-                    context, quickActions[index]["route"]));
-            }),
+                    context, quickActions[index]["route"]),
+              );
+            },
+          ),
           
           SizedBox(height: AppTheme.spacingXl),
           
           // Settings Section
           Container(
             padding: EdgeInsets.all(AppTheme.spacingM),
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusM)),
+            decoration: AppTheme.cardDecoration(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Settings & Tools",
-                  style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600)),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 SizedBox(height: AppTheme.spacingM),
                 
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'settings',
-                    color: AppTheme.accent,
-                    size: 24),
-                  title: Text('Settings'),
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.settingsScreen)),
+                _buildActionTile(
+                  icon: Icons.settings,
+                  title: 'Settings',
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.settingsScreen),
+                ),
                 
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'analytics',
-                    color: AppTheme.accent,
-                    size: 24),
-                  title: Text('Analytics Dashboard')),
+                _buildActionTile(
+                  icon: Icons.analytics,
+                  title: 'Analytics Dashboard',
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
+                ),
                 
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'people',
-                    color: AppTheme.accent,
-                    size: 24),
-                  title: Text('Team Management'),
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.usersTeamManagementScreen)),
+                _buildActionTile(
+                  icon: Icons.people,
+                  title: 'Team Management',
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.usersTeamManagementScreen),
+                ),
                 
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'help',
-                    color: AppTheme.accent,
-                    size: 24),
-                  title: Text('Contact Support'),
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.contactUsScreen)),
-              ])),
-        ]));
+                _buildActionTile(
+                  icon: Icons.help,
+                  title: 'Contact Support',
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.contactUsScreen),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: CustomIconWidget(
+        iconName: icon.toString().split('.').last,
+        color: AppTheme.accent,
+        size: AppTheme.iconSizeL,
+      ),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: AppTheme.secondaryText,
+        size: AppTheme.iconSizeS,
+      ),
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
+    );
   }
 
   void _showMetricsDetail(Map<String, dynamic> metric) {
@@ -703,11 +788,14 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusL)),
+          borderRadius: BorderRadius.circular(AppTheme.radiusL),
+        ),
         title: Text(
           "${metric['title']} Analytics",
-          style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600)),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -716,13 +804,15 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               padding: EdgeInsets.all(AppTheme.spacingM),
               decoration: BoxDecoration(
                 color: (metric['color'] as Color).withAlpha(26),
-                borderRadius: BorderRadius.circular(AppTheme.radiusM)),
+                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+              ),
               child: Row(
                 children: [
                   CustomIconWidget(
                     iconName: metric['icon'] ?? 'analytics',
                     color: metric['color'] ?? AppTheme.accent,
-                    size: 24),
+                    size: AppTheme.iconSizeL,
+                  ),
                   SizedBox(width: AppTheme.spacingM),
                   Expanded(
                     child: Column(
@@ -730,52 +820,74 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                       children: [
                         Text(
                           "Current Value",
-                          style: AppTheme.darkTheme.textTheme.bodySmall),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         Text(
                           metric['value'],
-                          style: AppTheme.darkTheme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w600)),
-                      ])),
-                ])),
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]
+              ),
+            ),
             SizedBox(height: AppTheme.spacingM),
             Row(
               children: [
                 Text(
                   "Change: ",
-                  style: AppTheme.darkTheme.textTheme.bodyMedium),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: AppTheme.spacingS,
-                    vertical: AppTheme.spacingXs),
+                    vertical: AppTheme.spacingXs,
+                  ),
                   decoration: BoxDecoration(
                     color: metric['isPositive'] 
                         ? AppTheme.success.withAlpha(51)
                         : AppTheme.error.withAlpha(51),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusS)),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  ),
                   child: Text(
                     metric['change'],
-                    style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: metric['isPositive'] ? AppTheme.success : AppTheme.error,
-                      fontWeight: FontWeight.w600))),
-              ]),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: AppTheme.spacingL),
             Text(
               "View detailed analytics in the Analytics Dashboard for comprehensive insights and trends.",
-              style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.secondaryText)),
-          ]),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.secondaryText,
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               "Close",
-              style: TextStyle(color: AppTheme.secondaryText))),
+              style: TextStyle(color: AppTheme.secondaryText),
+            ),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, "/analytics-dashboard");
             },
-            child: const Text("View Details")),
-        ]));
+            child: const Text("View Details"),
+          ),
+        ],
+      ),
+    );
   }
 }

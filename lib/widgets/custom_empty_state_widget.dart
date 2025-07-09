@@ -1,155 +1,109 @@
-
 import '../core/app_export.dart';
 
-class CustomEmptyStateWidget extends StatefulWidget {
-  final String title;
-  final String? subtitle;
-  final String? iconName;
+class CustomEmptyStateWidget extends StatelessWidget {
+  final String? title;
+  final String? message;
   final String? buttonText;
   final VoidCallback? onButtonPressed;
+  final Widget? icon;
+  final String? iconName;
   final Color? iconColor;
-  final Widget? customIcon;
-  final List<Widget>? actions;
+  final double? iconSize;
+  final bool showButton;
+  final EdgeInsets? padding;
+  final CrossAxisAlignment? alignment;
 
   const CustomEmptyStateWidget({
     Key? key,
-    required this.title,
-    this.subtitle,
-    this.iconName,
+    this.title,
+    this.message,
     this.buttonText,
     this.onButtonPressed,
+    this.icon,
+    this.iconName,
     this.iconColor,
-    this.customIcon,
-    this.actions,
+    this.iconSize,
+    this.showButton = true,
+    this.padding,
+    this.alignment,
   }) : super(key: key);
 
   @override
-  State<CustomEmptyStateWidget> createState() => _CustomEmptyStateWidgetState();
-}
-
-class _CustomEmptyStateWidgetState extends State<CustomEmptyStateWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    ));
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.4, 1.0, curve: Curves.elasticOut),
-    ));
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: 80.w,
+    return Container(
+      width: double.infinity,
+      padding: padding ?? EdgeInsets.all(AppTheme.spacingXl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: alignment ?? CrossAxisAlignment.center,
+        children: [
+          // Empty State Icon
+          Container(
+            width: iconSize ?? 80,
+            height: iconSize ?? 80,
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppTheme.secondaryText).withAlpha(26),
+              borderRadius: BorderRadius.circular((iconSize ?? 80) / 2),
+            ),
+            child: Center(
+              child: icon ??
+                  CustomIconWidget(
+                    iconName: iconName ?? 'inbox',
+                    color: iconColor ?? AppTheme.secondaryText,
+                    size: (iconSize ?? 80) * 0.6,
+                  ),
+            ),
+          ),
+          
+          SizedBox(height: AppTheme.spacingXl),
+          
+          // Empty State Title
+          if (title != null)
+            Text(
+              title!,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: AppTheme.primaryText,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          
+          if (title != null && message != null) 
+            SizedBox(height: AppTheme.spacingM),
+          
+          // Empty State Message
+          if (message != null)
+            Text(
+              message!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.secondaryText,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          
+          if (showButton && onButtonPressed != null) ...[
+            SizedBox(height: AppTheme.spacingXl),
+            
+            // Action Button
+            ElevatedButton.icon(
+              onPressed: onButtonPressed,
+              icon: Icon(Icons.add, size: AppTheme.iconSizeM),
+              label: Text(buttonText ?? 'Get Started'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accent,
+                foregroundColor: AppTheme.primaryAction,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                  vertical: AppTheme.spacingM,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Icon Section
-                    Container(
-                      width: 20.w,
-                      height: 20.w,
-                      decoration: BoxDecoration(
-                        color: (widget.iconColor ?? AppTheme.accent).withAlpha(26),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusL),
-                      ),
-                      child: Center(
-                        child: widget.customIcon ??
-                            CustomIconWidget(
-                              iconName: widget.iconName ?? 'inbox',
-                              color: widget.iconColor ?? AppTheme.accent,
-                              size: 48,
-                            ),
-                      ),
-                    ),
-
-                    SizedBox(height: 4.h),
-
-                    // Title
-                    Text(
-                      widget.title,
-                      style: AppTheme.darkTheme.textTheme.headlineSmall?.copyWith(
-                        color: AppTheme.primaryText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    // Subtitle
-                    if (widget.subtitle != null) ...[
-                      SizedBox(height: 2.h),
-                      Text(
-                        widget.subtitle!,
-                        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.secondaryText,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-
-                    // Actions
-                    if (widget.buttonText != null && widget.onButtonPressed != null) ...[
-                      SizedBox(height: 4.h),
-                      ElevatedButton(
-                        onPressed: widget.onButtonPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accent,
-                          foregroundColor: AppTheme.primaryAction,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
-                            vertical: 2.h,
-                          ),
-                        ),
-                        child: Text(widget.buttonText!),
-                      ),
-                    ],
-
-                    // Custom Actions
-                    if (widget.actions != null) ...[
-                      SizedBox(height: 4.h),
-                      ...widget.actions!,
-                    ],
-                  ],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
                 ),
               ),
             ),
-          );
-        },
+          ],
+        ],
       ),
     );
   }
@@ -157,75 +111,286 @@ class _CustomEmptyStateWidgetState extends State<CustomEmptyStateWidget>
 
 class CustomNoDataWidget extends StatelessWidget {
   final String? title;
-  final String? subtitle;
-  final VoidCallback? onRetry;
+  final String? message;
+  final VoidCallback? onRefresh;
 
   const CustomNoDataWidget({
     Key? key,
     this.title,
-    this.subtitle,
-    this.onRetry,
+    this.message,
+    this.onRefresh,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return CustomEmptyStateWidget(
-      title: title ?? 'No Data Available',
-      subtitle: subtitle ?? 'There\'s nothing to show here yet.',
-      iconName: 'inbox',
-      iconColor: AppTheme.secondaryText,
-      buttonText: onRetry != null ? 'Retry' : null,
-      onButtonPressed: onRetry,
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppTheme.spacingL),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // No Data Icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryText.withAlpha(26),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(
+              Icons.folder_open,
+              size: 48,
+              color: AppTheme.secondaryText,
+            ),
+          ),
+          
+          SizedBox(height: AppTheme.spacingXl),
+          
+          Text(
+            title ?? 'No Data Available',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: AppTheme.primaryText,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          SizedBox(height: AppTheme.spacingM),
+          
+          Text(
+            message ?? 'There is no data to display at the moment.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.secondaryText,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          if (onRefresh != null) ...[
+            SizedBox(height: AppTheme.spacingXl),
+            
+            TextButton.icon(
+              onPressed: onRefresh,
+              icon: Icon(Icons.refresh, size: AppTheme.iconSizeM),
+              label: const Text('Refresh'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.accent,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                  vertical: AppTheme.spacingM,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
 
-class CustomNetworkErrorWidget extends StatelessWidget {
+class CustomNoResultsWidget extends StatelessWidget {
   final String? title;
-  final String? subtitle;
-  final VoidCallback? onRetry;
-
-  const CustomNetworkErrorWidget({
-    Key? key,
-    this.title,
-    this.subtitle,
-    this.onRetry,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomEmptyStateWidget(
-      title: title ?? 'Connection Error',
-      subtitle: subtitle ?? 'Please check your internet connection and try again.',
-      iconName: 'wifi_off',
-      iconColor: AppTheme.error,
-      buttonText: 'Retry',
-      onButtonPressed: onRetry,
-    );
-  }
-}
-
-class CustomSearchEmptyWidget extends StatelessWidget {
+  final String? message;
   final String? searchQuery;
   final VoidCallback? onClearSearch;
 
-  const CustomSearchEmptyWidget({
+  const CustomNoResultsWidget({
     Key? key,
+    this.title,
+    this.message,
     this.searchQuery,
     this.onClearSearch,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return CustomEmptyStateWidget(
-      title: 'No Results Found',
-      subtitle: searchQuery != null
-          ? 'No results found for "$searchQuery"'
-          : 'Try adjusting your search criteria',
-      iconName: 'search_off',
-      iconColor: AppTheme.secondaryText,
-      buttonText: onClearSearch != null ? 'Clear Search' : null,
-      onButtonPressed: onClearSearch,
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppTheme.spacingL),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // No Results Icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryText.withAlpha(26),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(
+              Icons.search_off,
+              size: 48,
+              color: AppTheme.secondaryText,
+            ),
+          ),
+          
+          SizedBox(height: AppTheme.spacingXl),
+          
+          Text(
+            title ?? 'No Results Found',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: AppTheme.primaryText,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          SizedBox(height: AppTheme.spacingM),
+          
+          Text(
+            message ?? 'Try adjusting your search or filters to find what you\'re looking for.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.secondaryText,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          if (searchQuery != null) ...[
+            SizedBox(height: AppTheme.spacingM),
+            
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingM,
+                vertical: AppTheme.spacingS,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                border: Border.all(
+                  color: AppTheme.border.withAlpha(77),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.search,
+                    size: AppTheme.iconSizeM,
+                    color: AppTheme.secondaryText,
+                  ),
+                  SizedBox(width: AppTheme.spacingS),
+                  Text(
+                    '"$searchQuery"',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.primaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
+          if (onClearSearch != null) ...[
+            SizedBox(height: AppTheme.spacingXl),
+            
+            TextButton.icon(
+              onPressed: onClearSearch,
+              icon: Icon(Icons.clear, size: AppTheme.iconSizeM),
+              label: const Text('Clear Search'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.accent,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                  vertical: AppTheme.spacingM,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class CustomOfflineWidget extends StatelessWidget {
+  final String? title;
+  final String? message;
+  final VoidCallback? onRetry;
+
+  const CustomOfflineWidget({
+    Key? key,
+    this.title,
+    this.message,
+    this.onRetry,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppTheme.spacingL),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Offline Icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppTheme.warning.withAlpha(26),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(
+              Icons.cloud_off,
+              size: 48,
+              color: AppTheme.warning,
+            ),
+          ),
+          
+          SizedBox(height: AppTheme.spacingXl),
+          
+          Text(
+            title ?? 'You\'re Offline',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: AppTheme.primaryText,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          SizedBox(height: AppTheme.spacingM),
+          
+          Text(
+            message ?? 'Please check your internet connection and try again.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.secondaryText,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          if (onRetry != null) ...[
+            SizedBox(height: AppTheme.spacingXl),
+            
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: Icon(Icons.refresh, size: AppTheme.iconSizeM),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accent,
+                foregroundColor: AppTheme.primaryAction,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                  vertical: AppTheme.spacingM,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

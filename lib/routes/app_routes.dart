@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../presentation/account_settings_screen/account_settings_screen.dart';
+import '../presentation/analytics_dashboard/analytics_dashboard.dart';
 import '../presentation/app_store_optimization_screen/app_store_optimization_screen.dart';
 import '../presentation/contact_us_screen/contact_us_screen.dart';
 import '../presentation/content_calendar_screen/content_calendar_screen.dart';
@@ -12,23 +14,33 @@ import '../presentation/forgot_password_screen/forgot_password_screen.dart';
 import '../presentation/goal_selection_screen/goal_selection_screen.dart';
 import '../presentation/hashtag_research_screen/hashtag_research_screen.dart';
 import '../presentation/instagram_lead_search/instagram_lead_search.dart';
+import '../presentation/link_in_bio_analytics_screen/link_in_bio_analytics_screen.dart';
 import '../presentation/link_in_bio_templates_screen/link_in_bio_templates_screen.dart';
 import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
 import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
+import '../presentation/notification_settings_screen/notification_settings_screen.dart';
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
+import '../presentation/profile_settings_screen/profile_settings_screen.dart';
 import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
 import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
+import '../presentation/security_settings_screen/security_settings_screen.dart';
+import '../presentation/settings_account_management/settings_account_management.dart';
+import '../presentation/settings_screen/settings_screen.dart';
+import '../presentation/social_media_analytics_screen/social_media_analytics_screen.dart';
+import '../presentation/social_media_management_hub/social_media_management_hub.dart';
 import '../presentation/social_media_management_screen/social_media_management_screen.dart';
+import '../presentation/social_media_manager/social_media_manager.dart';
+import '../presentation/social_media_scheduler/social_media_scheduler.dart';
+import '../presentation/social_media_scheduler_screen/social_media_scheduler_screen.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/team_member_invitation_screen/team_member_invitation_screen.dart';
 import '../presentation/two_factor_authentication_screen/two_factor_authentication_screen.dart';
 import '../presentation/unified_analytics_screen/unified_analytics_screen.dart';
 import '../presentation/unified_onboarding_screen/unified_onboarding_screen.dart';
-import '../presentation/unified_settings_screen/unified_settings_screen.dart';
 import '../presentation/users_team_management_screen/users_team_management_screen.dart';
 import '../presentation/workspace_creation_screen/workspace_creation_screen.dart';
 import '../presentation/workspace_dashboard/workspace_dashboard.dart';
@@ -54,9 +66,22 @@ class AppRoutes {
   static const String linkInBioBuilder = '/link-in-bio-builder';
   
   static const String socialMediaManagementScreen = '/social-media-management-screen';
+  static const String socialMediaManagementHub = '/social-media-management-hub';
+  static const String socialMediaManager = '/social-media-manager';
+  static const String socialMediaScheduler = '/social-media-scheduler';
+  static const String socialMediaSchedulerScreen = '/social-media-scheduler-screen';
+  static const String socialMediaAnalyticsScreen = '/social-media-analytics-screen';
   static const String settingsScreen = '/settings-screen';
+  static const String settingsAccountManagement = '/settings-account-management';
+  static const String accountSettingsScreen = '/account-settings-screen';
+  static const String profileSettingsScreen = '/profile-settings-screen';
+  static const String notificationSettingsScreen = '/notification-settings-screen';
+  static const String securitySettingsScreen = '/security-settings-screen';
   static const String onboardingScreen = '/onboarding-screen';
   static const String analyticsScreen = '/analytics-screen';
+  static const String analyticsHub = '/analytics-hub';
+  static const String analyticsDashboard = '/analytics-dashboard';
+  static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
   
   static const String hashtagResearchScreen = '/hashtag-research-screen';
   static const String instagramLeadSearch = '/instagram-lead-search';
@@ -76,10 +101,7 @@ class AppRoutes {
   static const String appStoreOptimizationScreen = '/app-store-optimization-screen';
   static const String productionReleaseChecklistScreen = '/production-release-checklist-screen';
   static const String professionalReadmeDocumentationScreen = '/professional-readme-documentation-screen';
-
-  static const String setupProgress = '/setup-progress-screen';
-  static const String socialMediaScheduler = '/social-media-scheduler';
-  static const String contentScheduler = '/content-scheduler';
+  static const String setupProgressScreen = '/setup-progress-screen';
 
   static Map<String, Widget Function(BuildContext)> get routes => {
     initial: (context) => const SplashScreen(),
@@ -98,9 +120,21 @@ class AppRoutes {
     linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
     
     socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
-    settingsScreen: (context) => const UnifiedSettingsScreen(),
+    socialMediaManagementHub: (context) => const SocialMediaManagementHub(),
+    socialMediaManager: (context) => const SocialMediaManager(),
+    socialMediaScheduler: (context) => const SocialMediaScheduler(),
+    socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
+    socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
+    settingsScreen: (context) => const SettingsScreen(),
+    settingsAccountManagement: (context) => const SettingsAccountManagement(),
+    accountSettingsScreen: (context) => const AccountSettingsScreen(),
+    profileSettingsScreen: (context) => const ProfileSettingsScreen(),
+    notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
+    securitySettingsScreen: (context) => const SecuritySettingsScreen(),
     onboardingScreen: (context) => const UnifiedOnboardingScreen(),
     analyticsScreen: (context) => const UnifiedAnalyticsScreen(),
+    analyticsDashboard: (context) => const AnalyticsDashboard(),
+    linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
     
     hashtagResearchScreen: (context) => const HashtagResearchScreen(),
     instagramLeadSearch: (context) => const InstagramLeadSearch(),
@@ -120,21 +154,17 @@ class AppRoutes {
     appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
     productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
     professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
+    setupProgressScreen: (context) => const SetupProgressScreen(),
     
-    setupProgress: (context) => const SetupProgressScreen(),
-    socialMediaScheduler: (context) => const SocialMediaManagementScreen(),
-    contentScheduler: (context) => const SocialMediaManagementScreen(),
-    
-    '/social-media-management-hub': (context) => const SocialMediaManagementScreen(),
-    '/social-media-manager-screen': (context) => const SocialMediaManagementScreen(),
-    '/social-media-scheduler': (context) => const SocialMediaManagementScreen(),
-    '/social-media-analytics-screen': (context) => const UnifiedAnalyticsScreen(),
-    '/link-in-bio-analytics-screen': (context) => const UnifiedAnalyticsScreen(),
-    '/analytics-dashboard': (context) => const UnifiedAnalyticsScreen(),
-    '/profile-settings-screen': (context) => const UnifiedSettingsScreen(),
-    '/account-settings-screen': (context) => const UnifiedSettingsScreen(),
-    '/notification-settings-screen': (context) => const UnifiedSettingsScreen(),
-    '/security-settings-screen': (context) => const UnifiedSettingsScreen(),
-    '/setup-progress-screen': (context) => const SetupProgressScreen(),
+    // Legacy and alternative routes for backward compatibility
+    '/social-media-management-hub': (context) => const SocialMediaManagementHub(),
+    '/social-media-manager-screen': (context) => const SocialMediaManager(),
+    '/analytics-hub': (context) => const UnifiedAnalyticsScreen(),
+    '/profile-settings': (context) => const ProfileSettingsScreen(),
+    '/account-settings': (context) => const AccountSettingsScreen(),
+    '/notification-settings': (context) => const NotificationSettingsScreen(),
+    '/security-settings': (context) => const SecuritySettingsScreen(),
+    '/setup-progress': (context) => const SetupProgressScreen(),
+    '/content-scheduler': (context) => const SocialMediaScheduler(),
   };
 }

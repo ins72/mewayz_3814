@@ -1,9 +1,14 @@
+import 'dart:async';
 
 import '../../core/app_export.dart';
 import './widgets/add_contact_widget.dart';
+import './widgets/advanced_filter_widget.dart';
 import './widgets/bulk_actions_widget.dart';
+import './widgets/contact_analytics_widget.dart';
 import './widgets/contact_card_widget.dart';
 import './widgets/contact_detail_widget.dart';
+import './widgets/crm_header_widget.dart';
+import './widgets/crm_stats_widget.dart';
 import './widgets/import_contacts_widget.dart';
 import './widgets/pipeline_stage_widget.dart';
 
@@ -20,10 +25,13 @@ class _CrmContactManagementState extends State<CrmContactManagement>
   final TextEditingController _searchController = TextEditingController();
   bool _isPipelineView = false;
   bool _isMultiSelectMode = false;
+  bool _isRealTimeUpdatesEnabled = true;
   final Set<String> _selectedContacts = {};
   String _selectedFilter = 'All';
   String _selectedSource = 'All';
   String _selectedDateRange = 'All Time';
+  String _sortBy = 'Name';
+  bool _sortAscending = true;
 
   // Mock data for contacts
   final List<Map<String, dynamic>> _contacts = [
@@ -40,6 +48,7 @@ class _CrmContactManagementState extends State<CrmContactManagement>
 "value": "\$15,000",
 "notes": "Interested in enterprise solution",
 "tags": ["Hot Lead", "Enterprise"],
+"priority": "high",
 "activities": [ { "type": "email_open",
 "description": "Opened email: Product Demo Invitation",
 "timestamp": "2 hours ago" },
@@ -59,6 +68,7 @@ class _CrmContactManagementState extends State<CrmContactManagement>
 "value": "\$8,500",
 "notes": "Budget approved, waiting for final decision",
 "tags": ["Warm Lead", "SMB"],
+"priority": "medium",
 "activities": [ { "type": "link_click",
 "description": "Clicked proposal link",
 "timestamp": "1 day ago" },
@@ -78,6 +88,7 @@ class _CrmContactManagementState extends State<CrmContactManagement>
 "value": "\$25,000",
 "notes": "Ready to close, discussing contract terms",
 "tags": ["Hot Lead", "Enterprise", "Priority"],
+"priority": "high",
 "activities": [ { "type": "meeting",
 "description": "Attended contract review meeting",
 "timestamp": "30 minutes ago" },
@@ -97,6 +108,7 @@ class _CrmContactManagementState extends State<CrmContactManagement>
 "value": "\$5,000",
 "notes": "Initial contact made, needs follow-up",
 "tags": ["Cold Lead"],
+"priority": "low",
 "activities": [ { "type": "email_sent",
 "description": "Sent introduction email",
 "timestamp": "3 days ago" } ] },
@@ -113,6 +125,7 @@ class _CrmContactManagementState extends State<CrmContactManagement>
 "value": "\$12,000",
 "notes": "Demo scheduled for tomorrow",
 "tags": ["Warm Lead", "SMB"],
+"priority": "medium",
 "activities": [ { "type": "demo_scheduled",
 "description": "Scheduled product demo",
 "timestamp": "5 hours ago" },
@@ -151,7 +164,8 @@ class _CrmContactManagementState extends State<CrmContactManagement>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _startRealTimeUpdates();
   }
 
   @override
@@ -161,13 +175,32 @@ class _CrmContactManagementState extends State<CrmContactManagement>
     super.dispose();
   }
 
+  void _startRealTimeUpdates() {
+    if (_isRealTimeUpdatesEnabled) {
+      // Simulate real-time updates
+      Timer.periodic(const Duration(seconds: 30), (timer) {
+        if (mounted && _isRealTimeUpdatesEnabled) {
+          setState(() {
+            // Update lead scores and activities
+          });
+        } else {
+          timer.cancel();
+        }
+      });
+    }
+  }
+
   List<Map<String, dynamic>> get _filteredContacts {
-    return _contacts.where((contact) {
+    var filtered = _contacts.where((contact) {
       final matchesSearch = contact['name']
               .toString()
               .toLowerCase()
               .contains(_searchController.text.toLowerCase()) ||
           contact['company']
+              .toString()
+              .toLowerCase()
+              .contains(_searchController.text.toLowerCase()) ||
+          contact['email']
               .toString()
               .toLowerCase()
               .contains(_searchController.text.toLowerCase());
@@ -180,12 +213,53 @@ class _CrmContactManagementState extends State<CrmContactManagement>
 
       return matchesSearch && matchesFilter && matchesSource;
     }).toList();
+
+    // Sort contacts
+    filtered.sort((a, b) {
+      int comparison = 0;
+      switch (_sortBy) {
+        case 'Name':
+          comparison = a['name'].toString().compareTo(b['name'].toString());
+          break;
+        case 'Company':
+          comparison = a['company'].toString().compareTo(b['company'].toString());
+          break;
+        case 'Lead Score':
+          comparison = a['leadScore'].compareTo(b['leadScore']);
+          break;
+        case 'Value':
+          final aValue = double.tryParse(a['value'].toString().replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+          final bValue = double.tryParse(b['value'].toString().replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+          comparison = aValue.compareTo(bValue);
+          break;
+        case 'Last Activity':
+          // Simple comparison for demo purposes
+          comparison = a['lastActivity'].toString().compareTo(b['lastActivity'].toString());
+          break;
+      }
+      return _sortAscending ? comparison : -comparison;
+    });
+
+    return filtered;
   }
 
   Color _getLeadScoreColor(int score) {
     if (score >= 80) return AppTheme.success;
     if (score >= 60) return AppTheme.warning;
     return AppTheme.error;
+  }
+
+  Color _getPriorityColor(String priority) {
+    switch (priority) {
+      case 'high':
+        return AppTheme.error;
+      case 'medium':
+        return AppTheme.warning;
+      case 'low':
+        return AppTheme.success;
+      default:
+        return AppTheme.secondaryText;
+    }
   }
 
   void _toggleMultiSelect() {
@@ -272,57 +346,107 @@ class _CrmContactManagementState extends State<CrmContactManagement>
     );
   }
 
-  Widget _buildSearchBar() {
+  void _showAdvancedFilters() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AdvancedFilterWidget(
+        currentFilters: {
+          'stage': _selectedFilter,
+          'source': _selectedSource,
+          'dateRange': _selectedDateRange,
+        },
+        onApply: (filters) {
+          setState(() {
+            _selectedFilter = filters['stage'] ?? 'All';
+            _selectedSource = filters['source'] ?? 'All';
+            _selectedDateRange = filters['dateRange'] ?? 'All Time';
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilterBar() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
-      ),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: AppTheme.darkTheme.textTheme.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Search contacts...',
-                hintStyle: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.secondaryText,
-                ),
-                prefixIcon: CustomIconWidget(
-                  iconName: 'search',
-                  color: AppTheme.secondaryText,
-                  size: 20,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 2.h),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.border),
               ),
-              onChanged: (value) => setState(() {}),
+              child: TextField(
+                controller: _searchController,
+                style: Theme.of(context).textTheme.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Search contacts, companies, emails...',
+                  hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.secondaryText,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppTheme.secondaryText,
+                    size: 20,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.clear,
+                            color: AppTheme.secondaryText,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 4.w,
+                    vertical: 3.h,
+                  ),
+                ),
+                onChanged: (value) => setState(() {}),
+              ),
             ),
           ),
+          SizedBox(width: 3.w),
           GestureDetector(
-            onTap: () {
-              // Voice search functionality
-            },
+            onTap: _showAdvancedFilters,
             child: Container(
-              padding: EdgeInsets.all(2.w),
-              child: CustomIconWidget(
-                iconName: 'mic',
+              padding: EdgeInsets.all(3.w),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: const Icon(
+                Icons.tune,
                 color: AppTheme.accent,
-                size: 20,
+                size: 24,
               ),
             ),
           ),
+          SizedBox(width: 3.w),
           GestureDetector(
-            onTap: _showFilterOptions,
+            onTap: _showSortOptions,
             child: Container(
-              padding: EdgeInsets.all(2.w),
-              child: CustomIconWidget(
-                iconName: 'filter_list',
+              padding: EdgeInsets.all(3.w),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Icon(
+                _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
                 color: AppTheme.accent,
-                size: 20,
+                size: 24,
               ),
             ),
           ),
@@ -331,131 +455,61 @@ class _CrmContactManagementState extends State<CrmContactManagement>
     );
   }
 
-  void _showFilterOptions() {
+  void _showSortOptions() {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Container(
-        padding: EdgeInsets.all(4.w),
+        padding: EdgeInsets.all(6.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              width: 12.w,
+              height: 0.5.h,
+              decoration: BoxDecoration(
+                color: AppTheme.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            SizedBox(height: 4.h),
             Text(
-              'Filter Contacts',
-              style: AppTheme.darkTheme.textTheme.titleLarge,
+              'Sort Contacts',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(height: 3.h),
-            _buildFilterSection(
-                'Lead Status',
-                _selectedFilter,
-                [
-                  'All',
-                  'New',
-                  'Qualified',
-                  'Demo Scheduled',
-                  'Proposal',
-                  'Negotiation',
-                  'Closed Won'
-                ],
-                (value) => setState(() => _selectedFilter = value)),
-            SizedBox(height: 2.h),
-            _buildFilterSection(
-                'Source',
-                _selectedSource,
-                [
-                  'All',
-                  'Website',
-                  'LinkedIn',
-                  'Referral',
-                  'Cold Email',
-                  'Social Media'
-                ],
-                (value) => setState(() => _selectedSource = value)),
-            SizedBox(height: 2.h),
-            _buildFilterSection(
-                'Date Range',
-                _selectedDateRange,
-                [
-                  'All Time',
-                  'Today',
-                  'This Week',
-                  'This Month',
-                  'Last 30 Days'
-                ],
-                (value) => setState(() => _selectedDateRange = value)),
-            SizedBox(height: 3.h),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedFilter = 'All';
-                        _selectedSource = 'All';
-                        _selectedDateRange = 'All Time';
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: Text('Clear All'),
-                  ),
+            SizedBox(height: 4.h),
+            ...['Name', 'Company', 'Lead Score', 'Value', 'Last Activity'].map((option) {
+              return ListTile(
+                leading: Icon(
+                  _sortBy == option ? Icons.check_circle : Icons.circle_outlined,
+                  color: _sortBy == option ? AppTheme.accent : AppTheme.secondaryText,
                 ),
-                SizedBox(width: 4.w),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text('Apply'),
-                  ),
-                ),
-              ],
-            ),
+                title: Text(option),
+                trailing: _sortBy == option
+                    ? Icon(
+                        _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                        color: AppTheme.accent,
+                      )
+                    : null,
+                onTap: () {
+                  setState(() {
+                    if (_sortBy == option) {
+                      _sortAscending = !_sortAscending;
+                    } else {
+                      _sortBy = option;
+                      _sortAscending = true;
+                    }
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFilterSection(String title, String selectedValue,
-      List<String> options, Function(String) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: AppTheme.darkTheme.textTheme.titleSmall,
-        ),
-        SizedBox(height: 1.h),
-        Wrap(
-          spacing: 2.w,
-          children: options.map((option) {
-            final isSelected = selectedValue == option;
-            return GestureDetector(
-              onTap: () => onChanged(option),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.accent : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? AppTheme.accent : AppTheme.border,
-                  ),
-                ),
-                child: Text(
-                  option,
-                  style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-                    color: isSelected
-                        ? AppTheme.primaryAction
-                        : AppTheme.primaryText,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
     );
   }
 
@@ -463,26 +517,53 @@ class _CrmContactManagementState extends State<CrmContactManagement>
     return RefreshIndicator(
       onRefresh: () async {
         // Simulate refresh
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
+        setState(() {});
       },
-      child: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 4.w),
-        itemCount: _filteredContacts.length,
-        itemBuilder: (context, index) {
-          final contact = _filteredContacts[index];
-          return ContactCardWidget(
-            contact: contact,
-            isSelected: _selectedContacts.contains(contact['id']),
-            isMultiSelectMode: _isMultiSelectMode,
-            onTap: () => _isMultiSelectMode
-                ? _toggleContactSelection(contact['id'])
-                : _showContactDetail(contact),
-            onLongPress: () => _toggleContactSelection(contact['id']),
-            onQuickAction: (action) => _handleQuickAction(action, contact),
-            leadScoreColor: _getLeadScoreColor(contact['leadScore']),
-          );
-        },
-      ),
+      child: _filteredContacts.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: AppTheme.secondaryText,
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'No contacts found',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    'Try adjusting your search or filters',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.secondaryText,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 4.w),
+              itemCount: _filteredContacts.length,
+              itemBuilder: (context, index) {
+                final contact = _filteredContacts[index];
+                return ContactCardWidget(
+                  contact: contact,
+                  isSelected: _selectedContacts.contains(contact['id']),
+                  isMultiSelectMode: _isMultiSelectMode,
+                  onTap: () => _isMultiSelectMode
+                      ? _toggleContactSelection(contact['id'])
+                      : _showContactDetail(contact),
+                  onLongPress: () => _toggleContactSelection(contact['id']),
+                  onQuickAction: (action) => _handleQuickAction(action, contact),
+                  leadScoreColor: _getLeadScoreColor(contact['leadScore']),
+                  priorityColor: _getPriorityColor(contact['priority']),
+                );
+              },
+            ),
     );
   }
 
@@ -523,15 +604,19 @@ class _CrmContactManagementState extends State<CrmContactManagement>
     switch (action) {
       case 'call':
         // Implement call functionality
+        HapticFeedback.lightImpact();
         break;
       case 'email':
         // Implement email functionality
+        HapticFeedback.lightImpact();
         break;
       case 'message':
         // Implement message functionality
+        HapticFeedback.lightImpact();
         break;
       case 'meeting':
         // Implement meeting scheduling
+        HapticFeedback.lightImpact();
         break;
     }
   }
@@ -541,8 +626,22 @@ class _CrmContactManagementState extends State<CrmContactManagement>
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
       appBar: AppBar(
-        title: Text('CRM Contacts'),
+        title: const CrmHeaderWidget(),
         actions: [
+          IconButton(
+            icon: Icon(
+              _isRealTimeUpdatesEnabled ? Icons.sync : Icons.sync_disabled,
+              color: _isRealTimeUpdatesEnabled ? AppTheme.success : AppTheme.secondaryText,
+            ),
+            onPressed: () {
+              setState(() {
+                _isRealTimeUpdatesEnabled = !_isRealTimeUpdatesEnabled;
+              });
+              if (_isRealTimeUpdatesEnabled) {
+                _startRealTimeUpdates();
+              }
+            },
+          ),
           if (_isMultiSelectMode)
             TextButton(
               onPressed: _showBulkActions,
@@ -551,16 +650,16 @@ class _CrmContactManagementState extends State<CrmContactManagement>
           else ...[
             IconButton(
               onPressed: _toggleMultiSelect,
-              icon: CustomIconWidget(
-                iconName: 'checklist',
+              icon: const Icon(
+                Icons.checklist,
                 color: AppTheme.primaryText,
                 size: 24,
               ),
             ),
             IconButton(
               onPressed: _showImportContacts,
-              icon: CustomIconWidget(
-                iconName: 'upload_file',
+              icon: const Icon(
+                Icons.upload_file,
                 color: AppTheme.primaryText,
                 size: 24,
               ),
@@ -571,111 +670,51 @@ class _CrmContactManagementState extends State<CrmContactManagement>
                   _isPipelineView = !_isPipelineView;
                 });
               },
-              icon: CustomIconWidget(
-                iconName: _isPipelineView ? 'list' : 'view_kanban',
+              icon: Icon(
+                _isPipelineView ? Icons.list : Icons.view_kanban,
                 color: AppTheme.accent,
                 size: 24,
               ),
             ),
           ],
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Contacts'),
+            Tab(text: 'Analytics'),
+            Tab(text: 'Pipeline'),
+          ],
+        ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          if (!_isPipelineView) _buildSearchBar(),
-          Expanded(
-            child:
-                _isPipelineView ? _buildPipelineView() : _buildContactsList(),
+          // Contacts Tab
+          Column(
+            children: [
+              const CrmStatsWidget(),
+              if (!_isPipelineView) _buildSearchAndFilterBar(),
+              Expanded(
+                child: _isPipelineView ? _buildPipelineView() : _buildContactsList(),
+              ),
+            ],
           ),
+          // Analytics Tab
+          const ContactAnalyticsWidget(),
+          // Pipeline Tab
+          _buildPipelineView(),
         ],
       ),
       floatingActionButton: _isMultiSelectMode
           ? null
-          : FloatingActionButton(
+          : FloatingActionButton.extended(
               onPressed: _showAddContact,
-              child: CustomIconWidget(
-                iconName: 'add',
-                color: AppTheme.primaryBackground,
-                size: 24,
-              ),
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.primaryAction,
+              icon: const Icon(Icons.person_add),
+              label: const Text('Add Contact'),
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 6,
-        onTap: (index) {
-          final routes = [
-            '/workspace_dashboard',
-            '/instagram_lead_search',
-            '/social_media_scheduler',
-            '/link_in_bio_builder',
-            '/course_creator',
-            '/marketplace_store',
-            '/crm_contact_management',
-            '/analytics_dashboard',
-          ];
-          if (index < routes.length) {
-            Navigator.pushNamed(context, routes[index]);
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'home', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'home', color: AppTheme.accent, size: 20),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'search', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'search', color: AppTheme.accent, size: 20),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'schedule', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'schedule', color: AppTheme.accent, size: 20),
-            label: 'Schedule',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'link', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'link', color: AppTheme.accent, size: 20),
-            label: 'Bio',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'school', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'school', color: AppTheme.accent, size: 20),
-            label: 'Courses',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'store', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'store', color: AppTheme.accent, size: 20),
-            label: 'Store',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'contacts', color: AppTheme.accent, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'contacts', color: AppTheme.accent, size: 20),
-            label: 'CRM',
-          ),
-          BottomNavigationBarItem(
-            icon: CustomIconWidget(
-                iconName: 'analytics', color: AppTheme.secondaryText, size: 20),
-            activeIcon: CustomIconWidget(
-                iconName: 'analytics', color: AppTheme.accent, size: 20),
-            label: 'Analytics',
-          ),
-        ],
-      ),
     );
   }
 }
