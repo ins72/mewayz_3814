@@ -16,28 +16,28 @@ class RoleSelectorWidget extends StatelessWidget {
       'description':
           'Full access to all features and settings. Can manage billing and delete workspace.',
       'permissions': ['Full Access', 'Billing Management', 'Delete Workspace'],
-      'icon': 'admin_panel_settings',
+      'icon': Icons.admin_panel_settings,
     },
     {
       'name': 'Admin',
       'description':
           'Can manage team members, access all features except billing and workspace deletion.',
       'permissions': ['Team Management', 'All Features', 'Settings Access'],
-      'icon': 'supervisor_account',
+      'icon': Icons.supervisor_account,
     },
     {
       'name': 'Editor',
       'description':
           'Can create, edit, and publish content. Access to most features.',
       'permissions': ['Content Creation', 'Publishing', 'Analytics View'],
-      'icon': 'edit',
+      'icon': Icons.edit,
     },
     {
       'name': 'Viewer',
       'description':
           'Read-only access to workspace content and basic analytics.',
       'permissions': ['View Content', 'Basic Analytics', 'Comment Access'],
-      'icon': 'visibility',
+      'icon': Icons.visibility,
     },
   ];
 
@@ -56,7 +56,7 @@ class RoleSelectorWidget extends StatelessWidget {
           Row(
             children: [
               Icon(
-                IconData(0xe3e8, fontFamily: 'MaterialIcons'),
+                Icons.person_add,
                 color: AppTheme.secondaryText,
                 size: 20,
               ),
@@ -103,7 +103,7 @@ class RoleSelectorWidget extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  IconData(0, fontFamily: 'MaterialIcons'),
+                  role['icon'] as IconData,
                   color: isSelected ? AppTheme.accent : AppTheme.secondaryText,
                   size: 24,
                 ),

@@ -1,8 +1,8 @@
+import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
-
 import '../../../core/app_export.dart';
+import '../../../theme/app_theme.dart';
 
 class FileAttachmentWidget extends StatelessWidget {
   final List<File> attachedFiles;

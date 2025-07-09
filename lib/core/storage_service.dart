@@ -5,6 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './error_handler.dart';
 import './production_config.dart';
 
+/// Custom exception for storage-related errors
+class StorageException implements Exception {
+  final String message;
+  StorageException(this.message);
+}
+
 /// Service for managing local storage
 class StorageService {
   static final StorageService _instance = StorageService._internal();

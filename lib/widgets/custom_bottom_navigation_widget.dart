@@ -27,39 +27,44 @@ class CustomBottomNavigationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor ?? AppTheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.shadowDark,
-            blurRadius: elevation ?? 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Container(
-          height: showLabels ? 8.h : 7.h,
-          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isSelected = currentIndex == index;
-              
-              return _buildNavigationItem(
-                item: item,
-                isSelected: isSelected,
-                onTap: () {
-                  if (enableHapticFeedback) {
-                    HapticFeedback.lightImpact();
-                  }
-                  onTap(index);
-                },
-              );
-            }).toList(),
+    return Semantics(
+      label: 'Bottom navigation with ${items.length} tabs',
+      container: true,
+      child: Container(
+        decoration: BoxDecoration(
+          color: backgroundColor ?? AppTheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadowDark,
+              blurRadius: elevation ?? 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Container(
+            height: showLabels ? 8.h : 7.h,
+            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: items.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final isSelected = currentIndex == index;
+                
+                return _buildNavigationItem(
+                  item: item,
+                  isSelected: isSelected,
+                  index: index,
+                  onTap: () {
+                    if (enableHapticFeedback) {
+                      HapticFeedback.lightImpact();
+                    }
+                    onTap(index);
+                  },
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -69,67 +74,77 @@ class CustomBottomNavigationWidget extends StatelessWidget {
   Widget _buildNavigationItem({
     required BottomNavigationItem item,
     required bool isSelected,
+    required int index,
     required VoidCallback onTap,
   }) {
     final selectedColor = selectedItemColor ?? AppTheme.accent;
     final unselectedColor = unselectedItemColor ?? AppTheme.secondaryText;
     
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          padding: EdgeInsets.symmetric(
-            horizontal: 2.w,
-            vertical: 1.h,
-          ),
-          decoration: BoxDecoration(
-            color: isSelected 
-                ? selectedColor.withAlpha(26)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppTheme.radiusM),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                transform: Matrix4.identity()
-                  ..scale(isSelected ? 1.1 : 1.0),
-                child: item.icon is Widget
-                    ? item.icon!
-                    : CustomIconWidget(
-                        iconName: item.iconName ?? 'home',
-                        color: isSelected ? selectedColor : unselectedColor,
-                        size: isSelected ? 26 : 24,
-                      ),
+      child: Semantics(
+        label: '${item.label} tab${isSelected ? ', selected' : ''}',
+        button: true,
+        selected: isSelected,
+        child: GestureDetector(
+          onTap: onTap,
+          onLongPress: item.onLongPress,
+          behavior: HitTestBehavior.opaque,
+          child: Tooltip(
+            message: item.tooltip ?? item.label,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.symmetric(
+                horizontal: 2.w,
+                vertical: 1.h,
               ),
-              if (showLabels) ...[
-                SizedBox(height: 0.5.h),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-                    color: isSelected ? selectedColor : unselectedColor,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    fontSize: isSelected ? 11.sp : 10.sp,
-                  ) ?? TextStyle(
-                    color: isSelected ? selectedColor : unselectedColor,
-                    fontSize: isSelected ? 11.sp : 10.sp,
+              decoration: BoxDecoration(
+                color: isSelected 
+                    ? selectedColor.withAlpha(26)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    transform: Matrix4.identity()
+                      ..scale(isSelected ? 1.1 : 1.0),
+                    child: item.icon is Widget
+                        ? item.icon!
+                        : CustomIconWidget(
+                            iconName: item.iconName ?? 'home',
+                            color: isSelected ? selectedColor : unselectedColor,
+                            size: isSelected ? 26 : 24,
+                          ),
                   ),
-                  child: Text(
-                    item.label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ],
+                  if (showLabels) ...[
+                    SizedBox(height: 0.5.h),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                        color: isSelected ? selectedColor : unselectedColor,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        fontSize: isSelected ? 11.sp : 10.sp,
+                      ) ?? TextStyle(
+                        color: isSelected ? selectedColor : unselectedColor,
+                        fontSize: isSelected ? 11.sp : 10.sp,
+                      ),
+                      child: Text(
+                        item.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

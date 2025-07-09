@@ -1,183 +1,215 @@
+import 'package:pin_code_fields/pin_code_fields.dart';
+
 import '../../../core/app_export.dart';
 
-class EmailVerificationFormWidget extends StatefulWidget {
-  final String userEmail;
-  final VoidCallback onResend;
-  final VoidCallback onChangeEmail;
-  final bool isLoading;
-  final bool canResend;
-  final int countdown;
+class EmailVerificationFormWidget extends StatelessWidget {
+  final TextEditingController codeController;
+  final FocusNode codeFocusNode;
+  final bool isVerifying;
+  final bool isResendingCode;
+  final String? errorMessage;
+  final int resendCooldown;
+  final VoidCallback onVerify;
+  final VoidCallback onResendCode;
 
   const EmailVerificationFormWidget({
     Key? key,
-    required this.userEmail,
-    required this.onResend,
-    required this.onChangeEmail,
-    required this.isLoading,
-    required this.canResend,
-    required this.countdown,
+    required this.codeController,
+    required this.codeFocusNode,
+    required this.isVerifying,
+    required this.isResendingCode,
+    this.errorMessage,
+    required this.resendCooldown,
+    required this.onVerify,
+    required this.onResendCode,
   }) : super(key: key);
 
   @override
-  State<EmailVerificationFormWidget> createState() =>
-      _EmailVerificationFormWidgetState();
-}
-
-class _EmailVerificationFormWidgetState
-    extends State<EmailVerificationFormWidget> {
-  @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Email Display
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.border,
-              width: 1,
+        // PIN Code Input
+        PinCodeTextField(
+          appContext: context,
+          length: 6,
+          controller: codeController,
+          focusNode: codeFocusNode,
+          obscureText: false,
+          animationType: AnimationType.fade,
+          pinTheme: PinTheme(
+            shape: PinCodeFieldShape.box,
+            borderRadius: BorderRadius.circular(2.w),
+            fieldHeight: 12.w,
+            fieldWidth: 12.w,
+            activeFillColor: AppTheme.surface,
+            inactiveFillColor: AppTheme.surface,
+            selectedFillColor: AppTheme.surface,
+            activeColor: AppTheme.accent,
+            inactiveColor: AppTheme.border,
+            selectedColor: AppTheme.accent,
+            errorBorderColor: AppTheme.error,
+          ),
+          animationDuration: const Duration(milliseconds: 300),
+          backgroundColor: Colors.transparent,
+          enableActiveFill: true,
+          keyboardType: TextInputType.number,
+          enabled: !isVerifying,
+          textStyle: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+            color: AppTheme.primaryText,
+            fontWeight: FontWeight.w600,
+          ),
+          onCompleted: (value) {
+            if (value.length == 6) {
+              onVerify();
+            }
+          },
+          onChanged: (value) {
+            // Clear error when user starts typing
+          },
+        ),
+
+        SizedBox(height: 3.h),
+
+        // Error Message
+        if (errorMessage != null)
+          Container(
+            padding: EdgeInsets.all(3.w),
+            margin: EdgeInsets.only(bottom: 3.h),
+            decoration: BoxDecoration(
+              color: AppTheme.error.withAlpha(26),
+              borderRadius: BorderRadius.circular(2.w),
+              border: Border.all(
+                color: AppTheme.error.withAlpha(77),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                CustomIconWidget(
+                  iconName: 'error_outline',
+                  color: AppTheme.error,
+                  size: 5.w,
+                ),
+                SizedBox(width: 2.w),
+                Expanded(
+                  child: Text(
+                    errorMessage!,
+                    style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.error,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+
+        // Verify Button
+        SizedBox(
+          width: double.infinity,
+          height: 6.h,
+          child: ElevatedButton(
+            onPressed: isVerifying || codeController.text.length != 6 
+                ? null 
+                : onVerify,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: codeController.text.length == 6 && !isVerifying
+                  ? AppTheme.primaryAction
+                  : AppTheme.secondaryText,
+              foregroundColor: AppTheme.primaryBackground,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3.w),
+              ),
+            ),
+            child: isVerifying
+                ? SizedBox(
+                    width: 5.w,
+                    height: 5.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppTheme.primaryBackground,
+                      ),
+                    ),
+                  )
+                : Text(
+                    'Verify Email',
+                    style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
+                      color: AppTheme.primaryBackground,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ),
+
+        SizedBox(height: 4.h),
+
+        // Resend Code Section
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Did not receive the code? ',
+              style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                color: AppTheme.secondaryText,
+              ),
+            ),
+            if (resendCooldown > 0)
               Text(
-                'Email Address',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                'Resend in ${resendCooldown}s',
+                style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.secondaryText,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.userEmail,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Instructions
-        Text(
-          'Check your email',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.primaryText,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        RichText(
-          text: TextSpan(
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.secondaryText,
-              height: 1.4,
-            ),
-            children: [
-              const TextSpan(
-                text: 'We\'ve sent a verification link to ',
-              ),
-              TextSpan(
-                text: widget.userEmail,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-              const TextSpan(
-                text: '. Please check your inbox and spam folder.',
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Action Buttons
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: widget.canResend && !widget.isLoading
-                    ? widget.onResend
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.canResend && !widget.isLoading
-                      ? AppTheme.primaryAction
-                      : AppTheme.surface,
-                  foregroundColor: widget.canResend && !widget.isLoading
-                      ? AppTheme.primaryBackground
-                      : AppTheme.secondaryText,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: widget.isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.secondaryText,
-                          ),
-                        ),
-                      )
-                    : Text(
-                        widget.canResend
-                            ? 'Resend Email'
-                            : 'Resend (${widget.countdown}s)',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: widget.onChangeEmail,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: AppTheme.surface,
-                  foregroundColor: AppTheme.primaryText,
-                  side: const BorderSide(
-                    color: AppTheme.border,
-                    width: 1,
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+              )
+            else
+              GestureDetector(
+                onTap: isResendingCode ? null : onResendCode,
                 child: Text(
-                  'Change Email',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
+                  isResendingCode ? 'Sending...' : 'Resend Code',
+                  style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                    color: isResendingCode 
+                        ? AppTheme.secondaryText 
+                        : AppTheme.accent,
+                    decoration: TextDecoration.underline,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-            ),
           ],
+        ),
+
+        SizedBox(height: 3.h),
+
+        // Help Text
+        Container(
+          padding: EdgeInsets.all(3.w),
+          decoration: BoxDecoration(
+            color: AppTheme.accent.withAlpha(26),
+            borderRadius: BorderRadius.circular(2.w),
+            border: Border.all(
+              color: AppTheme.accent.withAlpha(77),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              CustomIconWidget(
+                iconName: 'info',
+                color: AppTheme.accent,
+                size: 5.w,
+              ),
+              SizedBox(width: 2.w),
+              Expanded(
+                child: Text(
+                  'Check your email including spam folder for the verification code.',
+                  style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                    color: AppTheme.accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

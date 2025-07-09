@@ -25,16 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
   String? _generalError;
 
-  // Mock credentials for authentication
-  final Map<String, String> _mockCredentials = {
-    'admin@mewayz.com': 'Admin123!',
-    'user@mewayz.com': 'User123!',
-    'demo@mewayz.com': 'Demo123!',
-  };
+  late AuthService _authService;
 
   @override
   void initState() {
     super.initState();
+    _authService = AuthService();
     _emailFocusNode.addListener(_onEmailFocusChange);
     _passwordFocusNode.addListener(_onPasswordFocusChange);
   }
@@ -123,17 +119,19 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
-
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      // Check mock credentials
-      if (_mockCredentials.containsKey(email) &&
-          _mockCredentials[email] == password) {
-        // Simulate two-factor authentication requirement
-        if (email == 'admin@mewayz.com') {
+      final response = await _authService.signIn(
+        email: email,
+        password: password,
+      );
+
+      if (response?.user != null) {
+        // Check if user has 2FA enabled
+        final has2FA = await _check2FAEnabled(response!.user!.id);
+        
+        if (has2FA) {
           setState(() {
             _isLoading = false;
             _showTwoFactorModal = true;
@@ -153,8 +151,78 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       setState(() {
-        _generalError =
-            'Network error. Please check your connection and try again.';
+        _generalError = 'Login failed: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<bool> _check2FAEnabled(String userId) async {
+    try {
+      final client = await SupabaseService().client;
+      final response = await client
+          .from('user_two_factor_auth')
+          .select('is_enabled')
+          .eq('user_id', userId)
+          .single();
+      
+      return response['is_enabled'] ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+      _generalError = null;
+    });
+
+    try {
+      final response = await _authService.signInWithGoogle();
+      
+      if (response?.user != null) {
+        HapticFeedback.lightImpact();
+        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+      } else {
+        setState(() {
+          _generalError = 'Google sign-in was cancelled';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _generalError = 'Google sign-in failed: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    setState(() {
+      _isLoading = true;
+      _generalError = null;
+    });
+
+    try {
+      final response = await _authService.signInWithApple();
+      
+      if (response?.user != null) {
+        HapticFeedback.lightImpact();
+        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+      } else {
+        setState(() {
+          _generalError = 'Apple sign-in was cancelled';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _generalError = 'Apple sign-in failed: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -169,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     HapticFeedback.lightImpact();
-    Navigator.pushReplacementNamed(context, '/workspace-dashboard');
+    Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
   }
 
   void _handleForgotPassword() {
@@ -263,6 +331,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         onLogin: _handleLogin,
                         onForgotPassword: _handleForgotPassword,
+                        onGoogleSignIn: _handleGoogleSignIn,
+                        onAppleSignIn: _handleAppleSignIn,
                       ),
 
                       SizedBox(height: 4.h),

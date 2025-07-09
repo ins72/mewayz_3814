@@ -1,320 +1,208 @@
+
 import '../../core/app_export.dart';
+import './widgets/email_verification_form_widget.dart';
 import './widgets/email_verification_status_widget.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({Key? key}) : super(key: key);
 
   @override
-  State<EmailVerificationScreen> createState() =>
-      _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
-  late String userEmail;
-  bool isLoading = false;
-  bool isResendLoading = false;
-  int resendCountdown = 60;
-  bool canResend = false;
-  String? errorMessage;
-  String? successMessage;
+  final TextEditingController _codeController = TextEditingController();
+  final FocusNode _codeFocusNode = FocusNode();
+  
+  bool _isVerifying = false;
+  bool _isResendingCode = false;
+  String? _errorMessage;
+  String? _successMessage;
+  String _email = '';
+  String _fullName = '';
+  int _resendCooldown = 0;
+  
+  late AuthService _authService;
 
   @override
   void initState() {
     super.initState();
-    _startResendTimer();
+    _authService = AuthService();
+    
+    // Get arguments from navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        setState(() {
+          _email = args['email'] ?? '';
+          _fullName = args['fullName'] ?? '';
+        });
+      }
+    });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Get email from route arguments
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    userEmail = args?['email'] ?? 'user@example.com';
+  void dispose() {
+    _codeController.dispose();
+    _codeFocusNode.dispose();
+    super.dispose();
   }
 
-  void _startResendTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && resendCountdown > 0) {
-        setState(() {
-          resendCountdown--;
-        });
-        _startResendTimer();
-      } else if (mounted) {
-        setState(() {
-          canResend = true;
-        });
-      }
-    });
-  }
-
-  Future<void> _resendVerificationEmail() async {
-    if (!canResend || isResendLoading) return;
+  Future<void> _verifyEmail() async {
+    if (_codeController.text.length != 6) {
+      setState(() {
+        _errorMessage = 'Please enter a 6-digit verification code';
+      });
+      return;
+    }
 
     setState(() {
-      isResendLoading = true;
-      errorMessage = null;
-      successMessage = null;
+      _isVerifying = true;
+      _errorMessage = null;
+      _successMessage = null;
     });
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
+      final isVerified = await _authService.verifyEmail(_codeController.text);
+      
+      if (isVerified) {
         setState(() {
-          isResendLoading = false;
-          canResend = false;
-          resendCountdown = 60;
-          successMessage = 'Verification email sent successfully!';
+          _successMessage = 'Email verified successfully!';
         });
-        _startResendTimer();
+        
+        // Wait a moment to show success message
+        await Future.delayed(const Duration(seconds: 2));
+        
+        // Navigate to onboarding or dashboard
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.userOnboardingScreen,
+          (route) => false);
+      } else {
+        setState(() {
+          _errorMessage = 'Invalid verification code. Please try again.';
+        });
+        _codeController.clear();
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          isResendLoading = false;
-          errorMessage = 'Failed to send verification email. Please try again.';
-        });
-      }
+      setState(() {
+        _errorMessage = 'Verification failed: ${e.toString()}';
+      });
+      _codeController.clear();
+    } finally {
+      setState(() {
+        _isVerifying = false;
+      });
     }
   }
 
-  Future<void> _changeEmail() async {
-    Navigator.pop(context);
-  }
+  Future<void> _resendVerificationCode() async {
+    if (_resendCooldown > 0) return;
 
-  Future<void> _openEmailApp() async {
-    final Uri emailLaunchUri = Uri(scheme: 'mailto', path: '');
+    setState(() {
+      _isResendingCode = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
 
     try {
-      await launchUrl(emailLaunchUri);
+      // In a real app, this would call a resend API
+      // For now, we'll simulate the API call
+      await Future.delayed(const Duration(seconds: 2));
+      
+      setState(() {
+        _successMessage = 'Verification code sent to $_email';
+        _resendCooldown = 60;
+      });
+      
+      // Start cooldown timer
+      _startResendCooldown();
     } catch (e) {
-      // Handle error if email app cannot be opened
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Could not open email app'),
-            backgroundColor: AppTheme.error));
-      }
+      setState(() {
+        _errorMessage = 'Failed to resend verification code: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isResendingCode = false;
+      });
     }
+  }
+
+  void _startResendCooldown() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted && _resendCooldown > 0) {
+        setState(() {
+          _resendCooldown--;
+        });
+        _startResendCooldown();
+      }
+    });
+  }
+
+  void _handleBackToLogin() {
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.loginScreen,
+      (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.primaryBackground,
+      appBar: AppBar(
         backgroundColor: AppTheme.primaryBackground,
-        appBar: AppBar(
-            backgroundColor: AppTheme.primaryBackground,
-            elevation: 0,
-            leading: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios,
-                    color: AppTheme.primaryText, size: 20)),
-            title: Text('Email Verification',
-                style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.primaryText))),
-        body: SafeArea(
-            child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
+        elevation: 0,
+        leading: IconButton(
+          icon: CustomIconWidget(
+            iconName: 'arrow_back',
+            color: AppTheme.primaryText,
+            size: 6.w),
+          onPressed: _handleBackToLogin),
+        title: Text(
+          'Email Verification',
+          style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+            color: AppTheme.primaryText,
+            fontWeight: FontWeight.w600))),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(6.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 4.h),
 
-                      // Mewayz Logo
-                      Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                              color: AppTheme.surface,
-                              borderRadius: BorderRadius.circular(20)),
-                          child: const Center(
-                              child: CustomImageWidget(
-                                  imageUrl: '', width: 40, height: 40))),
+              // Email Verification Status
+              EmailVerificationStatusWidget(
+                userEmail: _email,
+                onOpenEmailApp: () {
+                  // Add your email app opening logic here
+                }),
 
-                      const SizedBox(height: 32),
+              SizedBox(height: 6.h),
 
-                      // Email Verification Status Widget
-                      EmailVerificationStatusWidget(
-                          userEmail: userEmail, onOpenEmailApp: _openEmailApp),
+              // Email Verification Form
+              EmailVerificationFormWidget(
+                codeController: _codeController,
+                codeFocusNode: _codeFocusNode,
+                isVerifying: _isVerifying,
+                isResendingCode: _isResendingCode,
+                errorMessage: _errorMessage,
+                resendCooldown: _resendCooldown,
+                onVerify: _verifyEmail,
+                onResendCode: _resendVerificationCode),
 
-                      const SizedBox(height: 40),
+              SizedBox(height: 6.h),
 
-                      // Email Icon with Checkmark
-                      Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                              color: AppTheme.surface,
-                              borderRadius: BorderRadius.circular(50),
-                              border: Border.all(
-                                  color:
-                                      AppTheme.success.withValues(alpha: 0.3),
-                                  width: 2)),
-                          child: Stack(children: [
-                            const Center(
-                                child: Icon(Icons.email_outlined,
-                                    size: 40, color: AppTheme.primaryText)),
-                            Positioned(
-                                bottom: 10,
-                                right: 10,
-                                child: Container(
-                                    width: 28,
-                                    height: 28,
-                                    decoration: BoxDecoration(
-                                        color: AppTheme.success,
-                                        borderRadius:
-                                            BorderRadius.circular(14)),
-                                    child: const Icon(Icons.check,
-                                        size: 16,
-                                        color: AppTheme.primaryText))),
-                          ])),
-
-                      const SizedBox(height: 32),
-
-                      // Success/Error Messages
-                      if (successMessage != null)
-                        Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                                color: AppTheme.success.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color:
-                                        AppTheme.success.withValues(alpha: 0.3),
-                                    width: 1)),
-                            child: Row(children: [
-                              Icon(Icons.check_circle,
-                                  color: AppTheme.success, size: 20),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: Text(successMessage!,
-                                      style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppTheme.success))),
-                            ])),
-
-                      if (errorMessage != null)
-                        Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                                color: AppTheme.error.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color:
-                                        AppTheme.error.withValues(alpha: 0.3),
-                                    width: 1)),
-                            child: Row(children: [
-                              Icon(Icons.error_outline,
-                                  color: AppTheme.error, size: 20),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: Text(errorMessage!,
-                                      style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppTheme.error))),
-                            ])),
-
-                      // Resend Email Button
-                      SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                              onPressed: canResend && !isResendLoading
-                                  ? _resendVerificationEmail
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: canResend && !isResendLoading
-                                      ? AppTheme.primaryAction
-                                      : AppTheme.surface,
-                                  foregroundColor: canResend && !isResendLoading
-                                      ? AppTheme.primaryBackground
-                                      : AppTheme.secondaryText,
-                                  elevation: 0,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12))),
-                              child: isResendLoading
-                                  ? SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  AppTheme.secondaryText)))
-                                  : Text(
-                                      canResend
-                                          ? 'Resend Email'
-                                          : 'Resend Email (${resendCountdown}s)',
-                                      style: GoogleFonts.inter(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500)))),
-
-                      const SizedBox(height: 16),
-
-                      // Change Email Button
-                      SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                              onPressed: _changeEmail,
-                              style: OutlinedButton.styleFrom(
-                                  backgroundColor: AppTheme.surface,
-                                  foregroundColor: AppTheme.primaryText,
-                                  side: const BorderSide(
-                                      color: AppTheme.border, width: 1),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12))),
-                              child: Text('Change Email Address',
-                                  style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500)))),
-
-                      const SizedBox(height: 32),
-
-                      // Security Note
-                      Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                              color: AppTheme.surface,
-                              borderRadius: BorderRadius.circular(12),
-                              border:
-                                  Border.all(color: AppTheme.border, width: 1)),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(children: [
-                                  Icon(Icons.security,
-                                      color: AppTheme.accent, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text('Security Notice',
-                                      style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: AppTheme.primaryText)),
-                                ]),
-                                const SizedBox(height: 8),
-                                Text(
-                                    'The verification link will expire in 24 hours. If you don\'t verify your email within this time, you\'ll need to request a new verification email.',
-                                    style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppTheme.secondaryText,
-                                        height: 1.4)),
-                              ])),
-
-                      const SizedBox(height: 40),
-                    ]))));
+              // Back to Login Link
+              Center(
+                child: GestureDetector(
+                  onTap: _handleBackToLogin,
+                  child: Text(
+                    'Back to Login',
+                    style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.accent,
+                      decoration: TextDecoration.underline)))),
+            ]))));
   }
 }

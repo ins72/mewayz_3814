@@ -210,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       leading: Icon(
-        IconData(0xe800 + icon.codeUnitAt(0)),
+        Icons.settings,
         color: AppTheme.primaryText,
       ),
       onTap: onTap,

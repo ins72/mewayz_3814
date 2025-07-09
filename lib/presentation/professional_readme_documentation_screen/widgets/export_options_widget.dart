@@ -1,6 +1,5 @@
 import 'dart:html' as html;
 
-import 'package:flutter/foundation.dart';
 
 import '../../../core/app_export.dart';
 

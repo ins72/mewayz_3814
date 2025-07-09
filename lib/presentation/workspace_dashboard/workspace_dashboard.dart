@@ -1,4 +1,5 @@
 import '../../core/app_export.dart';
+import '../../widgets/custom_bottom_navigation_widget.dart' as CustomBottomNav;
 import '../crm_contact_management/crm_contact_management.dart';
 import '../marketplace_store/marketplace_store.dart';
 import '../social_media_manager/social_media_manager.dart';
@@ -20,6 +21,10 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   bool isRefreshing = false;
   int _currentBottomNavIndex = 0;
   bool _isLoading = false;
+
+  final DataService _dataService = DataService();
+  final ButtonService _buttonService = ButtonService();
+  final StorageService _storageService = StorageService();
 
   final List<Map<String, dynamic>> workspaces = [
 {"id": "1", "name": "Digital Marketing Agency", "isActive": true},
@@ -136,57 +141,6 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
     _loadDashboardData();
-    _loadWorkspaceData();
-  }
-
-  Future<void> _loadWorkspaceData() async {
-    try {
-      final storageService = StorageService();
-      final currentWorkspaceId = await storageService.getCurrentWorkspace();
-      final workspacesData = await storageService.getWorkspacesData();
-      
-      if (workspacesData != null) {
-        setState(() {
-          workspaces.clear();
-          workspaces.addAll(workspacesData);
-        });
-      }
-      
-      if (currentWorkspaceId != null) {
-        final currentWorkspace = workspaces.firstWhere(
-          (ws) => ws['id'] == currentWorkspaceId,
-          orElse: () => workspaces.first);
-        setState(() {
-          selectedWorkspace = currentWorkspace['name'];
-          // Update active workspace
-          for (var ws in workspaces) {
-            ws['isActive'] = ws['id'] == currentWorkspaceId;
-          }
-        });
-      }
-    } catch (e) {
-      ErrorHandler.handleError(e);
-    }
-  }
-
-  Future<void> _saveWorkspaceData() async {
-    try {
-      final storageService = StorageService();
-      await storageService.saveWorkspacesData(workspaces);
-      
-      final activeWorkspace = workspaces.firstWhere(
-        (ws) => ws['isActive'] == true,
-        orElse: () => workspaces.first);
-      await storageService.saveCurrentWorkspace(activeWorkspace['id']);
-    } catch (e) {
-      ErrorHandler.handleError(e);
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadDashboardData() async {
@@ -195,13 +149,21 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     });
 
     try {
-      // Simulate API call to load dashboard data
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // Load analytics data
+      final analyticsData = await _dataService.getAnalyticsData();
       
-      // In real implementation, load actual data from API
-      // await DashboardService.loadDashboardData();
+      // Load social media stats
+      final socialMediaStats = await _dataService.getSocialMediaStats();
+      
+      // Update metrics data with real data
+      if (analyticsData.isNotEmpty) {
+        _updateMetricsData(analyticsData, socialMediaStats);
+      }
+      
+      // Load recent activities
+      await _loadRecentActivities();
+      
     } catch (e) {
-      // Handle error
       ErrorHandler.handleError(e);
     } finally {
       if (mounted) {
@@ -212,26 +174,80 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     }
   }
 
-  Future<void> _handleRefresh() async {
+  void _updateMetricsData(Map<String, dynamic> analyticsData, Map<String, dynamic> socialMediaStats) {
     setState(() {
-      isRefreshing = true;
+      metricsData[0]['value'] = "${analyticsData['totalUsers'] ?? 2847}";
+      metricsData[1]['value'] = "\$${analyticsData['totalRevenue'] ?? 45230}";
+      metricsData[2]['value'] = "${socialMediaStats['totalFollowers'] ?? 18500}";
+      metricsData[3]['value'] = "${analyticsData['totalUsers'] ?? 1234}";
     });
+  }
 
+  Future<void> _loadRecentActivities() async {
     try {
-      // Simulate API call with better error handling
-      await Future.delayed(const Duration(seconds: 2));
+      // Load recent posts
+      final posts = await _dataService.getSocialMediaPosts();
       
-      // In real implementation, refresh data from API
-      // await DashboardService.refreshDashboardData();
+      // Load recent contacts
+      final contacts = await _dataService.getContacts();
+      
+      // Update recent activities with real data
+      _updateRecentActivities(posts, contacts);
     } catch (e) {
       ErrorHandler.handleError(e);
-    } finally {
-      if (mounted) {
-        setState(() {
-          isRefreshing = false;
+    }
+  }
+
+  void _updateRecentActivities(List<Map<String, dynamic>> posts, List<Map<String, dynamic>> contacts) {
+    setState(() {
+      recentActivities.clear();
+      
+      // Add recent posts
+      for (var post in posts.take(3)) {
+        recentActivities.add({
+          "title": "Post published: ${post['title']}",
+          "subtitle": "Platform: ${post['platform']}",
+          "timestamp": _getTimeAgo(post['publishedAt'] ?? DateTime.now().toIso8601String()),
+          "icon": "publish",
+          "color": AppTheme.accent,
         });
       }
+      
+      // Add recent contacts
+      for (var contact in contacts.take(2)) {
+        recentActivities.add({
+          "title": "New contact: ${contact['name']}",
+          "subtitle": "${contact['company']} - ${contact['status']}",
+          "timestamp": _getTimeAgo(contact['createdAt'] ?? DateTime.now().toIso8601String()),
+          "icon": "person_add",
+          "color": AppTheme.success,
+        });
+      }
+    });
+  }
+
+  String _getTimeAgo(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+      
+      if (difference.inDays > 0) {
+        return '${difference.inDays} days ago';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours} hours ago';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes} minutes ago';
+      } else {
+        return 'Just now';
+      }
+    } catch (e) {
+      return 'Recently';
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    await ButtonService.handleButtonPress('refreshButton', () {});
   }
 
   void _showWorkspaceSelector() {
@@ -253,18 +269,13 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 height: 4,
                 decoration: BoxDecoration(
                   color: AppTheme.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+                  borderRadius: BorderRadius.circular(2)))),
             SizedBox(height: AppTheme.spacingL),
             
             Text(
               "Switch Workspace",
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+                fontWeight: FontWeight.w600)),
             SizedBox(height: AppTheme.spacingL),
             
             if (workspaces.isNotEmpty)
@@ -273,42 +284,37 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 child: ListTile(
                   title: Text(workspace['name']),
                   trailing: workspace['isActive'] ? Icon(Icons.check, color: AppTheme.accent) : null,
-                ),
-              )).toList()
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _switchWorkspace(workspace);
+                  }))).toList()
             else
               Center(
                 child: Text(
                   'No workspaces found',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
+                  style: Theme.of(context).textTheme.bodyMedium)),
             
             SizedBox(height: AppTheme.spacingL),
             
             // Create New Workspace Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
-                },
-                icon: Icon(Icons.add, size: AppTheme.iconSizeM),
-                label: const Text('Create New Workspace'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accent,
-                  foregroundColor: AppTheme.primaryAction,
-                  minimumSize: Size(double.infinity, AppTheme.buttonHeightM),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+            CustomEnhancedButtonWidget(
+              
+              buttonId: 'createWorkspaceButton',
+              child: Text('Create New Workspace'),
+              buttonType: ButtonType.outlined,
+              onPressed: () async {
+                Navigator.pop(context);
+                await _buttonService.navigateTo(
+                  context: context,
+                  route: AppRoutes.workspaceCreationScreen,
+                  showFeedback: true,
+                  feedbackMessage: 'Opening workspace creation...');
+              }),
+          ])));
+  }
+
+  Future<void> _switchWorkspace(Map<String, dynamic> workspace) async {
+    await ButtonService.handleButtonPress('switchWorkspace', () {});
   }
 
   void _showQuickCreateMenu() {
@@ -330,18 +336,13 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 height: 4,
                 decoration: BoxDecoration(
                   color: AppTheme.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+                  borderRadius: BorderRadius.circular(2)))),
             SizedBox(height: AppTheme.spacingL),
             
             Text(
               "Quick Create",
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+                fontWeight: FontWeight.w600)),
             SizedBox(height: AppTheme.spacingL),
             
             GridView.count(
@@ -358,20 +359,20 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                     "Course", "play_circle_filled", AppRoutes.courseCreator),
                 _buildQuickCreateItem(
                     "Contact", "person_add", AppRoutes.crmContactManagement),
-              ],
-            ),
+              ]),
             SizedBox(height: AppTheme.spacingL),
-          ],
-        ),
-      ),
-    );
+          ])));
   }
 
   Widget _buildQuickCreateItem(String title, String icon, String route) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         Navigator.pop(context);
-        Navigator.pushNamed(context, route);
+        await _buttonService.handleNavigation(
+          context: context,
+          route: route,
+          showFeedback: true,
+          feedbackMessage: 'Opening $title creation...');
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -386,33 +387,23 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 colors: [
                   AppTheme.accent.withAlpha(51),
                   AppTheme.accent.withAlpha(26),
-                ],
-              ),
+                ]),
               borderRadius: BorderRadius.circular(AppTheme.radiusM),
               border: Border.all(
                 color: AppTheme.accent.withAlpha(77),
-                width: 1,
-              ),
-            ),
+                width: 1)),
             child: Center(
               child: CustomIconWidget(
                 iconName: icon,
                 color: AppTheme.accent,
-                size: AppTheme.iconSizeL,
-              ),
-            ),
-          ),
+                size: AppTheme.iconSizeL))),
           SizedBox(height: AppTheme.spacingS),
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
+              fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center),
+        ]));
   }
 
   void _onBottomNavTap(int index) {
@@ -437,42 +428,41 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 child: Text(
                   selectedWorkspace,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+                    fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis)),
               SizedBox(width: AppTheme.spacingS),
               CustomIconWidget(
                 iconName: 'keyboard_arrow_down',
                 color: AppTheme.primaryText,
-                size: AppTheme.iconSizeM,
-              ),
-            ],
-          ),
-        ),
+                size: AppTheme.iconSizeM),
+            ])),
         actions: [
           IconButton(
-            onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
+            onPressed: () async {
+              await _buttonService.handleNavigation(
+                context: context,
+                route: AppRoutes.analyticsDashboard,
+                showFeedback: true,
+                feedbackMessage: 'Opening analytics...');
+            },
             icon: CustomIconWidget(
               iconName: 'analytics',
               color: AppTheme.primaryText,
-              size: AppTheme.iconSizeL,
-            ),
-          ),
+              size: AppTheme.iconSizeL)),
           IconButton(
-            onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.notificationSettingsScreen),
+            onPressed: () async {
+              await _buttonService.navigateTo(
+                context: context,
+                route: AppRoutes.notificationSettingsScreen,
+                showFeedback: true,
+                feedbackMessage: 'Opening notifications...');
+            },
             icon: CustomIconWidget(
               iconName: 'notifications',
               color: AppTheme.primaryText,
-              size: AppTheme.iconSizeL,
-            ),
-          ),
+              size: AppTheme.iconSizeL)),
           SizedBox(width: AppTheme.spacingS),
-        ],
-      ),
+        ]),
       body: _isLoading
           ? const CustomLoadingWidget(
               message: 'Loading dashboard...')
@@ -484,44 +474,34 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 _buildCRMTab(),
                 _buildStoreTab(),
                 _buildMoreTab(),
-              ],
-            ),
-      bottomNavigationBar: CustomBottomNavigationWidget(
+              ]),
+      bottomNavigationBar: CustomBottomNav.CustomBottomNavigationWidget(
         currentIndex: _currentBottomNavIndex,
         onTap: _onBottomNavTap,
-        items: const [
-          BottomNavigationItem(
+        items: [
+          CustomBottomNav.BottomNavigationItem(
             iconName: 'dashboard',
-            label: 'Dashboard',
-          ),
-          BottomNavigationItem(
+            label: 'Dashboard'),
+          CustomBottomNav.BottomNavigationItem(
             iconName: 'favorite',
-            label: 'Social',
-          ),
-          BottomNavigationItem(
+            label: 'Social'),
+          CustomBottomNav.BottomNavigationItem(
             iconName: 'contacts',
-            label: 'CRM',
-          ),
-          BottomNavigationItem(
+            label: 'CRM'),
+          CustomBottomNav.BottomNavigationItem(
             iconName: 'store',
-            label: 'Store',
-          ),
-          BottomNavigationItem(
+            label: 'Store'),
+          CustomBottomNav.BottomNavigationItem(
             iconName: 'more_horiz',
-            label: 'More',
-          ),
-        ],
-      ),
+            label: 'More'),
+        ]),
       floatingActionButton: FloatingActionButton(
         onPressed: _showQuickCreateMenu,
         backgroundColor: AppTheme.accent,
         child: CustomIconWidget(
           iconName: 'add',
           color: AppTheme.primaryAction,
-          size: AppTheme.iconSizeL,
-        ),
-      ),
-    );
+          size: AppTheme.iconSizeL)));
   }
 
   Widget _buildDashboardTab() {
@@ -545,11 +525,8 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 itemBuilder: (context, index) {
                   return MetricsCardWidget(
                     data: metricsData[index],
-                    onLongPress: () => _showMetricsDetail(metricsData[index]),
-                  );
-                },
-              ),
-            ),
+                    onLongPress: () => _showMetricsDetail(metricsData[index]));
+                })),
 
             SizedBox(height: AppTheme.spacingXl),
 
@@ -560,21 +537,15 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 Text(
                   "Quick Actions",
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                    fontWeight: FontWeight.w600)),
                 TextButton(
                   onPressed: () => _showQuickCreateMenu(),
                   child: Text(
                     "View All",
                     style: TextStyle(
                       color: AppTheme.accent,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                      fontWeight: FontWeight.w600))),
+              ]),
             SizedBox(height: AppTheme.spacingM),
 
             GridView.builder(
@@ -584,17 +555,19 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 crossAxisCount: 2,
                 crossAxisSpacing: AppTheme.spacingM,
                 mainAxisSpacing: AppTheme.spacingM,
-                childAspectRatio: 1.2,
-              ),
+                childAspectRatio: 1.2),
               itemCount: quickActions.length > 4 ? 4 : quickActions.length,
               itemBuilder: (context, index) {
                 return QuickActionWidget(
                   data: quickActions[index],
-                  onTap: () => Navigator.pushNamed(
-                      context, quickActions[index]["route"]),
-                );
-              },
-            ),
+                  onTap: () async {
+                    await _buttonService.handleNavigation(
+                      context: context,
+                      route: quickActions[index]["route"],
+                      showFeedback: true,
+                      feedbackMessage: 'Opening ${quickActions[index]["title"]}...');
+                  });
+              }),
 
             SizedBox(height: AppTheme.spacingXl),
 
@@ -605,23 +578,21 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 Text(
                   "Recent Activity",
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                    fontWeight: FontWeight.w600)),
                 TextButton(
-                  onPressed: () {
-                    // Navigate to full activity log
+                  onPressed: () async {
+                    await _buttonService.handleNavigation(
+                      context: context,
+                      route: AppRoutes.analyticsDashboard,
+                      showFeedback: true,
+                      feedbackMessage: 'Opening activity log...');
                   },
                   child: Text(
                     "View All",
                     style: TextStyle(
                       color: AppTheme.accent,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                      fontWeight: FontWeight.w600))),
+              ]),
             SizedBox(height: AppTheme.spacingM),
 
             ListView.separated(
@@ -631,46 +602,35 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               separatorBuilder: (context, index) => SizedBox(height: AppTheme.spacingM),
               itemBuilder: (context, index) {
                 return ActivityItemWidget(
-                  data: recentActivities[index],
-                );
-              },
-            ),
+                  data: recentActivities[index]);
+              }),
 
             SizedBox(height: 120), // Bottom padding for FAB
-          ],
-        ),
-      ),
-    );
+          ])));
   }
 
   Widget _buildSocialTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const SocialMediaManager(),
-        );
-      },
-    );
+          builder: (context) => const SocialMediaManager();
+      });
   }
 
   Widget _buildCRMTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const CrmContactManagement(),
-        );
-      },
-    );
+          builder: (context) => const CrmContactManagement();
+      });
   }
 
   Widget _buildStoreTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const MarketplaceStore(),
-        );
-      },
-    );
+          builder: (context) => const MarketplaceStore();
+      });
   }
 
   Widget _buildMoreTab() {
@@ -682,9 +642,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           Text(
             "More Features",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+              fontWeight: FontWeight.w600)),
           SizedBox(height: AppTheme.spacingL),
           
           // Quick Access Grid
@@ -695,17 +653,19 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               crossAxisCount: 2,
               crossAxisSpacing: AppTheme.spacingM,
               mainAxisSpacing: AppTheme.spacingM,
-              childAspectRatio: 1.2,
-            ),
+              childAspectRatio: 1.2),
             itemCount: quickActions.length,
             itemBuilder: (context, index) {
               return QuickActionWidget(
                 data: quickActions[index],
-                onTap: () => Navigator.pushNamed(
-                    context, quickActions[index]["route"]),
-              );
-            },
-          ),
+                onTap: () async {
+                  await _buttonService.handleNavigation(
+                    context: context,
+                    route: quickActions[index]["route"],
+                    showFeedback: true,
+                    feedbackMessage: 'Opening ${quickActions[index]["title"]}...');
+                });
+            }),
           
           SizedBox(height: AppTheme.spacingXl),
           
@@ -719,40 +679,54 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 Text(
                   "Settings & Tools",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                    fontWeight: FontWeight.w600)),
                 SizedBox(height: AppTheme.spacingM),
                 
                 _buildActionTile(
                   icon: Icons.settings,
                   title: 'Settings',
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.settingsScreen),
-                ),
+                  onTap: () async {
+                    await _buttonService.handleNavigation(
+                      context: context,
+                      route: AppRoutes.settingsScreen,
+                      showFeedback: true,
+                      feedbackMessage: 'Opening settings...');
+                  }),
                 
                 _buildActionTile(
                   icon: Icons.analytics,
                   title: 'Analytics Dashboard',
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
-                ),
+                  onTap: () async {
+                    await _buttonService.handleNavigation(
+                      context: context,
+                      route: AppRoutes.analyticsDashboard,
+                      showFeedback: true,
+                      feedbackMessage: 'Opening analytics...');
+                  }),
                 
                 _buildActionTile(
                   icon: Icons.people,
                   title: 'Team Management',
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.usersTeamManagementScreen),
-                ),
+                  onTap: () async {
+                    await _buttonService.handleNavigation(
+                      context: context,
+                      route: AppRoutes.usersTeamManagementScreen,
+                      showFeedback: true,
+                      feedbackMessage: 'Opening team management...');
+                  }),
                 
                 _buildActionTile(
                   icon: Icons.help,
                   title: 'Contact Support',
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.contactUsScreen),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+                  onTap: () async {
+                    await _buttonService.handleNavigation(
+                      context: context,
+                      route: AppRoutes.contactUsScreen,
+                      showFeedback: true,
+                      feedbackMessage: 'Opening support...');
+                  }),
+              ])),
+        ]));
   }
 
   Widget _buildActionTile({
@@ -764,22 +738,17 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       leading: CustomIconWidget(
         iconName: icon.toString().split('.').last,
         color: AppTheme.accent,
-        size: AppTheme.iconSizeL,
-      ),
+        size: AppTheme.iconSizeL),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+          fontWeight: FontWeight.w500)),
       trailing: Icon(
         Icons.arrow_forward_ios,
         color: AppTheme.secondaryText,
-        size: AppTheme.iconSizeS,
-      ),
+        size: AppTheme.iconSizeS),
       onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-    );
+      contentPadding: EdgeInsets.zero);
   }
 
   void _showMetricsDetail(Map<String, dynamic> metric) {
@@ -788,14 +757,11 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusL),
-        ),
+          borderRadius: BorderRadius.circular(AppTheme.radiusL)),
         title: Text(
           "${metric['title']} Analytics",
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+            fontWeight: FontWeight.w600)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,15 +770,13 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               padding: EdgeInsets.all(AppTheme.spacingM),
               decoration: BoxDecoration(
                 color: (metric['color'] as Color).withAlpha(26),
-                borderRadius: BorderRadius.circular(AppTheme.radiusM),
-              ),
+                borderRadius: BorderRadius.circular(AppTheme.radiusM)),
               child: Row(
                 children: [
                   CustomIconWidget(
                     iconName: metric['icon'] ?? 'analytics',
                     color: metric['color'] ?? AppTheme.accent,
-                    size: AppTheme.iconSizeL,
-                  ),
+                    size: AppTheme.iconSizeL),
                   SizedBox(width: AppTheme.spacingM),
                   Expanded(
                     child: Column(
@@ -820,74 +784,57 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                       children: [
                         Text(
                           "Current Value",
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                          style: Theme.of(context).textTheme.bodySmall),
                         Text(
                           metric['value'],
                           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                            fontWeight: FontWeight.w600)),
+                      ])),
                 ]
-              ),
-            ),
+              )),
             SizedBox(height: AppTheme.spacingM),
             Row(
               children: [
                 Text(
                   "Change: ",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                  style: Theme.of(context).textTheme.bodyMedium),
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: AppTheme.spacingS,
-                    vertical: AppTheme.spacingXs,
-                  ),
+                    vertical: AppTheme.spacingXs),
                   decoration: BoxDecoration(
                     color: metric['isPositive'] 
                         ? AppTheme.success.withAlpha(51)
                         : AppTheme.error.withAlpha(51),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                  ),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS)),
                   child: Text(
                     metric['change'],
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: metric['isPositive'] ? AppTheme.success : AppTheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                      fontWeight: FontWeight.w600))),
+              ]),
             SizedBox(height: AppTheme.spacingL),
             Text(
               "View detailed analytics in the Analytics Dashboard for comprehensive insights and trends.",
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.secondaryText,
-              ),
-            ),
-          ],
-        ),
+                color: AppTheme.secondaryText)),
+          ]),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               "Close",
-              style: TextStyle(color: AppTheme.secondaryText),
-            ),
-          ),
+              style: TextStyle(color: AppTheme.secondaryText))),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pushNamed(context, "/analytics-dashboard");
+              await _buttonService.handleNavigation(
+                context: context,
+                route: AppRoutes.analyticsDashboard,
+                showFeedback: true,
+                feedbackMessage: 'Opening analytics dashboard...');
             },
-            child: const Text("View Details"),
-          ),
-        ],
-      ),
-    );
+            child: const Text("View Details")),
+        ]));
   }
 }

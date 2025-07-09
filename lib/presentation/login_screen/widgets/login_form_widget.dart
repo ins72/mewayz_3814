@@ -16,6 +16,8 @@ class LoginFormWidget extends StatelessWidget {
   final VoidCallback onPasswordVisibilityToggle;
   final VoidCallback onLogin;
   final VoidCallback onForgotPassword;
+  final VoidCallback onGoogleSignIn;
+  final VoidCallback onAppleSignIn;
 
   const LoginFormWidget({
     Key? key,
@@ -33,6 +35,8 @@ class LoginFormWidget extends StatelessWidget {
     required this.onPasswordVisibilityToggle,
     required this.onLogin,
     required this.onForgotPassword,
+    required this.onGoogleSignIn,
+    required this.onAppleSignIn,
   }) : super(key: key);
 
   @override
@@ -272,6 +276,119 @@ class LoginFormWidget extends StatelessWidget {
                     ),
             ),
           ),
+
+          SizedBox(height: 3.h),
+
+          // Divider
+          Row(
+            children: [
+              Expanded(
+                child: Divider(
+                  color: AppTheme.border,
+                  thickness: 1,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                child: Text(
+                  'Or continue with',
+                  style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.secondaryText,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Divider(
+                  color: AppTheme.border,
+                  thickness: 1,
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 3.h),
+
+          // Social Login Buttons
+          if (ProductionConfig.enableOAuthSignIn) ...[
+            Row(
+              children: [
+                // Google Sign In
+                Expanded(
+                  child: SizedBox(
+                    height: 6.h,
+                    child: OutlinedButton(
+                      onPressed: isLoading ? null : onGoogleSignIn,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppTheme.border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(3.w),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 5.w,
+                            height: 5.w,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: NetworkImage(
+                                  'https://developers.google.com/identity/images/g-logo.png',
+                                ),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 2.w),
+                          Text(
+                            'Google',
+                            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                              color: AppTheme.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(width: 3.w),
+
+                // Apple Sign In
+                Expanded(
+                  child: SizedBox(
+                    height: 6.h,
+                    child: OutlinedButton(
+                      onPressed: isLoading ? null : onAppleSignIn,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppTheme.border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(3.w),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomIconWidget(
+                            iconName: 'apple',
+                            color: AppTheme.primaryText,
+                            size: 5.w,
+                          ),
+                          SizedBox(width: 2.w),
+                          Text(
+                            'Apple',
+                            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                              color: AppTheme.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

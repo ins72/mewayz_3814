@@ -21,6 +21,26 @@ class ProductionConfig {
   static const Duration sessionTimeout = Duration(hours: 24);
   static const Duration refreshTokenTimeout = Duration(days: 30);
   
+  // Supabase Configuration
+  static const String supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://your-project.supabase.co'
+  );
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'your-anon-key-here'
+  );
+  
+  // OAuth Configuration
+  static const String googleClientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+    defaultValue: 'your-google-client-id.apps.googleusercontent.com'
+  );
+  static const String appleClientId = String.fromEnvironment(
+    'APPLE_CLIENT_ID',
+    defaultValue: 'com.mewayz.app'
+  );
+  
   // Analytics Configuration
   static const String firebaseProjectId = String.fromEnvironment(
     'FIREBASE_PROJECT_ID',
@@ -39,6 +59,8 @@ class ProductionConfig {
   static const bool enableDeepLinking = true;
   static const bool enableOfflineMode = true;
   static const bool enableAdvancedAnalytics = true;
+  static const bool enableOAuthSignIn = true;
+  static const bool enableTwoFactorAuth = true;
   
   // Cache Configuration
   static const int maxCacheSize = 100 * 1024 * 1024; // 100MB
@@ -49,6 +71,7 @@ class ProductionConfig {
   static const int maxConcurrentRequests = 10;
   static const int maxRetryAttempts = 3;
   static const Duration retryDelay = Duration(seconds: 2);
+  static const Duration requestTimeout = Duration(seconds: 30);
   
   // Social Media API Keys - Use environment variables in production
   static const String instagramClientId = String.fromEnvironment(
@@ -189,18 +212,26 @@ class ProductionConfig {
   static const Duration backupInterval = Duration(hours: 6);
   static const int maxBackupFiles = 5;
   
+  // Network Configuration
+  static const int connectionCheckInterval = 30; // seconds
+  static const int offlineQueueSize = 100;
+  static const bool enableNetworkLogging = true;
+  
   // Security validation
   static bool get hasValidConfiguration {
     // Check if critical configuration values have been replaced
-    return encryptionKey != 'REPLACE_WITH_ACTUAL_SECURE_KEY_32_CHARS' &&
-           instagramClientId != 'REPLACE_WITH_ACTUAL_INSTAGRAM_CLIENT_ID' &&
-           facebookAppId != 'REPLACE_WITH_ACTUAL_FACEBOOK_APP_ID' &&
-           stripePublishableKey != 'REPLACE_WITH_ACTUAL_STRIPE_PUBLISHABLE_KEY';
+    return supabaseUrl != 'https://your-project.supabase.co' &&
+           supabaseAnonKey != 'your-anon-key-here' &&
+           googleClientId != 'your-google-client-id.apps.googleusercontent.com' &&
+           encryptionKey != 'REPLACE_WITH_ACTUAL_SECURE_KEY_32_CHARS';
   }
   
   // Production readiness check
   static Map<String, bool> get productionReadinessCheck {
     return {
+      'Supabase Configuration': supabaseUrl != 'https://your-project.supabase.co' && 
+                               supabaseAnonKey != 'your-anon-key-here',
+      'OAuth Configuration': googleClientId != 'your-google-client-id.apps.googleusercontent.com',
       'Environment Variables Set': hasValidConfiguration,
       'Production Mode': isProduction,
       'HTTPS Enabled': enableHttpsOnly,
@@ -209,6 +240,10 @@ class ProductionConfig {
       'Crashlytics Enabled': enableCrashlytics,
       'Performance Monitoring': enablePerformanceMonitoring,
       'Automatic Backup': enableAutomaticBackup,
+      'OAuth Sign-in Ready': enableOAuthSignIn,
+      'Two-Factor Auth Ready': enableTwoFactorAuth,
+      'Biometric Auth Ready': enableBiometricAuth,
+      'Push Notifications Ready': enablePushNotifications,
     };
   }
   
@@ -226,4 +261,22 @@ class ProductionConfig {
       return 'NEEDS_CONFIGURATION';
     }
   }
+  
+  // Connection retry configuration
+  static const List<Duration> retryDelays = [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+    Duration(seconds: 8),
+    Duration(seconds: 16),
+  ];
+  
+  // Error handling configuration
+  static const Map<String, int> errorRetryLimits = {
+    'network_error': 5,
+    'timeout_error': 3,
+    'auth_error': 2,
+    'server_error': 3,
+    'rate_limit_error': 1,
+  };
 }

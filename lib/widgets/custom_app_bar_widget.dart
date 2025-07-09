@@ -13,6 +13,8 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
   final double? elevation;
   final Widget? titleWidget;
   final bool showBottomBorder;
+  final String? semanticsLabel;
+  final bool excludeHeaderSemantics;
 
   const CustomAppBarWidget({
     Key? key,
@@ -27,52 +29,68 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
     this.elevation,
     this.titleWidget,
     this.showBottomBorder = false,
+    this.semanticsLabel,
+    this.excludeHeaderSemantics = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor ?? AppTheme.primaryBackground,
-        border: showBottomBorder
-            ? Border(
-                bottom: BorderSide(
-                  color: AppTheme.divider,
-                  width: 1,
+    return Semantics(
+      container: true,
+      header: !excludeHeaderSemantics,
+      label: semanticsLabel ?? 'App bar with title: $title',
+      child: Container(
+        decoration: BoxDecoration(
+          color: backgroundColor ?? AppTheme.primaryBackground,
+          border: showBottomBorder
+              ? Border(
+                  bottom: BorderSide(
+                    color: AppTheme.divider,
+                    width: 1,
+                  ),
+                )
+              : null,
+        ),
+        child: AppBar(
+          backgroundColor: backgroundColor ?? AppTheme.primaryBackground,
+          foregroundColor: foregroundColor ?? AppTheme.primaryText,
+          elevation: elevation ?? 0,
+          centerTitle: centerTitle,
+          surfaceTintColor: Colors.transparent,
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+          leading: leading ??
+              (showBackButton
+                  ? Semantics(
+                      label: 'Go back',
+                      button: true,
+                      child: IconButton(
+                        icon: CustomIconWidget(
+                          iconName: 'arrow_back',
+                          color: foregroundColor ?? AppTheme.primaryText,
+                          size: 24,
+                        ),
+                        onPressed: onBackPressed ?? () => Navigator.pop(context),
+                        tooltip: 'Go back to previous screen',
+                      ),
+                    )
+                  : null),
+          title: titleWidget ??
+              ExcludeSemantics(
+                excluding: excludeHeaderSemantics,
+                child: Text(
+                  title,
+                  style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+                    color: foregroundColor ?? AppTheme.primaryText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  semanticsLabel: semanticsLabel ?? title,
                 ),
-              )
-            : null,
-      ),
-      child: AppBar(
-        backgroundColor: backgroundColor ?? AppTheme.primaryBackground,
-        foregroundColor: foregroundColor ?? AppTheme.primaryText,
-        elevation: elevation ?? 0,
-        centerTitle: centerTitle,
-        surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
-        leading: leading ??
-            (showBackButton
-                ? IconButton(
-                    icon: CustomIconWidget(
-                      iconName: 'arrow_back',
-                      color: foregroundColor ?? AppTheme.primaryText,
-                      size: 24,
-                    ),
-                    onPressed: onBackPressed ?? () => Navigator.pop(context),
-                  )
-                : null),
-        title: titleWidget ??
-            Text(
-              title,
-              style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-                color: foregroundColor ?? AppTheme.primaryText,
-                fontWeight: FontWeight.w600,
               ),
-            ),
-        actions: actions?.map((action) => Padding(
-          padding: EdgeInsets.only(right: 2.w),
-          child: action,
-        )).toList(),
+          actions: actions?.map((action) => Padding(
+            padding: EdgeInsets.only(right: 2.w),
+            child: action,
+          )).toList(),
+        ),
       ),
     );
   }
@@ -97,6 +115,8 @@ class CustomSliverAppBarWidget extends StatelessWidget {
   final bool snap;
   final double? expandedHeight;
   final Widget? flexibleSpace;
+  final String? semanticsLabel;
+  final bool excludeHeaderSemantics;
 
   const CustomSliverAppBarWidget({
     Key? key,
@@ -115,6 +135,8 @@ class CustomSliverAppBarWidget extends StatelessWidget {
     this.snap = false,
     this.expandedHeight,
     this.flexibleSpace,
+    this.semanticsLabel,
+    this.excludeHeaderSemantics = false,
   }) : super(key: key);
 
   @override
@@ -132,21 +154,30 @@ class CustomSliverAppBarWidget extends StatelessWidget {
       systemOverlayStyle: SystemUiOverlayStyle.light,
       leading: leading ??
           (showBackButton
-              ? IconButton(
-                  icon: CustomIconWidget(
-                    iconName: 'arrow_back',
-                    color: foregroundColor ?? AppTheme.primaryText,
-                    size: 24,
+              ? Semantics(
+                  label: 'Go back',
+                  button: true,
+                  child: IconButton(
+                    icon: CustomIconWidget(
+                      iconName: 'arrow_back',
+                      color: foregroundColor ?? AppTheme.primaryText,
+                      size: 24,
+                    ),
+                    onPressed: onBackPressed ?? () => Navigator.pop(context),
+                    tooltip: 'Go back to previous screen',
                   ),
-                  onPressed: onBackPressed ?? () => Navigator.pop(context),
                 )
               : null),
       title: titleWidget ??
-          Text(
-            title,
-            style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
-              color: foregroundColor ?? AppTheme.primaryText,
-              fontWeight: FontWeight.w600,
+          ExcludeSemantics(
+            excluding: excludeHeaderSemantics,
+            child: Text(
+              title,
+              style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+                color: foregroundColor ?? AppTheme.primaryText,
+                fontWeight: FontWeight.w600,
+              ),
+              semanticsLabel: semanticsLabel ?? title,
             ),
           ),
       actions: actions?.map((action) => Padding(

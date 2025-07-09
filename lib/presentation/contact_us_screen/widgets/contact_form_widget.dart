@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import '../../../core/app_export.dart';
 import './file_attachment_widget.dart';
+import 'dart:io'; // Import for File class
 
 class ContactFormWidget extends StatelessWidget {
   final GlobalKey<FormState> formKey;

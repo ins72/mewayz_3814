@@ -1,3 +1,5 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../core/app_export.dart';
 
 enum OnboardingGoal {

@@ -45,14 +45,36 @@ dependencies:
   # File handling
   file_picker: ^8.1.2
 
+  # Authentication and Database
+  supabase_flutter: ^2.8.0
+  google_sign_in: ^6.2.1
+  sign_in_with_apple: ^6.1.2
+  crypto: ^3.0.3
+  
   # Additional dependencies for professional mobile app
   web: any
-  supabase_flutter: any
-  crypto: any
   url_launcher: ^6.2.2
   permission_handler: ^11.3.1
   device_info_plus: ^10.1.0
   package_info_plus: ^8.0.0
+  
+  # Biometric authentication
+  local_auth: ^2.1.8
+  
+  # QR Code generation
+  qr_flutter: ^4.1.0
+  
+  # Email validation
+  email_validator: ^2.1.17
+  
+  # OTP input
+  pin_code_fields: ^8.0.1
+  
+  # Image picker
+  image_picker: ^1.0.7
+  
+  # Network state management
+  internet_connection_checker: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,5 @@
+
 import '../../core/app_export.dart';
-import '../../routes/app_routes.dart' as app_routes;
 import './widgets/authenticator_verification_widget.dart';
 import './widgets/backup_codes_widget.dart';
 import './widgets/email_verification_widget.dart';
@@ -9,154 +9,224 @@ class TwoFactorAuthenticationScreen extends StatefulWidget {
   const TwoFactorAuthenticationScreen({Key? key}) : super(key: key);
 
   @override
-  State<TwoFactorAuthenticationScreen> createState() =>
-      _TwoFactorAuthenticationScreenState();
+  State<TwoFactorAuthenticationScreen> createState() => _TwoFactorAuthenticationScreenState();
 }
 
-class _TwoFactorAuthenticationScreenState
-    extends State<TwoFactorAuthenticationScreen>
-    with SingleTickerProviderStateMixin {
+class _TwoFactorAuthenticationScreenState extends State<TwoFactorAuthenticationScreen> 
+    with TickerProviderStateMixin {
   late TabController _tabController;
-
-  String phoneNumber = '';
-  String emailAddress = '';
-  String verificationCode = '';
-  bool isLoading = false;
-  bool trustDevice = false;
-  String? errorMessage;
-  int attemptCount = 0;
-  int maxAttempts = 5;
-  int resendCountdown = 30;
-  bool canResend = false;
+  final TextEditingController _codeController = TextEditingController();
+  final FocusNode _codeFocusNode = FocusNode();
+  
+  bool _isLoading = false;
+  bool _is2FAEnabled = false;
+  String? _errorMessage;
+  String? _successMessage;
+  String _secretKey = '';
+  List<String> _backupCodes = [];
+  int _selectedVerificationMethod = 0;
+  
+  late AuthService _authService;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _startResendTimer();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Get user data from route arguments
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    phoneNumber = args?['phoneNumber'] ?? '+1 (555) 123-4567';
-    emailAddress = args?['email'] ?? 'user@example.com';
+    _authService = AuthService();
+    _tabController = TabController(length: 4, vsync: this);
+    _load2FAStatus();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _codeController.dispose();
+    _codeFocusNode.dispose();
     super.dispose();
   }
 
-  void _startResendTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && resendCountdown > 0) {
-        setState(() {
-          resendCountdown--;
-        });
-        _startResendTimer();
-      } else if (mounted) {
-        setState(() {
-          canResend = true;
-        });
-      }
-    });
-  }
-
-  Future<void> _sendVerificationCode() async {
-    if (!canResend) return;
-
+  Future<void> _load2FAStatus() async {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+      _isLoading = true;
     });
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-          canResend = false;
-          resendCountdown = 30;
-        });
-        _startResendTimer();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Verification code sent successfully'),
-            backgroundColor: AppTheme.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-          errorMessage = 'Failed to send verification code. Please try again.';
-        });
-      }
-    }
-  }
-
-  Future<void> _verifyCode(String code) async {
-    if (code.length != 6) return;
-
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Simulate verification logic
-      if (code == '123456') {
-        // Success - navigate to dashboard
-        if (mounted) {
-          // Haptic feedback for success
-          HapticFeedback.lightImpact();
-
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            app_routes.AppRoutes.workspaceDashboard,
-            (route) => false,
-          );
-        }
-      } else {
-        // Invalid code
-        if (mounted) {
+      // Load 2FA status from Supabase
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        final client = await SupabaseService().client;
+        final response = await client
+            .from('user_two_factor_auth')
+            .select('is_enabled, secret_key, backup_codes')
+            .eq('user_id', userId)
+            .maybeSingle();
+        
+        if (response != null) {
           setState(() {
-            isLoading = false;
-            attemptCount++;
-            errorMessage = 'Invalid verification code. Please try again.';
+            _is2FAEnabled = response['is_enabled'] ?? false;
+            _secretKey = response['secret_key'] ?? '';
+            _backupCodes = List<String>.from(response['backup_codes'] ?? []);
           });
-
-          // Haptic feedback for error
-          HapticFeedback.vibrate();
-
-          if (attemptCount >= maxAttempts) {
-            setState(() {
-              errorMessage =
-                  'Too many failed attempts. Please try again later.';
-            });
-          }
         }
       }
     } catch (e) {
-      if (mounted) {
+      setState(() {
+        _errorMessage = 'Failed to load 2FA status: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _enable2FA() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      final secretKey = await _authService.enableTwoFactorAuth();
+      final backupCodes = await _authService.generateBackupCodes();
+      
+      setState(() {
+        _is2FAEnabled = true;
+        _secretKey = secretKey;
+        _backupCodes = backupCodes;
+        _successMessage = 'Two-factor authentication enabled successfully!';
+      });
+
+      // Show backup codes
+      _showBackupCodesDialog();
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to enable 2FA: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _disable2FA() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        final client = await SupabaseService().client;
+        await client
+            .from('user_two_factor_auth')
+            .update({
+              'is_enabled': false,
+              'secret_key': null,
+              'backup_codes': null,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('user_id', userId);
+        
         setState(() {
-          isLoading = false;
-          errorMessage = 'Verification failed. Please try again.';
+          _is2FAEnabled = false;
+          _secretKey = '';
+          _backupCodes = [];
+          _successMessage = 'Two-factor authentication disabled successfully!';
         });
       }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to disable 2FA: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  Future<void> _verifyCode() async {
+    if (_codeController.text.length != 6) {
+      setState(() {
+        _errorMessage = 'Please enter a 6-digit verification code';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      final isValid = await _authService.verifyTwoFactorCode(_codeController.text);
+      
+      if (isValid) {
+        setState(() {
+          _successMessage = 'Code verified successfully!';
+        });
+        _codeController.clear();
+        
+        // Navigate back or to next step
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pop(context);
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Invalid verification code. Please try again.';
+        });
+        _codeController.clear();
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Verification failed: ${e.toString()}';
+      });
+      _codeController.clear();
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _regenerateBackupCodes() async {
+    try {
+      final newCodes = await _authService.generateBackupCodes();
+      setState(() {
+        _backupCodes = newCodes;
+        _successMessage = 'Backup codes regenerated successfully!';
+      });
+      _showBackupCodesDialog();
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to regenerate backup codes: ${e.toString()}';
+      });
+    }
+  }
+
+  void _showBackupCodesDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        title: Text(
+          'Backup Codes',
+          style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+            color: AppTheme.primaryText)),
+        content: BackupCodesWidget(),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'I have saved these codes',
+              style: TextStyle(color: AppTheme.primaryAction))),
+        ]));
   }
 
   @override
@@ -167,254 +237,178 @@ class _TwoFactorAuthenticationScreenState
         backgroundColor: AppTheme.primaryBackground,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios,
+          icon: CustomIconWidget(
+            iconName: 'arrow_back',
             color: AppTheme.primaryText,
-            size: 20,
-          ),
-        ),
+            size: 6.w),
+          onPressed: () => Navigator.pop(context)),
         title: Text(
           'Two-Factor Authentication',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
+          style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
             color: AppTheme.primaryText,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Security Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
+            fontWeight: FontWeight.w600)),
+        actions: [
+          if (_is2FAEnabled)
+            IconButton(
+              icon: CustomIconWidget(
+                iconName: 'settings',
+                color: AppTheme.primaryText,
+                size: 6.w),
+              onPressed: () {
+                // Show 2FA settings
+              }),
+        ]),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAction)))
+          : SafeArea(
               child: Column(
                 children: [
-                  // Security Icon
+                  // Status Messages
+                  if (_errorMessage != null || _successMessage != null)
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(4.w),
+                      margin: EdgeInsets.all(4.w),
+                      decoration: BoxDecoration(
+                        color: _errorMessage != null
+                            ? AppTheme.error.withAlpha(26)
+                            : AppTheme.success.withAlpha(26),
+                        borderRadius: BorderRadius.circular(2.w),
+                        border: Border.all(
+                          color: _errorMessage != null
+                              ? AppTheme.error.withAlpha(77)
+                              : AppTheme.success.withAlpha(77),
+                          width: 1)),
+                      child: Row(
+                        children: [
+                          CustomIconWidget(
+                            iconName: _errorMessage != null ? 'error_outline' : 'check_circle',
+                            color: _errorMessage != null ? AppTheme.error : AppTheme.success,
+                            size: 5.w),
+                          SizedBox(width: 2.w),
+                          Expanded(
+                            child: Text(
+                              _errorMessage ?? _successMessage ?? '',
+                              style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                                color: _errorMessage != null ? AppTheme.error : AppTheme.success))),
+                        ])),
+
+                  // 2FA Status Header
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: double.infinity,
+                    padding: EdgeInsets.all(4.w),
+                    margin: EdgeInsets.symmetric(horizontal: 4.w),
                     decoration: BoxDecoration(
                       color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppTheme.accent.withValues(alpha: 0.3),
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.security,
-                      size: 40,
-                      color: AppTheme.accent,
-                    ),
-                  ),
+                      borderRadius: BorderRadius.circular(3.w)),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 12.w,
+                          height: 12.w,
+                          decoration: BoxDecoration(
+                            color: _is2FAEnabled ? AppTheme.success : AppTheme.error,
+                            shape: BoxShape.circle),
+                          child: Center(
+                            child: CustomIconWidget(
+                              iconName: _is2FAEnabled ? 'shield' : 'shield_off',
+                              color: AppTheme.primaryBackground,
+                              size: 6.w))),
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _is2FAEnabled ? 'Two-Factor Authentication Enabled' : 'Two-Factor Authentication Disabled',
+                                style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
+                                  color: AppTheme.primaryText,
+                                  fontWeight: FontWeight.w600)),
+                              SizedBox(height: 1.h),
+                              Text(
+                                _is2FAEnabled 
+                                    ? 'Your account is protected with two-factor authentication'
+                                    : 'Enable two-factor authentication to secure your account',
+                                style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                                  color: AppTheme.secondaryText)),
+                            ])),
+                        CustomEnhancedButtonWidget(
+                          buttonId: _is2FAEnabled ? 'disable_2fa' : 'enable_2fa',
+                          onPressed: _is2FAEnabled ? _disable2FA : _enable2FA,
+                          buttonType: ButtonType.outlined,
+                          child: Text(
+                            _is2FAEnabled ? 'Disable' : 'Enable',
+                            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                              color: _is2FAEnabled ? AppTheme.error : AppTheme.primaryAction,
+                              fontWeight: FontWeight.w500))),
+                      ])),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: 4.h),
 
-                  Text(
-                    'Two-Factor Authentication',
-                    style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryText,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  // Tab Bar for verification methods
+                  if (_is2FAEnabled) ...[
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 4.w),
+                      child: TabBar(
+                        controller: _tabController,
+                        tabs: [
+                          Tab(text: 'Authenticator'),
+                          Tab(text: 'SMS'),
+                          Tab(text: 'Email'),
+                          Tab(text: 'Backup'),
+                        ],
+                        labelColor: AppTheme.primaryAction,
+                        unselectedLabelColor: AppTheme.secondaryText,
+                        indicatorColor: AppTheme.primaryAction,
+                        labelStyle: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500))),
 
-                  const SizedBox(height: 8),
+                    // Tab Views
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          // Authenticator Tab
+                          AuthenticatorVerificationWidget(
+                            attemptCount: 0,
+                            errorMessage: _errorMessage,
+                            maxAttempts: 3,
+                            onCodeChanged: (code) {},
+                            verificationCode: '',
+                            isLoading: _isLoading),
 
-                  Text(
-                    'Choose your preferred verification method',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: AppTheme.secondaryText,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+                          // SMS Tab
+                          SmsVerificationWidget(
+                            attemptCount: 0,
+                            canResend: true,
+                            errorMessage: _errorMessage,
+                            maxAttempts: 3,
+                            onCodeChanged: (code) {},
+                            onResendCode: () {},
+                            phoneNumber: '',
+                            resendCountdown: 0,
+                            verificationCode: '',
+                            isLoading: _isLoading),
 
-            // Tab Bar
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: AppTheme.accent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: AppTheme.primaryText,
-                unselectedLabelColor: AppTheme.secondaryText,
-                labelStyle: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-                unselectedLabelStyle: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-                tabs: const [
-                  Tab(text: 'SMS'),
-                  Tab(text: 'Email'),
-                  Tab(text: 'Authenticator'),
-                ],
-              ),
-            ),
+                          // Email Tab
+                          EmailVerificationWidget(
+                            attemptCount: 0,
+                            canResend: true,
+                            emailAddress: '',
+                            errorMessage: _errorMessage,
+                            maxAttempts: 3,
+                            onCodeChanged: (code) {},
+                            onResendCode: () {},
+                            resendCountdown: 0,
+                            verificationCode: '',
+                            isLoading: _isLoading),
 
-            // Tab Content
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // SMS Verification
-                  SmsVerificationWidget(
-                    phoneNumber: phoneNumber,
-                    verificationCode: verificationCode,
-                    isLoading: isLoading,
-                    canResend: canResend,
-                    resendCountdown: resendCountdown,
-                    errorMessage: errorMessage,
-                    attemptCount: attemptCount,
-                    maxAttempts: maxAttempts,
-                    onCodeChanged: (code) {
-                      setState(() {
-                        verificationCode = code;
-                      });
-                      if (code.length == 6) {
-                        _verifyCode(code);
-                      }
-                    },
-                    onResendCode: _sendVerificationCode,
-                  ),
-
-                  // Email Verification
-                  EmailVerificationWidget(
-                    emailAddress: emailAddress,
-                    verificationCode: verificationCode,
-                    isLoading: isLoading,
-                    canResend: canResend,
-                    resendCountdown: resendCountdown,
-                    errorMessage: errorMessage,
-                    attemptCount: attemptCount,
-                    maxAttempts: maxAttempts,
-                    onCodeChanged: (code) {
-                      setState(() {
-                        verificationCode = code;
-                      });
-                      if (code.length == 6) {
-                        _verifyCode(code);
-                      }
-                    },
-                    onResendCode: _sendVerificationCode,
-                  ),
-
-                  // Authenticator App
-                  AuthenticatorVerificationWidget(
-                    verificationCode: verificationCode,
-                    isLoading: isLoading,
-                    errorMessage: errorMessage,
-                    attemptCount: attemptCount,
-                    maxAttempts: maxAttempts,
-                    onCodeChanged: (code) {
-                      setState(() {
-                        verificationCode = code;
-                      });
-                      if (code.length == 6) {
-                        _verifyCode(code);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Trust Device & Backup Codes
-            Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  // Trust Device Checkbox
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: trustDevice,
-                        onChanged: (value) {
-                          setState(() {
-                            trustDevice = value ?? false;
-                          });
-                        },
-                        fillColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return AppTheme.accent;
-                          }
-                          return Colors.transparent;
-                        }),
-                        checkColor: AppTheme.primaryText,
-                        side: const BorderSide(
-                          color: AppTheme.border,
-                          width: 2,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Trust this device for 30 days',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: AppTheme.primaryText,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Backup Codes Link
-                  TextButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: AppTheme.surface,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                        ),
-                        builder: (context) => const BackupCodesWidget(),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    child: Text(
-                      'View Backup Codes',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                          // Backup Codes Tab
+                          BackupCodesWidget(),
+                        ])),
+                  ],
+                ])));
   }
 }

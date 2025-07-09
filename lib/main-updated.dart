@@ -54,6 +54,7 @@ Future<void> _initializeServices() async {
     await _initializeAnalytics();
     await _initializeNotifications();
     await _initializeSecurity();
+    await _initializeAccessibility();
     
     if (ProductionConfig.enableLogging) {
       debugPrint('✅ All services initialized successfully');
@@ -149,6 +150,21 @@ Future<void> _initializeSecurity() async {
       debugPrint('❌ Security service initialization failed: $e');
     }
     rethrow;
+  }
+}
+
+Future<void> _initializeAccessibility() async {
+  try {
+    final accessibilityService = AccessibilityService.instance;
+    await accessibilityService.initialize();
+    if (ProductionConfig.enableLogging) {
+      debugPrint('✅ Accessibility service initialized');
+    }
+  } catch (e) {
+    if (ProductionConfig.enableLogging) {
+      debugPrint('❌ Accessibility service initialization failed: $e');
+    }
+    // Accessibility failure shouldn't stop app initialization
   }
 }
 
