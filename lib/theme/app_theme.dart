@@ -31,33 +31,10 @@ class AppTheme {
 
   /// Dark theme (primary theme)
   static ThemeData darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    colorScheme: ColorScheme(
-      brightness: Brightness.dark,
+    
+    colorScheme: const ColorScheme.dark(
       primary: primaryAction,
-      onPrimary: primaryBackground,
-      primaryContainer: accent,
-      onPrimaryContainer: primaryText,
       secondary: accent,
-      onSecondary: primaryText,
-      secondaryContainer: accent.withValues(alpha: 0.2),
-      onSecondaryContainer: primaryText,
-      tertiary: success,
-      onTertiary: primaryBackground,
-      tertiaryContainer: success.withValues(alpha: 0.2),
-      onTertiaryContainer: primaryText,
-      error: error,
-      onError: primaryText,
-      surface: surface,
-      onSurface: primaryText,
-      onSurfaceVariant: secondaryText,
-      outline: border,
-      outlineVariant: border.withValues(alpha: 0.5),
-      shadow: shadowDark,
-      scrim: primaryBackground.withValues(alpha: 0.8),
-      inverseSurface: surfaceLight,
-      onInverseSurface: onSurfaceLight,
-      inversePrimary: primaryLight,
     ),
     scaffoldBackgroundColor: primaryBackground,
     cardColor: surface,
@@ -74,13 +51,10 @@ class AppTheme {
         fontSize: 18,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: -0.2,
-      ),
+        letterSpacing: -0.2),
       iconTheme: const IconThemeData(
         color: primaryText,
-        size: 24,
-      ),
-    ),
+        size: 24)),
 
     // Card theme with subtle elevation
     cardTheme: CardTheme(
@@ -89,10 +63,8 @@ class AppTheme {
       shadowColor: shadowDark,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    ),
+        borderRadius: BorderRadius.circular(12.0)),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
 
     // Bottom navigation with professional styling
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -103,13 +75,10 @@ class AppTheme {
       elevation: 8,
       selectedLabelStyle: GoogleFonts.inter(
         fontSize: 12,
-        fontWeight: FontWeight.w500,
-      ),
+        fontWeight: FontWeight.w500),
       unselectedLabelStyle: GoogleFonts.inter(
         fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-    ),
+        fontWeight: FontWeight.w400)),
 
     // Floating action button with gradient-like primary action
     floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -120,9 +89,7 @@ class AppTheme {
       hoverElevation: 6,
       highlightElevation: 8,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-    ),
+        borderRadius: BorderRadius.circular(16.0))),
 
     // Button themes with professional styling
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -133,15 +100,11 @@ class AppTheme {
         shadowColor: shadowDark,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
+          borderRadius: BorderRadius.circular(12.0)),
         textStyle: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-        ),
-      ),
-    ),
+          letterSpacing: 0.1))),
 
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
@@ -149,30 +112,22 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         side: const BorderSide(color: border, width: 1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
+          borderRadius: BorderRadius.circular(12.0)),
         textStyle: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-        ),
-      ),
-    ),
+          letterSpacing: 0.1))),
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: accent,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+          borderRadius: BorderRadius.circular(8.0)),
         textStyle: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-        ),
-      ),
-    ),
+          letterSpacing: 0.1))),
 
     // Typography using Inter font family
     textTheme: _buildDarkTextTheme(),
@@ -184,40 +139,31 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: border, width: 1),
-      ),
+        borderSide: const BorderSide(color: border, width: 1)),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: border, width: 1),
-      ),
+        borderSide: const BorderSide(color: border, width: 1)),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: accent, width: 2),
-      ),
+        borderSide: const BorderSide(color: accent, width: 2)),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: error, width: 1),
-      ),
+        borderSide: const BorderSide(color: error, width: 1)),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: error, width: 2),
-      ),
+        borderSide: const BorderSide(color: error, width: 2)),
       labelStyle: GoogleFonts.inter(
         color: secondaryText,
         fontSize: 16,
-        fontWeight: FontWeight.w400,
-      ),
+        fontWeight: FontWeight.w400),
       hintStyle: GoogleFonts.inter(
         color: secondaryText.withValues(alpha: 0.7),
         fontSize: 16,
-        fontWeight: FontWeight.w400,
-      ),
+        fontWeight: FontWeight.w400),
       errorStyle: GoogleFonts.inter(
         color: error,
         fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-    ),
+        fontWeight: FontWeight.w400)),
 
     // Switch theme with accent color
     switchTheme: SwitchThemeData(
@@ -232,8 +178,7 @@ class AppTheme {
           return accent;
         }
         return border;
-      }),
-    ),
+      })),
 
     // Checkbox theme
     checkboxTheme: CheckboxThemeData(
@@ -246,9 +191,7 @@ class AppTheme {
       checkColor: WidgetStateProperty.all(primaryAction),
       side: const BorderSide(color: border, width: 2),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
-    ),
+        borderRadius: BorderRadius.circular(4))),
 
     // Radio theme
     radioTheme: RadioThemeData(
@@ -257,15 +200,13 @@ class AppTheme {
           return accent;
         }
         return border;
-      }),
-    ),
+      })),
 
     // Progress indicator theme
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: accent,
       linearTrackColor: border,
-      circularTrackColor: border,
-    ),
+      circularTrackColor: border),
 
     // Slider theme
     sliderTheme: SliderThemeData(
@@ -277,9 +218,7 @@ class AppTheme {
       valueIndicatorTextStyle: GoogleFonts.inter(
         color: primaryAction,
         fontSize: 12,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
+        fontWeight: FontWeight.w500)),
 
     // Tab bar theme
     tabBarTheme: TabBarTheme(
@@ -290,28 +229,22 @@ class AppTheme {
       labelStyle: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       unselectedLabelStyle: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w400,
-        letterSpacing: 0.1,
-      ),
-    ),
+        letterSpacing: 0.1)),
 
     // Tooltip theme
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
         color: primaryText.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(8),
-      ),
+        borderRadius: BorderRadius.circular(8)),
       textStyle: GoogleFonts.inter(
         color: primaryBackground,
         fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    ),
+        fontWeight: FontWeight.w400),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
 
     // SnackBar theme
     snackBarTheme: SnackBarThemeData(
@@ -319,15 +252,12 @@ class AppTheme {
       contentTextStyle: GoogleFonts.inter(
         color: primaryText,
         fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
+        fontWeight: FontWeight.w400),
       actionTextColor: accent,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      elevation: 4,
-    ),
+        borderRadius: BorderRadius.circular(12.0)),
+      elevation: 4),
 
     // List tile theme
     listTileTheme: ListTileThemeData(
@@ -338,18 +268,14 @@ class AppTheme {
       titleTextStyle: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w400,
-        color: primaryText,
-      ),
+        color: primaryText),
       subtitleTextStyle: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: secondaryText,
-      ),
+        color: secondaryText),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-    ),
+        borderRadius: BorderRadius.circular(8))),
 
     // Drawer theme
     drawerTheme: DrawerThemeData(
@@ -360,10 +286,7 @@ class AppTheme {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
-    ),
+          bottomRight: Radius.circular(16)))),
 
     // Bottom sheet theme
     bottomSheetTheme: BottomSheetThemeData(
@@ -375,10 +298,7 @@ class AppTheme {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
-    ),
+          topRight: Radius.circular(20)))),
 
     // Dialog theme
     dialogTheme: DialogTheme(
@@ -387,57 +307,28 @@ class AppTheme {
       elevation: 8,
       shadowColor: shadowDark,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+        borderRadius: BorderRadius.circular(16)),
       titleTextStyle: GoogleFonts.inter(
         fontSize: 20,
         fontWeight: FontWeight.w500,
-        color: primaryText,
-      ),
+        color: primaryText),
       contentTextStyle: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w400,
-        color: primaryText,
-      ),
-    ),
-  );
+        color: primaryText)));
 
   /// Light theme (minimal implementation for system compatibility)
   static ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
-    colorScheme: ColorScheme(
-      brightness: Brightness.light,
+    
+    colorScheme: const ColorScheme.light(
       primary: primaryLight,
-      onPrimary: onPrimaryLight,
-      primaryContainer: primaryLight.withValues(alpha: 0.1),
-      onPrimaryContainer: primaryLight,
       secondary: accent,
-      onSecondary: onPrimaryLight,
-      secondaryContainer: accent.withValues(alpha: 0.1),
-      onSecondaryContainer: accent,
-      tertiary: success,
-      onTertiary: onPrimaryLight,
-      tertiaryContainer: success.withValues(alpha: 0.1),
-      onTertiaryContainer: success,
-      error: error,
-      onError: onPrimaryLight,
-      surface: surfaceLight,
-      onSurface: onSurfaceLight,
-      onSurfaceVariant: onSurfaceLight.withValues(alpha: 0.6),
-      outline: onSurfaceLight.withValues(alpha: 0.2),
-      outlineVariant: onSurfaceLight.withValues(alpha: 0.1),
-      shadow: shadowLight,
-      scrim: onSurfaceLight.withValues(alpha: 0.8),
-      inverseSurface: surface,
-      onInverseSurface: primaryText,
-      inversePrimary: primaryAction,
     ),
     scaffoldBackgroundColor: backgroundLight,
     cardColor: surfaceLight,
     dividerColor: onSurfaceLight.withValues(alpha: 0.12),
     textTheme: _buildLightTextTheme(),
-    dialogTheme: DialogThemeData(backgroundColor: surfaceLight),
-  );
+    dialogTheme: DialogThemeData(backgroundColor: surfaceLight));
 
   /// Helper method to build dark text theme using Inter font
   static TextTheme _buildDarkTextTheme() {
@@ -446,91 +337,75 @@ class AppTheme {
         fontSize: 57,
         fontWeight: FontWeight.w400,
         color: primaryText,
-        letterSpacing: -0.25,
-      ),
+        letterSpacing: -0.25),
       displayMedium: GoogleFonts.inter(
         fontSize: 45,
         fontWeight: FontWeight.w400,
-        color: primaryText,
-      ),
+        color: primaryText),
       displaySmall: GoogleFonts.inter(
         fontSize: 36,
         fontWeight: FontWeight.w400,
-        color: primaryText,
-      ),
+        color: primaryText),
       headlineLarge: GoogleFonts.inter(
         fontSize: 32,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: -0.2,
-      ),
+        letterSpacing: -0.2),
       headlineMedium: GoogleFonts.inter(
         fontSize: 28,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: -0.15,
-      ),
+        letterSpacing: -0.15),
       headlineSmall: GoogleFonts.inter(
         fontSize: 24,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: -0.1,
-      ),
+        letterSpacing: -0.1),
       titleLarge: GoogleFonts.inter(
         fontSize: 22,
         fontWeight: FontWeight.w600,
         color: primaryText,
-        letterSpacing: -0.1,
-      ),
+        letterSpacing: -0.1),
       titleMedium: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       titleSmall: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       bodyLarge: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: primaryText,
-        letterSpacing: 0.15,
-      ),
+        letterSpacing: 0.15),
       bodyMedium: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: primaryText,
-        letterSpacing: 0.25,
-      ),
+        letterSpacing: 0.25),
       bodySmall: GoogleFonts.inter(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: secondaryText,
-        letterSpacing: 0.4,
-      ),
+        letterSpacing: 0.4),
       labelLarge: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: primaryText,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       labelMedium: GoogleFonts.inter(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: secondaryText,
-        letterSpacing: 0.5,
-      ),
+        letterSpacing: 0.5),
       labelSmall: GoogleFonts.inter(
         fontSize: 11,
         fontWeight: FontWeight.w400,
         color: secondaryText,
-        letterSpacing: 0.5,
-      ),
-    );
+        letterSpacing: 0.5));
   }
 
   /// Helper method to build light text theme using Inter font
@@ -540,91 +415,75 @@ class AppTheme {
         fontSize: 57,
         fontWeight: FontWeight.w400,
         color: onBackgroundLight,
-        letterSpacing: -0.25,
-      ),
+        letterSpacing: -0.25),
       displayMedium: GoogleFonts.inter(
         fontSize: 45,
         fontWeight: FontWeight.w400,
-        color: onBackgroundLight,
-      ),
+        color: onBackgroundLight),
       displaySmall: GoogleFonts.inter(
         fontSize: 36,
         fontWeight: FontWeight.w400,
-        color: onBackgroundLight,
-      ),
+        color: onBackgroundLight),
       headlineLarge: GoogleFonts.inter(
         fontSize: 32,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight,
-        letterSpacing: -0.2,
-      ),
+        letterSpacing: -0.2),
       headlineMedium: GoogleFonts.inter(
         fontSize: 28,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight,
-        letterSpacing: -0.15,
-      ),
+        letterSpacing: -0.15),
       headlineSmall: GoogleFonts.inter(
         fontSize: 24,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight,
-        letterSpacing: -0.1,
-      ),
+        letterSpacing: -0.1),
       titleLarge: GoogleFonts.inter(
         fontSize: 22,
         fontWeight: FontWeight.w600,
         color: onBackgroundLight,
-        letterSpacing: -0.1,
-      ),
+        letterSpacing: -0.1),
       titleMedium: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       titleSmall: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       bodyLarge: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: onBackgroundLight,
-        letterSpacing: 0.15,
-      ),
+        letterSpacing: 0.15),
       bodyMedium: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: onBackgroundLight,
-        letterSpacing: 0.25,
-      ),
+        letterSpacing: 0.25),
       bodySmall: GoogleFonts.inter(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: onBackgroundLight.withValues(alpha: 0.6),
-        letterSpacing: 0.4,
-      ),
+        letterSpacing: 0.4),
       labelLarge: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight,
-        letterSpacing: 0.1,
-      ),
+        letterSpacing: 0.1),
       labelMedium: GoogleFonts.inter(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: onBackgroundLight.withValues(alpha: 0.6),
-        letterSpacing: 0.5,
-      ),
+        letterSpacing: 0.5),
       labelSmall: GoogleFonts.inter(
         fontSize: 11,
         fontWeight: FontWeight.w400,
         color: onBackgroundLight.withValues(alpha: 0.6),
-        letterSpacing: 0.5,
-      ),
-    );
+        letterSpacing: 0.5));
   }
 
   /// Data display text theme using JetBrains Mono for analytics and financial data
@@ -633,78 +492,62 @@ class AppTheme {
           fontSize: 32,
           fontWeight: FontWeight.w400,
           color: primaryText,
-          letterSpacing: -0.5,
-        ),
+          letterSpacing: -0.5),
         displayMedium: GoogleFonts.jetBrainsMono(
           fontSize: 28,
           fontWeight: FontWeight.w400,
           color: primaryText,
-          letterSpacing: -0.25,
-        ),
+          letterSpacing: -0.25),
         displaySmall: GoogleFonts.jetBrainsMono(
           fontSize: 24,
           fontWeight: FontWeight.w400,
-          color: primaryText,
-        ),
+          color: primaryText),
         headlineLarge: GoogleFonts.jetBrainsMono(
           fontSize: 20,
           fontWeight: FontWeight.w500,
-          color: primaryText,
-        ),
+          color: primaryText),
         headlineMedium: GoogleFonts.jetBrainsMono(
           fontSize: 18,
           fontWeight: FontWeight.w500,
-          color: primaryText,
-        ),
+          color: primaryText),
         headlineSmall: GoogleFonts.jetBrainsMono(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: primaryText,
-        ),
+          color: primaryText),
         titleLarge: GoogleFonts.jetBrainsMono(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: primaryText,
-        ),
+          color: primaryText),
         titleMedium: GoogleFonts.jetBrainsMono(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: primaryText,
-        ),
+          color: primaryText),
         titleSmall: GoogleFonts.jetBrainsMono(
           fontSize: 11,
           fontWeight: FontWeight.w500,
-          color: primaryText,
-        ),
+          color: primaryText),
         bodyLarge: GoogleFonts.jetBrainsMono(
           fontSize: 14,
           fontWeight: FontWeight.w400,
-          color: primaryText,
-        ),
+          color: primaryText),
         bodyMedium: GoogleFonts.jetBrainsMono(
           fontSize: 12,
           fontWeight: FontWeight.w400,
-          color: primaryText,
-        ),
+          color: primaryText),
         bodySmall: GoogleFonts.jetBrainsMono(
           fontSize: 10,
           fontWeight: FontWeight.w400,
-          color: secondaryText,
-        ),
+          color: secondaryText),
         labelLarge: GoogleFonts.jetBrainsMono(
           fontSize: 12,
           fontWeight: FontWeight.w400,
-          color: secondaryText,
-        ),
+          color: secondaryText),
         labelMedium: GoogleFonts.jetBrainsMono(
           fontSize: 10,
           fontWeight: FontWeight.w400,
-          color: secondaryText,
-        ),
+          color: secondaryText),
         labelSmall: GoogleFonts.jetBrainsMono(
           fontSize: 9,
           fontWeight: FontWeight.w400,
-          color: secondaryText,
-        ),
-      );
+          color: secondaryText));
 }

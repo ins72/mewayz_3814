@@ -12,15 +12,20 @@ import '../presentation/email_verification_screen/email_verification_screen.dart
 import '../presentation/forgot_password_screen/forgot_password_screen.dart';
 import '../presentation/hashtag_research_screen/hashtag_research_screen.dart';
 import '../presentation/instagram_lead_search/instagram_lead_search.dart';
+import '../presentation/link_in_bio_analytics_screen/link_in_bio_analytics_screen.dart';
+import '../presentation/link_in_bio_templates_screen/link_in_bio_templates_screen.dart';
 import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
+import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
 import '../presentation/notification_settings_screen/notification_settings_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
+import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
 import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
 import '../presentation/security_settings_screen/security_settings_screen.dart';
 import '../presentation/settings_screen/settings_screen.dart';
+import '../presentation/social_media_analytics_screen/social_media_analytics_screen.dart';
 import '../presentation/social_media_manager/social_media_manager.dart';
 import '../presentation/social_media_scheduler/social_media_scheduler.dart';
 import '../presentation/social_media_scheduler_screen/social_media_scheduler_screen.dart';
@@ -59,9 +64,14 @@ class AppRoutes {
   static const String securitySettingsScreen = '/security-settings-screen';
   static const String instagramLeadSearch = '/instagram-lead-search';
   static const String linkInBioBuilder = '/link-in-bio-builder';
+  static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
+  static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
+  static const String qrCodeGeneratorScreen = '/qr-code-generator-screen';
   static const String socialMediaScheduler = '/social-media-scheduler';
   static const String socialMediaSchedulerScreen = '/social-media-scheduler-screen';
   static const String socialMediaManager = '/social-media-manager';
+  static const String multiPlatformPostingScreen = '/multi-platform-posting-screen';
+  static const String socialMediaAnalyticsScreen = '/social-media-analytics-screen';
   static const String contentCalendarScreen = '/content-calendar-screen';
   static const String hashtagResearchScreen = '/hashtag-research-screen';
   static const String contentTemplatesScreen = '/content-templates-screen';
@@ -95,9 +105,15 @@ class AppRoutes {
       accountSettingsScreen: (context) => const AccountSettingsScreen(),
       notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
       securitySettingsScreen: (context) => const SecuritySettingsScreen(),
-      instagramLeadSearch: (context) => const InstagramLeadSearch(),      socialMediaScheduler: (context) => const SocialMediaScheduler(),
+      instagramLeadSearch: (context) => const InstagramLeadSearch(),
+      linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
+      linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
+      qrCodeGeneratorScreen: (context) => const QRCodeGeneratorScreen(),
+      socialMediaScheduler: (context) => const SocialMediaScheduler(),
       socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
       socialMediaManager: (context) => const SocialMediaManager(),
+      multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
+      socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
       contentCalendarScreen: (context) => const ContentCalendarScreen(),
       hashtagResearchScreen: (context) => const HashtagResearchScreen(),
       contentTemplatesScreen: (context) => const ContentTemplatesScreen(),
