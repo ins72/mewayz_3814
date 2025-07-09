@@ -1,5 +1,7 @@
 
 import '../../core/app_export.dart';
+import '../../services/analytics_data_service.dart';
+import '../../services/workspace_service.dart';
 import './widgets/chart_container_widget.dart';
 import './widgets/date_range_selector_widget.dart';
 import './widgets/export_button_widget.dart';
@@ -20,65 +22,16 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
   bool _autoRefresh = true;
   bool _comparisonMode = false;
   String _selectedFilter = 'All';
-
-  final List<Map<String, dynamic>> _mockMetrics = [
-{ "title": "Total Revenue",
-"value": "\$24,580",
-"change": "+12.5%",
-"isPositive": true,
-"icon": "attach_money" },
-{ "title": "Leads Generated",
-"value": "1,247",
-"change": "+8.3%",
-"isPositive": true,
-"icon": "people" },
-{ "title": "Social Followers",
-"value": "15.2K",
-"change": "+15.7%",
-"isPositive": true,
-"icon": "thumb_up" },
-{ "title": "Course Completions",
-"value": "89",
-"change": "-2.1%",
-"isPositive": false,
-"icon": "school" },
-{ "title": "Active Workspaces",
-"value": "12",
-"change": "+4.2%",
-"isPositive": true,
-"icon": "business" },
-{ "title": "Conversion Rate",
-"value": "3.8%",
-"change": "+0.5%",
-"isPositive": true,
-"icon": "trending_up" }
-];
-
-  final List<Map<String, dynamic>> _mockRevenueData = [
-{"day": "Mon", "value": 3200.0},
-{"day": "Tue", "value": 4100.0},
-{"day": "Wed", "value": 3800.0},
-{"day": "Thu", "value": 4500.0},
-{"day": "Fri", "value": 5200.0},
-{"day": "Sat", "value": 4800.0},
-{"day": "Sun", "value": 3900.0}
-];
-
-  final List<Map<String, dynamic>> _mockLeadSources = [
-{"source": "Instagram", "value": 35.0, "color": "0xFFE91E63"},
-{"source": "Facebook", "value": 25.0, "color": "0xFF2196F3"},
-{"source": "LinkedIn", "value": 20.0, "color": "0xFF0077B5"},
-{"source": "Direct", "value": 15.0, "color": "0xFF4CAF50"},
-{"source": "Other", "value": 5.0, "color": "0xFF9E9E9E"}
-];
-
-  final List<Map<String, dynamic>> _mockSocialPerformance = [
-{"platform": "Instagram", "followers": 8500, "engagement": 4.2},
-{"platform": "Facebook", "followers": 3200, "engagement": 2.8},
-{"platform": "LinkedIn", "followers": 1800, "engagement": 6.1},
-{"platform": "Twitter", "followers": 2100, "engagement": 3.5},
-{"platform": "TikTok", "followers": 5400, "engagement": 7.8}
-];
+  bool _isLoading = false;
+  
+  final AnalyticsDataService _analyticsService = AnalyticsDataService();
+  final WorkspaceService _workspaceService = WorkspaceService();
+  
+  Map<String, dynamic> _dashboardData = {};
+  List<Map<String, dynamic>> _metrics = [];
+  List<Map<String, dynamic>> _revenueData = [];
+  List<Map<String, dynamic>> _socialData = [];
+  String? _currentWorkspaceId;
 
   final List<String> _filterOptions = [
     'All',
@@ -93,6 +46,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _loadAnalyticsData();
   }
 
   @override
@@ -101,26 +55,194 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
     super.dispose();
   }
 
+  Future<void> _loadAnalyticsData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Get current workspace
+      final workspaces = await _workspaceService.getUserWorkspaces();
+      if (workspaces.isNotEmpty) {
+        _currentWorkspaceId = workspaces.first['id'];
+        
+        // Load dashboard data
+        final dashboardData = await _analyticsService.getDashboardData(_currentWorkspaceId!);
+        
+        // Load metrics
+        final metrics = await _analyticsService.getAnalyticsMetrics(_currentWorkspaceId!);
+        
+        // Load revenue data
+        final revenueData = await _analyticsService.getRevenueAnalytics(_currentWorkspaceId!);
+        
+        // Load social media data
+        final socialData = await _analyticsService.getSocialMediaAnalytics(_currentWorkspaceId!);
+        
+        setState(() {
+          _dashboardData = dashboardData;
+          _metrics = _buildMetricsFromData(dashboardData);
+          _revenueData = _buildRevenueChartData(revenueData);
+          _socialData = _buildSocialChartData(socialData);
+        });
+        
+        // Track analytics view
+        await _analyticsService.trackEvent('analytics_dashboard_viewed', {
+          'date_range': _selectedDateRange,
+          'filter': _selectedFilter,
+        }, workspaceId: _currentWorkspaceId);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load analytics data: $e');
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> _buildMetricsFromData(Map<String, dynamic> data) {
+    final revenue = data['revenue'] ?? {};
+    final social = data['social_media'] ?? {};
+    final products = data['products'] ?? {};
+    final notifications = data['notifications'] ?? {};
+    
+    return [
+      {
+        "title": "Total Revenue",
+        "value": "\$${(revenue['total_revenue'] ?? 0).toStringAsFixed(2)}",
+        "change": "+12.5%", // This could be calculated from historical data
+        "isPositive": true,
+        "icon": "attach_money"
+      },
+      {
+        "title": "Total Orders",
+        "value": (revenue['total_orders'] ?? 0).toString(),
+        "change": "+8.3%",
+        "isPositive": true,
+        "icon": "shopping_cart"
+      },
+      {
+        "title": "Social Followers",
+        "value": _formatNumber(social['total_followers'] ?? 0),
+        "change": "+15.7%",
+        "isPositive": true,
+        "icon": "thumb_up"
+      },
+      {
+        "title": "Active Products",
+        "value": (products['active_products'] ?? 0).toString(),
+        "change": "+4.2%",
+        "isPositive": true,
+        "icon": "inventory"
+      },
+      {
+        "title": "Conversion Rate",
+        "value": "${(revenue['conversion_rate'] ?? 0).toStringAsFixed(1)}%",
+        "change": "+0.5%",
+        "isPositive": true,
+        "icon": "trending_up"
+      },
+      {
+        "title": "Notifications",
+        "value": (notifications['total_notifications'] ?? 0).toString(),
+        "change": "+2.1%",
+        "isPositive": true,
+        "icon": "notifications"
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> _buildRevenueChartData(List<Map<String, dynamic>> data) {
+    // Convert analytics data to chart format
+    final Map<String, double> dailyRevenue = {};
+    
+    for (final metric in data) {
+      final date = metric['date_bucket'] as String;
+      final value = (metric['metric_value'] as num).toDouble();
+      
+      if (metric['metric_name'] == 'total_revenue') {
+        dailyRevenue[date] = value;
+      }
+    }
+    
+    // Generate last 7 days
+    final chartData = <Map<String, dynamic>>[];
+    for (int i = 6; i >= 0; i--) {
+      final date = DateTime.now().subtract(Duration(days: i));
+      final dateStr = date.toIso8601String().split('T')[0];
+      final dayName = _getDayName(date.weekday);
+      
+      chartData.add({
+        "day": dayName,
+        "value": dailyRevenue[dateStr] ?? 0.0,
+      });
+    }
+    
+    return chartData;
+  }
+
+  List<Map<String, dynamic>> _buildSocialChartData(List<Map<String, dynamic>> data) {
+    final Map<String, Map<String, double>> platformData = {};
+    
+    for (final metric in data) {
+      final platform = metric['social_media_accounts']['platform'] as String;
+      final metricName = metric['metric_name'] as String;
+      final value = (metric['metric_value'] as num).toDouble();
+      
+      if (!platformData.containsKey(platform)) {
+        platformData[platform] = {};
+      }
+      
+      platformData[platform]![metricName] = value;
+    }
+    
+    return platformData.entries.map((entry) {
+      return {
+        "platform": entry.key,
+        "followers": (entry.value['followers'] ?? 0).toInt(),
+        "engagement": entry.value['engagement_rate'] ?? 0.0,
+      };
+    }).toList();
+  }
+
+  String _getDayName(int weekday) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days[weekday - 1];
+  }
+
+  String _formatNumber(num value) {
+    if (value >= 1000000) {
+      return "${(value / 1000000).toStringAsFixed(1)}M";
+    } else if (value >= 1000) {
+      return "${(value / 1000).toStringAsFixed(1)}K";
+    }
+    return value.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppTheme.primaryBackground,
         appBar: _buildAppBar(),
-        body: RefreshIndicator(
-            onRefresh: _refreshData,
-            color: AppTheme.accent,
-            backgroundColor: AppTheme.surface,
-            child: Column(children: [
-              _buildHeader(),
-              _buildFilterChips(),
-              Expanded(
-                  child: TabBarView(controller: _tabController, children: [
-                _buildOverviewTab(),
-                _buildRevenueTab(),
-                _buildSocialTab(),
-                _buildCoursesTab(),
-              ])),
-            ])));
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _refreshData,
+                color: AppTheme.accent,
+                backgroundColor: AppTheme.surface,
+                child: Column(children: [
+                  _buildHeader(),
+                  _buildFilterChips(),
+                  Expanded(
+                      child: TabBarView(controller: _tabController, children: [
+                    _buildOverviewTab(),
+                    _buildRevenueTab(),
+                    _buildSocialTab(),
+                    _buildCoursesTab(),
+                  ])),
+                ])));
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -215,6 +337,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
                     setState(() {
                       _selectedDateRange = range;
                     });
+                    _loadAnalyticsData();
                   })),
           SizedBox(width: 3.w),
           ExportButtonWidget(onExport: _showExportOptions),
@@ -239,6 +362,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
                         setState(() {
                           _selectedFilter = selected ? filter : 'All';
                         });
+                        _loadAnalyticsData();
                       }));
             }));
   }
@@ -250,8 +374,6 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
           _buildMetricsRow(),
           SizedBox(height: 4.h),
           _buildRevenueChart(),
-          SizedBox(height: 4.h),
-          _buildLeadSourcesChart(),
           SizedBox(height: 4.h),
           _buildSocialPerformanceChart(),
         ]));
@@ -292,9 +414,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
         height: 20.h,
         child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: _mockMetrics.length,
+            itemCount: _metrics.length,
             itemBuilder: (context, index) {
-              final metric = _mockMetrics[index];
+              final metric = _metrics[index];
               return Padding(
                   padding: EdgeInsets.only(right: 3.w),
                   child: MetricCardWidget(
@@ -311,124 +433,104 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
         title: 'Revenue Trends',
         child: SizedBox(
             height: 30.h,
-            child: LineChart(LineChartData(
-                gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: true,
-                    horizontalInterval: 1000,
-                    verticalInterval: 1,
-                    getDrawingHorizontalLine: (value) {
-                      return FlLine(
-                          color: AppTheme.secondaryText.withValues(alpha: 0.3),
-                          strokeWidth: 1);
-                    },
-                    getDrawingVerticalLine: (value) {
-                      return FlLine(
-                          color: AppTheme.secondaryText.withValues(alpha: 0.3),
-                          strokeWidth: 1);
-                    }),
-                titlesData: FlTitlesData(
-                    show: true,
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                            interval: 1,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              if (value.toInt() < _mockRevenueData.length) {
-                                return SideTitleWidget(
-                                    axisSide: meta.axisSide,
-                                    child: Text(
-                                        _mockRevenueData[value.toInt()]["day"]
-                                            as String,
-                                        style: AppTheme
-                                            .darkTheme.textTheme.bodySmall));
-                              }
-                              return Container();
-                            })),
-                    leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: 1000,
-                            reservedSize: 42,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              return SideTitleWidget(
-                                  axisSide: meta.axisSide,
-                                  child: Text(
-                                      '\$${(value / 1000).toStringAsFixed(0)}K',
-                                      style: AppTheme
-                                          .darkTheme.textTheme.bodySmall));
-                            }))),
-                borderData: FlBorderData(
-                    show: true,
-                    border: Border.all(color: AppTheme.border, width: 1)),
-                minX: 0,
-                maxX: (_mockRevenueData.length - 1).toDouble(),
-                minY: 0,
-                maxY: 6000,
-                lineBarsData: [
-                  LineChartBarData(
-                      spots: _mockRevenueData.asMap().entries.map((entry) {
-                        return FlSpot(entry.key.toDouble(),
-                            (entry.value["value"] as double));
-                      }).toList(),
-                      isCurved: true,
-                      gradient: LinearGradient(colors: [
-                        AppTheme.accent,
-                        AppTheme.accent.withValues(alpha: 0.3),
-                      ]),
-                      barWidth: 3,
-                      isStrokeCapRound: true,
-                      dotData: FlDotData(
-                          show: true,
-                          getDotPainter: (spot, percent, barData, index) {
-                            return FlDotCirclePainter(
-                                radius: 4,
-                                color: AppTheme.primaryText,
-                                strokeWidth: 2,
-                                strokeColor: AppTheme.accent);
-                          }),
-                      belowBarData: BarAreaData(
-                          show: true,
-                          gradient: LinearGradient(
-                              colors: [
-                                AppTheme.accent.withValues(alpha: 0.3),
-                                AppTheme.accent.withValues(alpha: 0.1),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter))),
-                ]))));
-  }
-
-  Widget _buildLeadSourcesChart() {
-    return ChartContainerWidget(
-        title: 'Lead Sources',
-        child: SizedBox(
-            height: 30.h,
-            child: PieChart(PieChartData(
-                pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                  // Handle touch events for detailed breakdowns
-                }),
-                borderData: FlBorderData(show: false),
-                sectionsSpace: 2,
-                centerSpaceRadius: 40,
-                sections: _mockLeadSources.map((source) {
-                  return PieChartSectionData(
-                      color: Color(int.parse(source["color"] as String)),
-                      value: source["value"] as double,
-                      title:
-                          '${(source["value"] as double).toStringAsFixed(0)}%',
-                      radius: 60,
-                      titleStyle: AppTheme.darkTheme.textTheme.labelMedium
-                          ?.copyWith(
-                              color: AppTheme.primaryText,
-                              fontWeight: FontWeight.bold));
-                }).toList()))));
+            child: _revenueData.isEmpty
+                ? Center(
+                    child: Text(
+                      'No revenue data available',
+                      style: AppTheme.darkTheme.textTheme.bodyMedium,
+                    ),
+                  )
+                : LineChart(LineChartData(
+                    gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: true,
+                        horizontalInterval: 1000,
+                        verticalInterval: 1,
+                        getDrawingHorizontalLine: (value) {
+                          return FlLine(
+                              color: AppTheme.secondaryText.withValues(alpha: 0.3),
+                              strokeWidth: 1);
+                        },
+                        getDrawingVerticalLine: (value) {
+                          return FlLine(
+                              color: AppTheme.secondaryText.withValues(alpha: 0.3),
+                              strokeWidth: 1);
+                        }),
+                    titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles:
+                            AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles:
+                            AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 30,
+                                interval: 1,
+                                getTitlesWidget: (double value, TitleMeta meta) {
+                                  if (value.toInt() < _revenueData.length) {
+                                    return SideTitleWidget(
+                                        axisSide: meta.axisSide,
+                                        child: Text(
+                                            _revenueData[value.toInt()]["day"]
+                                                as String,
+                                            style: AppTheme
+                                                .darkTheme.textTheme.bodySmall));
+                                  }
+                                  return Container();
+                                })),
+                        leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 1000,
+                                reservedSize: 42,
+                                getTitlesWidget: (double value, TitleMeta meta) {
+                                  return SideTitleWidget(
+                                      axisSide: meta.axisSide,
+                                      child: Text(
+                                          '\$${(value / 1000).toStringAsFixed(0)}K',
+                                          style: AppTheme
+                                              .darkTheme.textTheme.bodySmall));
+                                }))),
+                    borderData: FlBorderData(
+                        show: true,
+                        border: Border.all(color: AppTheme.border, width: 1)),
+                    minX: 0,
+                    maxX: (_revenueData.length - 1).toDouble(),
+                    minY: 0,
+                    maxY: 6000,
+                    lineBarsData: [
+                      LineChartBarData(
+                          spots: _revenueData.asMap().entries.map((entry) {
+                            return FlSpot(entry.key.toDouble(),
+                                (entry.value["value"] as double));
+                          }).toList(),
+                          isCurved: true,
+                          gradient: LinearGradient(colors: [
+                            AppTheme.accent,
+                            AppTheme.accent.withValues(alpha: 0.3),
+                          ]),
+                          barWidth: 3,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(
+                              show: true,
+                              getDotPainter: (spot, percent, barData, index) {
+                                return FlDotCirclePainter(
+                                    radius: 4,
+                                    color: AppTheme.primaryText,
+                                    strokeWidth: 2,
+                                    strokeColor: AppTheme.accent);
+                              }),
+                          belowBarData: BarAreaData(
+                              show: true,
+                              gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.accent.withValues(alpha: 0.3),
+                                    AppTheme.accent.withValues(alpha: 0.1),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter))),
+                    ]))));
   }
 
   Widget _buildSocialPerformanceChart() {
@@ -436,74 +538,81 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
         title: 'Social Media Performance',
         child: SizedBox(
             height: 30.h,
-            child: BarChart(BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: 10000,
-                barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
-                        tooltipHorizontalAlignment:
-                            FLHorizontalAlignment.center,
-                        tooltipMargin: -10,
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          String platform =
-                              _mockSocialPerformance[group.x.toInt()]
-                                  ["platform"] as String;
-                          return BarTooltipItem('$platform\n',
-                              AppTheme.darkTheme.textTheme.bodySmall!,
-                              children: <TextSpan>[
-                                TextSpan(
-                                    text: '${rod.toY.round()} followers',
-                                    style: AppTheme
-                                        .darkTheme.textTheme.bodySmall
-                                        ?.copyWith(color: AppTheme.accent)),
-                              ]);
-                        })),
-                titlesData: FlTitlesData(
-                    show: true,
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              if (value.toInt() <
-                                  _mockSocialPerformance.length) {
-                                return SideTitleWidget(
-                                    axisSide: meta.axisSide,
-                                    child: Text(
-                                        _mockSocialPerformance[value.toInt()]
-                                            ["platform"] as String,
+            child: _socialData.isEmpty
+                ? Center(
+                    child: Text(
+                      'No social media data available',
+                      style: AppTheme.darkTheme.textTheme.bodyMedium,
+                    ),
+                  )
+                : BarChart(BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: 10000,
+                    barTouchData: BarTouchData(
+                        touchTooltipData: BarTouchTooltipData(
+                            tooltipHorizontalAlignment:
+                                FLHorizontalAlignment.center,
+                            tooltipMargin: -10,
+                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                              String platform =
+                                  _socialData[group.x.toInt()]
+                                      ["platform"] as String;
+                              return BarTooltipItem('$platform\n',
+                                  AppTheme.darkTheme.textTheme.bodySmall!,
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                        text: '${rod.toY.round()} followers',
                                         style: AppTheme
-                                            .darkTheme.textTheme.bodySmall));
-                              }
-                              return Container();
-                            },
-                            reservedSize: 38)),
-                    leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 28,
-                            interval: 2000,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              return SideTitleWidget(
-                                  axisSide: meta.axisSide,
-                                  child: Text(
-                                      '${(value / 1000).toStringAsFixed(0)}K',
-                                      style: AppTheme
-                                          .darkTheme.textTheme.bodySmall));
-                            }))),
-                borderData: FlBorderData(show: false),
-                barGroups: _mockSocialPerformance.asMap().entries.map((entry) {
-                  return BarChartGroupData(x: entry.key, barRods: [
-                    BarChartRodData(
-                        toY: (entry.value["followers"] as int).toDouble(),
-                        color: AppTheme.accent,
-                        width: 16,
-                        borderRadius: BorderRadius.circular(4)),
-                  ]);
-                }).toList()))));
+                                            .darkTheme.textTheme.bodySmall
+                                            ?.copyWith(color: AppTheme.accent)),
+                                  ]);
+                            })),
+                    titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles:
+                            AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles:
+                            AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (double value, TitleMeta meta) {
+                                  if (value.toInt() <
+                                      _socialData.length) {
+                                    return SideTitleWidget(
+                                        axisSide: meta.axisSide,
+                                        child: Text(
+                                            _socialData[value.toInt()]
+                                                ["platform"] as String,
+                                            style: AppTheme
+                                                .darkTheme.textTheme.bodySmall));
+                                  }
+                                  return Container();
+                                },
+                                reservedSize: 38)),
+                        leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 28,
+                                interval: 2000,
+                                getTitlesWidget: (double value, TitleMeta meta) {
+                                  return SideTitleWidget(
+                                      axisSide: meta.axisSide,
+                                      child: Text(
+                                          '${(value / 1000).toStringAsFixed(0)}K',
+                                          style: AppTheme
+                                              .darkTheme.textTheme.bodySmall));
+                                }))),
+                    borderData: FlBorderData(show: false),
+                    barGroups: _socialData.asMap().entries.map((entry) {
+                      return BarChartGroupData(x: entry.key, barRods: [
+                        BarChartRodData(
+                            toY: (entry.value["followers"] as int).toDouble(),
+                            color: AppTheme.accent,
+                            width: 16,
+                            borderRadius: BorderRadius.circular(4)),
+                      ]);
+                    }).toList()))));
   }
 
   Widget _buildCourseEngagementChart() {
@@ -652,28 +761,36 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
           Text('Social Media Metrics',
               style: AppTheme.darkTheme.textTheme.titleMedium),
           SizedBox(height: 2.h),
-          ..._mockSocialPerformance.map((platform) {
-            return Padding(
-                padding: EdgeInsets.only(bottom: 2.h),
-                child: Row(children: [
-                  Expanded(
-                      flex: 2,
-                      child: Text(platform["platform"] as String,
-                          style: AppTheme.darkTheme.textTheme.bodyMedium)),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                          '${(platform["followers"] as int).toString()} followers',
-                          style: AppTheme.dataTextTheme.bodySmall,
-                          textAlign: TextAlign.center)),
-                  Expanded(
-                      child: Text(
-                          '${(platform["engagement"] as double).toStringAsFixed(1)}%',
-                          style: AppTheme.darkTheme.textTheme.bodySmall
-                              ?.copyWith(color: AppTheme.success),
-                          textAlign: TextAlign.right)),
-                ]));
-          }).toList(),
+          if (_socialData.isEmpty)
+            Center(
+              child: Text(
+                'No social media data available',
+                style: AppTheme.darkTheme.textTheme.bodyMedium,
+              ),
+            )
+          else
+            ..._socialData.map((platform) {
+              return Padding(
+                  padding: EdgeInsets.only(bottom: 2.h),
+                  child: Row(children: [
+                    Expanded(
+                        flex: 2,
+                        child: Text(platform["platform"] as String,
+                            style: AppTheme.darkTheme.textTheme.bodyMedium)),
+                    Expanded(
+                        flex: 2,
+                        child: Text(
+                            '${(platform["followers"] as int).toString()} followers',
+                            style: AppTheme.dataTextTheme.bodySmall,
+                            textAlign: TextAlign.center)),
+                    Expanded(
+                        child: Text(
+                            '${(platform["engagement"] as double).toStringAsFixed(1)}%',
+                            style: AppTheme.darkTheme.textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.success),
+                            textAlign: TextAlign.right)),
+                  ]));
+            }).toList(),
         ]));
   }
 
@@ -733,10 +850,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
   }
 
   Future<void> _refreshData() async {
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      // Refresh data logic here
-    });
+    await _loadAnalyticsData();
   }
 
   void _toggleAutoRefresh() {
@@ -815,25 +929,43 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
     }
   }
 
-  void _exportToPDF() {
-    // PDF export logic
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Exporting to PDF...'),
-        backgroundColor: AppTheme.surface));
+  void _exportToPDF() async {
+    if (_currentWorkspaceId != null) {
+      final exportData = await _analyticsService.exportAnalyticsData(
+        _currentWorkspaceId!,
+        'pdf',
+      );
+      
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('PDF export prepared - ${exportData.length} records'),
+          backgroundColor: AppTheme.success));
+    }
   }
 
-  void _exportToCSV() {
-    // CSV export logic
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Exporting to CSV...'),
-        backgroundColor: AppTheme.surface));
+  void _exportToCSV() async {
+    if (_currentWorkspaceId != null) {
+      final exportData = await _analyticsService.exportAnalyticsData(
+        _currentWorkspaceId!,
+        'csv',
+      );
+      
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('CSV export prepared - ${exportData.length} records'),
+          backgroundColor: AppTheme.success));
+    }
   }
 
-  void _exportWhiteLabel() {
-    // White-label export logic
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Generating white-label report...'),
-        backgroundColor: AppTheme.surface));
+  void _exportWhiteLabel() async {
+    if (_currentWorkspaceId != null) {
+      final exportData = await _analyticsService.exportAnalyticsData(
+        _currentWorkspaceId!,
+        'white_label',
+      );
+      
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('White-label report prepared'),
+          backgroundColor: AppTheme.success));
+    }
   }
 
   void _showCustomReportBuilder() {

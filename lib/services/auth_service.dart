@@ -182,6 +182,22 @@ class AuthService {
     try {
       await _ensureInitialized();
       
+      // Validate input parameters
+      if (email.isEmpty || password.isEmpty || fullName.isEmpty) {
+        throw Exception('All fields are required');
+      }
+      
+      // Validate email format
+      final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+      if (!emailRegex.hasMatch(email)) {
+        throw Exception('Please enter a valid email address');
+      }
+      
+      // Validate password strength
+      if (password.length < 8) {
+        throw Exception('Password must be at least 8 characters long');
+      }
+      
       final response = await _client.auth.signUp(
         email: email,
         password: password,
@@ -206,6 +222,7 @@ class AuthService {
           'role': role,
           'email_verified': false,
           'biometric_enabled': false,
+          'logged_in': false, // Set to false until email is verified
         });
 
         // Log security event
@@ -217,9 +234,62 @@ class AuthService {
       }
 
       return response;
+    } on AuthException catch (e) {
+      // Handle Supabase auth exceptions specifically
+      String errorMessage = 'Registration failed';
+      
+      switch (e.statusCode) {
+        case '400':
+          errorMessage = 'Invalid registration data provided';
+          break;
+        case '422':
+          if (e.message.contains('already registered')) {
+            errorMessage = 'An account with this email already exists';
+          } else {
+            errorMessage = 'Registration validation failed';
+          }
+          break;
+        case '429':
+          errorMessage = 'Too many registration attempts. Please try again later';
+          break;
+        default:
+          errorMessage = e.message ?? 'Registration failed';
+      }
+      
+      // Log failed registration attempt
+      await _logSecurityEvent(
+        null,
+        'signup_failure',
+        {'method': 'email', 'email': email, 'error': errorMessage},
+        success: false,
+      );
+      
+      ErrorHandler.handleAuthError(errorMessage);
+      throw Exception(errorMessage);
     } catch (e) {
-      ErrorHandler.handleError('Failed to sign up user: $e');
-      rethrow;
+      // Handle JSON parsing and other errors
+      String errorMessage = 'Registration failed';
+      
+      if (e.toString().contains('JSON') || e.toString().contains('SyntaxError')) {
+        errorMessage = 'Server response error. Please try again';
+      } else if (e.toString().contains('Network') || e.toString().contains('Connection')) {
+        errorMessage = 'Network error. Please check your connection';
+      } else if (e.toString().contains('Timeout')) {
+        errorMessage = 'Request timeout. Please try again';
+      } else if (e.toString().contains('already registered')) {
+        errorMessage = 'An account with this email already exists';
+      }
+      
+      // Log failed registration attempt
+      await _logSecurityEvent(
+        null,
+        'signup_failure',
+        {'method': 'email', 'email': email, 'error': e.toString()},
+        success: false,
+      );
+      
+      ErrorHandler.handleAuthError(errorMessage);
+      throw Exception(errorMessage);
     }
   }
 

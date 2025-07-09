@@ -17,7 +17,7 @@ class WorkspaceDashboard extends StatefulWidget {
 class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  String selectedWorkspace = "Digital Marketing Agency";
+  String selectedWorkspace = "My Workspace";
   bool isRefreshing = false;
   int _currentBottomNavIndex = 0;
   bool _isLoading = false;
@@ -25,115 +25,46 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   final DataService _dataService = DataService();
   final StorageService _storageService = StorageService();
 
-  final List<Map<String, dynamic>> workspaces = [
-{"id": "1", "name": "Digital Marketing Agency", "isActive": true},
-{"id": "2", "name": "E-commerce Store", "isActive": false},
-{"id": "3", "name": "Course Creator Hub", "isActive": false},
-{"id": "4", "name": "Freelance Business", "isActive": false},
-];
+  final List<Map<String, dynamic>> workspaces = [];
 
-  final List<Map<String, dynamic>> metricsData = [
-{ "title": "Total Leads",
-"value": "2,847",
-"change": "+12.5%",
-"isPositive": true,
-"icon": "people",
-"color": AppTheme.accent,
-},
-{ "title": "Revenue",
-"value": "\$45,230",
-"change": "+8.2%",
-"isPositive": true,
-"icon": "attach_money",
-"color": AppTheme.success,
-},
-{ "title": "Social Followers",
-"value": "18.5K",
-"change": "+15.7%",
-"isPositive": true,
-"icon": "favorite",
-"color": AppTheme.warning,
-},
-{ "title": "Course Enrollments",
-"value": "1,234",
-"change": "-2.1%",
-"isPositive": false,
-"icon": "school",
-"color": AppTheme.accent,
-},
-];
+  List<Map<String, dynamic>> metricsData = [
+    {
+      "title": "Total Leads",
+      "value": "0",
+      "change": "0%",
+      "isPositive": true,
+      "icon": "people",
+      "color": AppTheme.accent,
+    },
+    {
+      "title": "Revenue",
+      "value": "\$0",
+      "change": "0%",
+      "isPositive": true,
+      "icon": "attach_money",
+      "color": AppTheme.success,
+    },
+    {
+      "title": "Social Followers",
+      "value": "0",
+      "change": "0%",
+      "isPositive": true,
+      "icon": "favorite",
+      "color": AppTheme.warning,
+    },
+    {
+      "title": "Course Enrollments",
+      "value": "0",
+      "change": "0%",
+      "isPositive": true,
+      "icon": "school",
+      "color": AppTheme.accent,
+    },
+  ];
 
-  final List<Map<String, dynamic>> quickActions = [
-{ "title": "Instagram Search",
-"subtitle": "Find leads",
-"icon": "search",
-"route": "",
-"color": AppTheme.accent,
-},
-{ "title": "Post Scheduler",
-"subtitle": "Schedule posts",
-"icon": "schedule",
-"route": "",
-"color": AppTheme.success,
-},
-{ "title": "Link in Bio",
-"subtitle": "Build pages",
-"icon": "link",
-"route": "",
-"color": AppTheme.warning,
-},
-{ "title": "Course Creator",
-"subtitle": "Create courses",
-"icon": "play_circle_filled",
-"route": "",
-"color": AppTheme.accent,
-},
-{ "title": "Marketplace",
-"subtitle": "Manage store",
-"icon": "store",
-"route": "",
-"color": AppTheme.success,
-},
-{ "title": "CRM",
-"subtitle": "Manage contacts",
-"icon": "contacts",
-"route": "",
-"color": AppTheme.warning,
-},
-];
+  List<Map<String, dynamic>> quickActions = [];
 
-  final List<Map<String, dynamic>> recentActivities = [
-{ "title": "New lead from Instagram campaign",
-"subtitle": "Sarah Johnson - Digital Marketing",
-"timestamp": "2 minutes ago",
-"icon": "person_add",
-"color": AppTheme.success,
-},
-{ "title": "Course enrollment completed",
-"subtitle": "Advanced Social Media Marketing",
-"timestamp": "15 minutes ago",
-"icon": "school",
-"color": AppTheme.accent,
-},
-{ "title": "Product sold on marketplace",
-"subtitle": "Social Media Template Pack - \$29.99",
-"timestamp": "1 hour ago",
-"icon": "shopping_cart",
-"color": AppTheme.warning,
-},
-{ "title": "Scheduled post published",
-"subtitle": "Instagram - Marketing Tips #5",
-"timestamp": "2 hours ago",
-"icon": "publish",
-"color": AppTheme.accent,
-},
-{ "title": "New contact added to CRM",
-"subtitle": "Michael Rodriguez - Lead",
-"timestamp": "3 hours ago",
-"icon": "contact_page",
-"color": AppTheme.success,
-},
-];
+  List<Map<String, dynamic>> recentActivities = [];
 
   @override
   void initState() {
@@ -154,16 +85,19 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       // Load social media stats
       final socialMediaStats = await _dataService.getSocialMediaStats();
       
-      // Update metrics data with real data
+      // Update metrics data with real data (will be 0 for new users)
       if (analyticsData.isNotEmpty) {
         _updateMetricsData(analyticsData, socialMediaStats);
       }
       
-      // Load recent activities
+      // Load recent activities (will be empty for new users)
       await _loadRecentActivities();
       
+      // Load workspace-specific quick actions
+      _loadWorkspaceQuickActions();
+      
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
     } finally {
       if (mounted) {
         setState(() {
@@ -175,25 +109,31 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
 
   void _updateMetricsData(Map<String, dynamic> analyticsData, Map<String, dynamic> socialMediaStats) {
     setState(() {
-      metricsData[0]['value'] = "${analyticsData['totalUsers'] ?? 2847}";
-      metricsData[1]['value'] = "\$${analyticsData['totalRevenue'] ?? 45230}";
-      metricsData[2]['value'] = "${socialMediaStats['totalFollowers'] ?? 18500}";
-      metricsData[3]['value'] = "${analyticsData['totalUsers'] ?? 1234}";
+      metricsData[0]['value'] = "${analyticsData['totalUsers'] ?? 0}";
+      metricsData[1]['value'] = "\$${analyticsData['totalRevenue'] ?? 0}";
+      metricsData[2]['value'] = "${socialMediaStats['totalFollowers'] ?? 0}";
+      metricsData[3]['value'] = "${analyticsData['totalUsers'] ?? 0}";
+      
+      // Update change values (will be 0% for new users)
+      metricsData[0]['change'] = "0%";
+      metricsData[1]['change'] = "0%";
+      metricsData[2]['change'] = "0%";
+      metricsData[3]['change'] = "0%";
     });
   }
 
   Future<void> _loadRecentActivities() async {
     try {
-      // Load recent posts
+      // Load recent posts (will be empty for new users)
       final posts = await _dataService.getSocialMediaPosts();
       
-      // Load recent contacts
+      // Load recent contacts (will be empty for new users)
       final contacts = await _dataService.getContacts();
       
       // Update recent activities with real data
       _updateRecentActivities(posts, contacts);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
     }
   }
 
@@ -201,7 +141,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     setState(() {
       recentActivities.clear();
       
-      // Add recent posts
+      // Add recent posts (will be empty for new users)
       for (var post in posts.take(3)) {
         recentActivities.add({
           "title": "Post published: ${post['title']}",
@@ -212,7 +152,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         });
       }
       
-      // Add recent contacts
+      // Add recent contacts (will be empty for new users)
       for (var contact in contacts.take(2)) {
         recentActivities.add({
           "title": "New contact: ${contact['name']}",
@@ -222,6 +162,56 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           "color": AppTheme.success,
         });
       }
+    });
+  }
+
+  void _loadWorkspaceQuickActions() {
+    // Load default quick actions (these are features, not sample data)
+    setState(() {
+      quickActions = [
+        {
+          "title": "Instagram Search",
+          "subtitle": "Find leads",
+          "icon": "search",
+          "route": "/instagram-lead-search",
+          "color": AppTheme.accent,
+        },
+        {
+          "title": "Post Scheduler",
+          "subtitle": "Schedule posts",
+          "icon": "schedule",
+          "route": "/social-media-scheduler",
+          "color": AppTheme.success,
+        },
+        {
+          "title": "Link in Bio",
+          "subtitle": "Build pages",
+          "icon": "link",
+          "route": "/link-in-bio-builder",
+          "color": AppTheme.warning,
+        },
+        {
+          "title": "Course Creator",
+          "subtitle": "Create courses",
+          "icon": "play_circle_filled",
+          "route": "/course-creator",
+          "color": AppTheme.accent,
+        },
+        {
+          "title": "Marketplace",
+          "subtitle": "Manage store",
+          "icon": "store",
+          "route": "/marketplace-store",
+          "color": AppTheme.success,
+        },
+        {
+          "title": "CRM",
+          "subtitle": "Manage contacts",
+          "icon": "contacts",
+          "route": "/crm-contact-management",
+          "color": AppTheme.warning,
+        },
+      ];
     });
   }
 
@@ -392,7 +382,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         if (route == "") {
           await ButtonService.handleNavigation(
             context: context,
-            
+            route: "",
             showFeedback: true,
             feedbackMessage: 'Opening $title creation...');
         } else {
@@ -578,26 +568,49 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               ]),
             SizedBox(height: AppTheme.spacingM),
 
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppTheme.spacingM,
-                mainAxisSpacing: AppTheme.spacingM,
-                childAspectRatio: 1.2),
-              itemCount: quickActions.length > 4 ? 4 : quickActions.length,
-              itemBuilder: (context, index) {
-                return QuickActionWidget(
-                  data: quickActions[index],
-                  onTap: () async {
-                    await ButtonService.handleNavigation(
-                      context: context,
-                      route: quickActions[index]["route"],
-                      showFeedback: true,
-                      feedbackMessage: 'Opening ${quickActions[index]["title"]}...');
-                  });
-              }),
+            if (quickActions.isNotEmpty)
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: AppTheme.spacingM,
+                  mainAxisSpacing: AppTheme.spacingM,
+                  childAspectRatio: 1.2),
+                itemCount: quickActions.length > 4 ? 4 : quickActions.length,
+                itemBuilder: (context, index) {
+                  return QuickActionWidget(
+                    data: quickActions[index],
+                    onTap: () async {
+                      await ButtonService.handleNavigation(
+                        context: context,
+                        route: quickActions[index]["route"],
+                        showFeedback: true,
+                        feedbackMessage: 'Opening ${quickActions[index]["title"]}...');
+                    });
+                })
+            else
+              // Show empty state for quick actions
+              Container(
+                padding: EdgeInsets.all(AppTheme.spacingL),
+                decoration: AppTheme.cardDecoration(),
+                child: Column(
+                  children: [
+                    CustomIconWidget(
+                      iconName: 'apps',
+                      color: AppTheme.secondaryText,
+                      size: 48),
+                    SizedBox(height: AppTheme.spacingM),
+                    Text(
+                      'No quick actions available',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppTheme.secondaryText)),
+                    SizedBox(height: AppTheme.spacingS),
+                    Text(
+                      'Start by creating your first workspace',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.secondaryText)),
+                  ])),
 
             SizedBox(height: AppTheme.spacingXl),
 
@@ -613,6 +626,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onPressed: () async {
                     await ButtonService.handleNavigation(
                       context: context,
+                      route: "",
                       showFeedback: true,
                       feedbackMessage: 'Opening activity log...');
                   },
@@ -624,15 +638,38 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               ]),
             SizedBox(height: AppTheme.spacingM),
 
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: recentActivities.length,
-              separatorBuilder: (context, index) => SizedBox(height: AppTheme.spacingM),
-              itemBuilder: (context, index) {
-                return ActivityItemWidget(
-                  data: recentActivities[index]);
-              }),
+            if (recentActivities.isNotEmpty)
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: recentActivities.length,
+                separatorBuilder: (context, index) => SizedBox(height: AppTheme.spacingM),
+                itemBuilder: (context, index) {
+                  return ActivityItemWidget(
+                    data: recentActivities[index]);
+                })
+            else
+              // Show empty state for recent activities
+              Container(
+                padding: EdgeInsets.all(AppTheme.spacingL),
+                decoration: AppTheme.cardDecoration(),
+                child: Column(
+                  children: [
+                    CustomIconWidget(
+                      iconName: 'timeline',
+                      color: AppTheme.secondaryText,
+                      size: 48),
+                    SizedBox(height: AppTheme.spacingM),
+                    Text(
+                      'No recent activity',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppTheme.secondaryText)),
+                    SizedBox(height: AppTheme.spacingS),
+                    Text(
+                      'Start using the app to see your activity here',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.secondaryText)),
+                  ])),
 
             SizedBox(height: 120), // Bottom padding for FAB
           ])));
@@ -728,7 +765,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onTap: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: "",
+                      route: AppRoutes.analyticsDashboard,
                       showFeedback: true,
                       feedbackMessage: 'Opening analytics...');
                   }),

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../../services/workspace_service.dart';
 
 class GoalSelectionCardWidget extends StatelessWidget {
-  final WorkspaceGoal goal;
   final String title;
   final String description;
   final IconData icon;
@@ -16,7 +14,6 @@ class GoalSelectionCardWidget extends StatelessWidget {
 
   const GoalSelectionCardWidget({
     Key? key,
-    required this.goal,
     required this.title,
     required this.description,
     required this.icon,

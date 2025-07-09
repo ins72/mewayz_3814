@@ -11,6 +11,7 @@ import '../presentation/course_creator/course_creator.dart';
 import '../presentation/crm_contact_management/crm_contact_management.dart';
 import '../presentation/email_marketing_campaign/email_marketing_campaign.dart';
 import '../presentation/email_verification_screen/email_verification_screen.dart';
+import '../presentation/enhanced_registration_screen/enhanced_registration_screen.dart';
 import '../presentation/enhanced_workspace_dashboard/enhanced_workspace_dashboard.dart';
 import '../presentation/forgot_password_screen/forgot_password_screen.dart';
 import '../presentation/goal_based_workspace_creation_screen/goal_based_workspace_creation_screen.dart';
@@ -31,7 +32,6 @@ import '../presentation/production_release_checklist_screen/production_release_c
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
 import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
-import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
 import '../presentation/security_settings_screen/security_settings_screen.dart';
@@ -53,12 +53,12 @@ import '../presentation/unified_onboarding_screen/unified_onboarding_screen.dart
 import '../presentation/unified_settings_screen/unified_settings_screen.dart';
 import '../presentation/users_team_management_screen/users_team_management_screen.dart';
 import '../presentation/workspace_creation_screen/workspace_creation_screen.dart';
-import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/workspace_selector_screen/workspace_selector_screen.dart';
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
+import '../widgets/auth_guard_widget.dart';
 
 class AppRoutes {
-  static const String initial = '/';
+  static const String initial = '/login-screen';
   static const String splashScreen = '/splash-screen';
   static const String onboarding = '/onboarding';
   static const String home = '/home';
@@ -77,6 +77,7 @@ class AppRoutes {
   static const String workspaceSelectorScreen = '/workspace-selector-screen';
   static const String workspaceDashboard = '/workspace-dashboard';
   static const String enhancedWorkspaceDashboard = '/enhanced-workspace-dashboard';
+  static const String enhancedRegistrationScreen = '/enhanced-registration-screen';
   static const String goalCustomizedWorkspaceDashboard = '/goal-customized-workspace-dashboard';
   static const String premiumSocialMediaHub = '/premium-social-media-hub';
   static const String loginScreen = '/login-screen';
@@ -87,6 +88,7 @@ class AppRoutes {
   static const String forgotPasswordScreen = '/forgot-password-screen';
   static const String resetPasswordScreen = '/reset-password-screen';
   static const String emailVerificationScreen = '/email-verification-screen';
+  static const String userOnboardingScreen = '/user-onboarding-screen';
   static const String twoFactorAuthenticationScreen = '/two-factor-authentication-screen';
   static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
   static const String advancedCrmManagementHub = '/advanced-crm-management-hub';
@@ -126,82 +128,84 @@ class AppRoutes {
   static const String setupProgressScreen = '/setup-progress-screen';
 
   static Map<String, Widget Function(BuildContext)> get routes => {
-    initial: (context) => const SplashScreen(),
-    splashScreen: (context) => const SplashScreen(),    onboardingScreen: (context) => const UnifiedOnboardingScreen(),
-    home: (context) => const WorkspaceDashboard(),
-    linkInBio: (context) => const LinkInBioTemplatesScreen(),
+    initial: (context) => const AuthGuard(child: SplashScreen()),
+    splashScreen: (context) => const AuthGuard(child: SplashScreen()),
+    onboardingScreen: (context) => const AuthGuard(child: UnifiedOnboardingScreen()),
+    home: (context) => const AuthGuard(child: EnhancedWorkspaceDashboard()),
+    linkInBio: (context) => const AuthGuard(child: LinkInBioTemplatesScreen()),
     forgotPassword: (context) => const ForgotPasswordScreen(),
-    register: (context) => const RegisterScreen(),
-    postingScreen: (context) => const MultiPlatformPostingScreen(),
-    scheduler: (context) => const SocialMediaScheduler(),
-    socialMediaAnalytics: (context) => const SocialMediaAnalyticsScreen(),
-    linkInBioAnalytics: (context) => const LinkInBioAnalyticsScreen(),
-    qrCodeGenerator: (context) => const QrCodeGeneratorScreen(),
-    goalSelectionScreen: (context) => const GoalSelectionScreen(),
-    goalBasedWorkspaceCreationScreen: (context) => const GoalBasedWorkspaceCreationScreen(),
-    postCreationTeamInvitationScreen: (context) => const PostCreationTeamInvitationScreen(),
-    workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
-    workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
-    workspaceDashboard: (context) => const WorkspaceDashboard(),
-    enhancedWorkspaceDashboard: (context) => const EnhancedWorkspaceDashboard(),
-    goalCustomizedWorkspaceDashboard: (context) => const GoalCustomizedWorkspaceDashboard(),
-    premiumSocialMediaHub: (context) => const PremiumSocialMediaHub(),
+    register: (context) => const EnhancedRegistrationScreen(),
+    postingScreen: (context) => const AuthGuard(child: MultiPlatformPostingScreen()),
+    scheduler: (context) => const AuthGuard(child: SocialMediaScheduler()),
+    socialMediaAnalytics: (context) => const AuthGuard(child: SocialMediaAnalyticsScreen()),
+    linkInBioAnalytics: (context) => const AuthGuard(child: LinkInBioAnalyticsScreen()),
+    qrCodeGenerator: (context) => const AuthGuard(child: QrCodeGeneratorScreen()),
+    goalSelectionScreen: (context) => const AuthGuard(child: GoalSelectionScreen()),
+    goalBasedWorkspaceCreationScreen: (context) => const AuthGuard(child: GoalBasedWorkspaceCreationScreen()),
+    postCreationTeamInvitationScreen: (context) => const AuthGuard(child: PostCreationTeamInvitationScreen()),
+    workspaceCreationScreen: (context) => const AuthGuard(child: WorkspaceCreationScreen()),
+    workspaceSelectorScreen: (context) => const AuthGuard(child: WorkspaceSelectorScreen()),
+    workspaceDashboard: (context) => const AuthGuard(child: EnhancedWorkspaceDashboard()),
+    enhancedWorkspaceDashboard: (context) => const AuthGuard(child: EnhancedWorkspaceDashboard()),
+    enhancedRegistrationScreen: (context) => const EnhancedRegistrationScreen(),
+    goalCustomizedWorkspaceDashboard: (context) => const AuthGuard(child: GoalCustomizedWorkspaceDashboard()),
+    premiumSocialMediaHub: (context) => const AuthGuard(child: PremiumSocialMediaHub()),
     loginScreen: (context) => const LoginScreen(),
-    registerScreen: (context) => const RegisterScreen(),
+    registerScreen: (context) => const EnhancedRegistrationScreen(),
     termsOfServiceScreen: (context) => const TermsOfServiceScreen(),
     privacyPolicyScreen: (context) => const PrivacyPolicyScreen(),
     forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
     resetPasswordScreen: (context) => const ResetPasswordScreen(),
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
-    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
-    advancedCrmManagementHub: (context) => const AdvancedCrmManagementHub(),
-    socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
-    socialMediaManagementHub: (context) => const SocialMediaManagementHub(),
-    socialMediaManager: (context) => const SocialMediaManager(),
-    socialMediaScheduler: (context) => const SocialMediaScheduler(),
-    socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
-    socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
-    settingsScreen: (context) => const SettingsScreen(),
-    settingsAccountManagement: (context) => const SettingsAccountManagement(),
-    accountSettingsScreen: (context) => const AccountSettingsScreen(),
-    profileSettingsScreen: (context) => const ProfileSettingsScreen(),
-    notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
-    securitySettingsScreen: (context) => const SecuritySettingsScreen(),
-    analyticsDashboard: (context) => const AnalyticsDashboard(),
-    linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
-    unifiedSettingsScreen: (context) => const UnifiedSettingsScreen(),
-    hashtagResearchScreen: (context) => const HashtagResearchScreen(),
-    instagramLeadSearch: (context) => const InstagramLeadSearch(),
-    multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
-    contentTemplatesScreen: (context) => const ContentTemplatesScreen(),
-    contentCalendarScreen: (context) => const ContentCalendarScreen(),
-    qrCodeGeneratorScreen: (context) => const QrCodeGeneratorScreen(),
-    emailMarketingCampaign: (context) => const EmailMarketingCampaign(),
-    crmContactManagement: (context) => const CrmContactManagement(),
-    marketplaceStore: (context) => const MarketplaceStore(),
-    courseCreator: (context) => const CourseCreator(),
-    workspaceSettingsScreen: (context) => const WorkspaceSettingsScreen(),
-    roleBasedAccessControlScreen: (context) => const RoleBasedAccessControlScreen(),
-    usersTeamManagementScreen: (context) => const UsersTeamManagementScreen(),
-    teamMemberInvitationScreen: (context) => const TeamMemberInvitationScreen(),
-    contactUsScreen: (context) => const ContactUsScreen(),
-    appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
-    productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
-    professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
-    setupProgressScreen: (context) => const SetupProgressScreen(),
+    linkInBioTemplatesScreen: (context) => const AuthGuard(child: LinkInBioTemplatesScreen()),
+    advancedCrmManagementHub: (context) => const AuthGuard(child: AdvancedCrmManagementHub()),
+    socialMediaManagementScreen: (context) => const AuthGuard(child: SocialMediaManagementScreen()),
+    socialMediaManagementHub: (context) => const AuthGuard(child: SocialMediaManagementHub()),
+    socialMediaManager: (context) => const AuthGuard(child: SocialMediaManager()),
+    socialMediaScheduler: (context) => const AuthGuard(child: SocialMediaScheduler()),
+    socialMediaSchedulerScreen: (context) => const AuthGuard(child: SocialMediaSchedulerScreen()),
+    socialMediaAnalyticsScreen: (context) => const AuthGuard(child: SocialMediaAnalyticsScreen()),
+    settingsScreen: (context) => const AuthGuard(child: SettingsScreen()),
+    settingsAccountManagement: (context) => const AuthGuard(child: SettingsAccountManagement()),
+    accountSettingsScreen: (context) => const AuthGuard(child: AccountSettingsScreen()),
+    profileSettingsScreen: (context) => const AuthGuard(child: ProfileSettingsScreen()),
+    notificationSettingsScreen: (context) => const AuthGuard(child: NotificationSettingsScreen()),
+    securitySettingsScreen: (context) => const AuthGuard(child: SecuritySettingsScreen()),
+    analyticsDashboard: (context) => const AuthGuard(child: AnalyticsDashboard()),
+    linkInBioAnalyticsScreen: (context) => const AuthGuard(child: LinkInBioAnalyticsScreen()),
+    unifiedSettingsScreen: (context) => const AuthGuard(child: UnifiedSettingsScreen()),
+    hashtagResearchScreen: (context) => const AuthGuard(child: HashtagResearchScreen()),
+    instagramLeadSearch: (context) => const AuthGuard(child: InstagramLeadSearch()),
+    multiPlatformPostingScreen: (context) => const AuthGuard(child: MultiPlatformPostingScreen()),
+    contentTemplatesScreen: (context) => const AuthGuard(child: ContentTemplatesScreen()),
+    contentCalendarScreen: (context) => const AuthGuard(child: ContentCalendarScreen()),
+    qrCodeGeneratorScreen: (context) => const AuthGuard(child: QrCodeGeneratorScreen()),
+    emailMarketingCampaign: (context) => const AuthGuard(child: EmailMarketingCampaign()),
+    crmContactManagement: (context) => const AuthGuard(child: CrmContactManagement()),
+    marketplaceStore: (context) => const AuthGuard(child: MarketplaceStore()),
+    courseCreator: (context) => const AuthGuard(child: CourseCreator()),
+    workspaceSettingsScreen: (context) => const AuthGuard(child: WorkspaceSettingsScreen()),
+    roleBasedAccessControlScreen: (context) => const AuthGuard(child: RoleBasedAccessControlScreen()),
+    usersTeamManagementScreen: (context) => const AuthGuard(child: UsersTeamManagementScreen()),
+    teamMemberInvitationScreen: (context) => const AuthGuard(child: TeamMemberInvitationScreen()),
+    contactUsScreen: (context) => const AuthGuard(child: ContactUsScreen()),
+    appStoreOptimizationScreen: (context) => const AuthGuard(child: AppStoreOptimizationScreen()),
+    productionReleaseChecklistScreen: (context) => const AuthGuard(child: ProductionReleaseChecklistScreen()),
+    professionalReadmeDocumentationScreen: (context) => const AuthGuard(child: ProfessionalReadmeDocumentationScreen()),
+    setupProgressScreen: (context) => const AuthGuard(child: SetupProgressScreen()),
     
     // Legacy and alternative routes for backward compatibility
-    '/social-media-management-hub': (context) => const SocialMediaManagementHub(),
-    '/social-media-manager-screen': (context) => const SocialMediaManager(),
-    '/analytics-hub': (context) => const UnifiedAnalyticsScreen(),
-    '/profile-settings': (context) => const ProfileSettingsScreen(),
-    '/account-settings': (context) => const AccountSettingsScreen(),
-    '/notification-settings': (context) => const NotificationSettingsScreen(),
-    '/security-settings': (context) => const SecuritySettingsScreen(),
-    '/setup-progress': (context) => const SetupProgressScreen(),
-    '/content-scheduler': (context) => const SocialMediaScheduler(),
-    '/unified-settings': (context) => const UnifiedSettingsScreen(),
-    '/goal-customized-workspace-dashboard': (context) => const GoalCustomizedWorkspaceDashboard(),
+    '/social-media-management-hub': (context) => const AuthGuard(child: SocialMediaManagementHub()),
+    '/social-media-manager-screen': (context) => const AuthGuard(child: SocialMediaManager()),
+    '/analytics-hub': (context) => const AuthGuard(child: UnifiedAnalyticsScreen()),
+    '/profile-settings': (context) => const AuthGuard(child: ProfileSettingsScreen()),
+    '/account-settings': (context) => const AuthGuard(child: AccountSettingsScreen()),
+    '/notification-settings': (context) => const AuthGuard(child: NotificationSettingsScreen()),
+    '/security-settings': (context) => const AuthGuard(child: SecuritySettingsScreen()),
+    '/setup-progress': (context) => const AuthGuard(child: SetupProgressScreen()),
+    '/content-scheduler': (context) => const AuthGuard(child: SocialMediaScheduler()),
+    '/unified-settings': (context) => const AuthGuard(child: UnifiedSettingsScreen()),
+    '/goal-customized-workspace-dashboard': (context) => const AuthGuard(child: GoalCustomizedWorkspaceDashboard()),
   };
 }

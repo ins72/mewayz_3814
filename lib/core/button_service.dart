@@ -57,9 +57,7 @@ class ButtonService {
       }
     } catch (error) {
       ErrorHandler.handleError(
-        'Button press failed for $buttonId: $error',
-        context: 'ButtonService.handleButtonPress',
-      );
+        'Button press failed for $buttonId: $error');
     } finally {
       // Clear processing state after a short delay
       Future.delayed(Duration(milliseconds: 100), () {
@@ -85,13 +83,10 @@ class ButtonService {
       await Navigator.pushNamed(
         context,
         route,
-        arguments: arguments,
-      );
+        arguments: arguments);
     } catch (error) {
       ErrorHandler.handleError(
-        'Navigation failed to $route: $error',
-        context: 'ButtonService.navigateTo',
-      );
+        'Navigation failed to $route: $error');
     }
   }
 
@@ -107,8 +102,7 @@ class ButtonService {
       route: route,
       arguments: arguments,
       showFeedback: showFeedback,
-      feedbackMessage: feedbackMessage,
-    );
+      feedbackMessage: feedbackMessage);
   }
 
   // Trigger haptic feedback with delay
@@ -160,11 +154,9 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
+        hapticType: hapticType),
       style: style,
-      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child,
-    );
+      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child);
   }
 
   // Enhanced outlined button
@@ -187,11 +179,9 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
+        hapticType: hapticType),
       style: style,
-      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child,
-    );
+      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child);
   }
 
   // Enhanced text button
@@ -214,11 +204,9 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
+        hapticType: hapticType),
       style: style,
-      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child,
-    );
+      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child);
   }
 
   // Enhanced icon button
@@ -241,11 +229,9 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
+        hapticType: hapticType),
       style: style,
-      icon: isLoading ? (loadingChild ?? _buildLoadingWidget()) : icon,
-    );
+      icon: isLoading ? (loadingChild ?? _buildLoadingWidget()) : icon);
   }
 
   // Enhanced floating action button
@@ -269,12 +255,10 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
+        hapticType: hapticType),
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
-      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child,
-    );
+      child: isLoading ? (loadingChild ?? _buildLoadingWidget()) : child);
   }
 
   // Build loading widget
@@ -284,9 +268,7 @@ class ButtonService {
       height: 4.w,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBackground),
-      ),
-    );
+        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBackground)));
   }
 
   // Check if button is currently being processed
@@ -326,10 +308,8 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
-      child: child,
-    );
+        hapticType: hapticType),
+      child: child);
   }
 
   // Enhanced inkwell with button handling
@@ -352,13 +332,11 @@ class ButtonService {
         enableHaptic: enableHaptic,
         enableDebounce: enableDebounce,
         customDebounceDelay: customDebounceDelay,
-        hapticType: hapticType,
-      ),
+        hapticType: hapticType),
       borderRadius: borderRadius,
       splashColor: splashColor,
       highlightColor: highlightColor,
-      child: child,
-    );
+      child: child);
   }
 }
 

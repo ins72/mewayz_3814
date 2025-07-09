@@ -59,7 +59,7 @@ class ApiClient {
           handler.next(response);
         },
         onError: (error, handler) {
-          ErrorHandler.handleError(error);
+          ErrorHandler.handleError(error.toString());
           handler.next(error);
         },
       ),

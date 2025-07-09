@@ -1,24 +1,24 @@
 
 import '../../core/app_export.dart';
-import './widgets/password_strength_indicator_widget.dart';
-import './widgets/registration_form_widget.dart';
-import './widgets/social_registration_widget.dart';
-import './widgets/terms_and_privacy_widget.dart';
+import './widgets/enhanced_password_strength_indicator_widget.dart';
+import './widgets/enhanced_registration_form_widget.dart';
+import './widgets/enhanced_social_registration_widget.dart';
+import './widgets/enhanced_terms_and_privacy_widget.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+class EnhancedRegistrationScreen extends StatefulWidget {
+  const EnhancedRegistrationScreen({Key? key}) : super(key: key);
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<EnhancedRegistrationScreen> createState() => _EnhancedRegistrationScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _fullNameController = TextEditingController(); // Combined full name
+  final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final FocusNode _fullNameFocusNode = FocusNode(); // Combined full name focus
+  final FocusNode _fullNameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _confirmPasswordFocusNode = FocusNode();
@@ -28,15 +28,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _acceptTerms = false;
   bool _acceptPrivacy = false;
-  bool _acceptNewsletter = false;
 
-  String? _fullNameError; // Combined full name error
+  String? _fullNameError;
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
   String? _generalError;
 
-  // Add real-time password strength tracking
   int _passwordStrength = 0;
   String _passwordStrengthText = '';
 
@@ -52,11 +50,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _fullNameController.dispose(); // Updated disposal
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _fullNameFocusNode.dispose(); // Updated disposal
+    _fullNameFocusNode.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
@@ -73,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _setupFocusListeners() {
-    _fullNameFocusNode.addListener(() { // Updated focus listener
+    _fullNameFocusNode.addListener(() {
       if (!_fullNameFocusNode.hasFocus && _fullNameController.text.isNotEmpty) {
         _validateFullName();
       }
@@ -114,7 +112,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    // Check if it contains at least first and last name (space separated)
     final nameParts = fullName.split(' ').where((part) => part.isNotEmpty).toList();
     if (nameParts.length < 2) {
       setState(() {
@@ -168,7 +165,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    // Check for at least one uppercase letter
     if (!RegExp(r'[A-Z]').hasMatch(password)) {
       setState(() {
         _passwordError = 'Password must contain at least one uppercase letter';
@@ -176,7 +172,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    // Check for at least one lowercase letter
     if (!RegExp(r'[a-z]').hasMatch(password)) {
       setState(() {
         _passwordError = 'Password must contain at least one lowercase letter';
@@ -184,7 +179,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    // Check for at least one digit
     if (!RegExp(r'[0-9]').hasMatch(password)) {
       setState(() {
         _passwordError = 'Password must contain at least one number';
@@ -192,7 +186,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    // Check for at least one special character
     if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]').hasMatch(password)) {
       setState(() {
         _passwordError = 'Password must contain at least one special character';
@@ -228,43 +221,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return true;
   }
 
-  // Add real-time validation
-  void _setupRealTimeValidation() {
-    _fullNameController.addListener(() {
-      if (_fullNameController.text.isNotEmpty) {
-        _validateFullName();
-      }
-    });
-
-    _emailController.addListener(() {
-      if (_emailController.text.isNotEmpty) {
-        _validateEmail();
-      }
-    });
-
-    _passwordController.addListener(() {
-      if (_passwordController.text.isNotEmpty) {
-        _validatePassword();
-      }
-      // Also validate confirm password when password changes
-      if (_confirmPasswordController.text.isNotEmpty) {
-        _validateConfirmPassword();
-      }
-    });
-
-    _confirmPasswordController.addListener(() {
-      if (_confirmPasswordController.text.isNotEmpty) {
-        _validateConfirmPassword();
-      }
-    });
-  }
-
   bool get _isFormValid {
-    return _fullNameController.text.isNotEmpty && // Updated validation check
+    return _fullNameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _confirmPasswordController.text.isNotEmpty &&
-        _fullNameError == null && // Updated error check
+        _fullNameError == null &&
         _emailError == null &&
         _passwordError == null &&
         _confirmPasswordError == null &&
@@ -273,16 +235,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    // Validate all fields before proceeding
-    final isFullNameValid = _validateFullName();
-    final isEmailValid = _validateEmail();
-    final isPasswordValid = _validatePassword();
-    final isConfirmPasswordValid = _validateConfirmPassword();
-
-    if (!isFullNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
-      setState(() {
-        _generalError = 'Please fix the errors above to continue';
-      });
+    if (!_validateFullName() || 
+        !_validateEmail() || 
+        !_validatePassword() || 
+        !_validateConfirmPassword()) {
       return;
     }
 
@@ -304,13 +260,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final response = await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        fullName: fullName);
+        fullName: fullName,
+      );
 
       if (response?.user != null) {
-        // Trigger haptic feedback
         HapticFeedback.lightImpact();
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -318,14 +273,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 CustomIconWidget(
                   iconName: 'check_circle',
                   color: Colors.green,
-                  size: 20),
+                  size: 20,
+                ),
                 SizedBox(width: 2.w),
                 Expanded(
                   child: Text(
                     'Registration successful! Please check your email to verify your account.',
                     style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white))),
-              ]),
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 5),
             action: SnackBarAction(
@@ -333,21 +293,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
               textColor: Colors.white,
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              })));
+              },
+            ),
+          ),
+        );
 
-        // Navigate to email verification screen
+        // Navigate to email verification screen instead of directly to onboarding
         Navigator.pushReplacementNamed(
           context, 
           AppRoutes.emailVerificationScreen,
           arguments: {
             'email': _emailController.text.trim(),
             'fullName': fullName,
-          });
+          },
+        );
       } else {
         setState(() {
           _generalError = 'Registration failed. Please try again.';
         });
       }
+    } on Exception catch (e) {
+      String errorMessage = 'Registration failed';
+      
+      if (e.toString().contains('already registered')) {
+        errorMessage = 'An account with this email already exists. Please try logging in instead.';
+      } else if (e.toString().contains('weak password')) {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      } else if (e.toString().contains('invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else {
+        errorMessage = e.toString();
+      }
+      
+      setState(() {
+        _generalError = errorMessage;
+      });
     } catch (e) {
       String errorMessage = 'Registration failed. Please try again.';
       
@@ -396,7 +376,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       
       if (response?.user != null) {
         HapticFeedback.lightImpact();
-        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+        Navigator.pushReplacementNamed(context, AppRoutes.enhancedWorkspaceDashboard);
       } else {
         setState(() {
           _generalError = 'Google sign up was cancelled';
@@ -431,7 +411,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       
       if (response?.user != null) {
         HapticFeedback.lightImpact();
-        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+        Navigator.pushReplacementNamed(context, AppRoutes.enhancedWorkspaceDashboard);
       } else {
         setState(() {
           _generalError = 'Apple sign up was cancelled';
@@ -451,7 +431,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleTermsOfServiceTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.termsOfServiceScreen);
+      AppRoutes.termsOfServiceScreen,
+    );
     
     if (result == true) {
       setState(() {
@@ -463,7 +444,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handlePrivacyPolicyTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.privacyPolicyScreen);
+      AppRoutes.privacyPolicyScreen,
+    );
     
     if (result == true) {
       setState(() {
@@ -482,19 +464,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     int strength = 0;
     
-    // Length check
     if (password.length >= 8) strength++;
-    
-    // Uppercase letter check
     if (RegExp(r'[A-Z]').hasMatch(password)) strength++;
-    
-    // Lowercase letter check
     if (RegExp(r'[a-z]').hasMatch(password)) strength++;
-    
-    // Number check
     if (RegExp(r'[0-9]').hasMatch(password)) strength++;
-    
-    // Special character check - Fixed regex pattern
     if (RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]').hasMatch(password)) strength++;
     
     return strength;
@@ -523,172 +496,182 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryBackground,
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 4.h),
+      backgroundColor: const Color(0xFF101010),
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF101010),
+                Color(0xFF0A0A0A),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 4.h),
 
-                // Mewayz Logo
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 16.w,
-                        height: 16.w,
-                        decoration: BoxDecoration(
-                          color: AppTheme.accent,
-                          borderRadius: BorderRadius.circular(3.w)),
-                        child: Center(
-                          child: Text(
-                            'M',
-                            style: AppTheme.darkTheme.textTheme.headlineLarge?.copyWith(
-                              color: AppTheme.primaryAction,
-                              fontWeight: FontWeight.bold)))),
-                      SizedBox(height: 2.h),
-                      Text(
-                        'Create Account',
-                        style: AppTheme.darkTheme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w600)),
-                      SizedBox(height: 1.h),
-                      Text(
-                        'Join thousands of businesses using Mewayz',
-                        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.secondaryText),
-                        textAlign: TextAlign.center),
-                    ])),
+                  // Mewayz Logo
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 16.w,
+                          height: 16.w,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF007AFF),
+                            borderRadius: BorderRadius.circular(3.w),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'M',
+                              style: GoogleFonts.inter(
+                                fontSize: 24.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          'Create Account',
+                          style: GoogleFonts.inter(
+                            fontSize: 24.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 1.h),
+                        Text(
+                          'Join thousands of businesses using Mewayz',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            color: const Color(0xFF8E8E93),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
 
-                SizedBox(height: 6.h),
+                  SizedBox(height: 6.h),
 
-                // Registration Form
-                RegistrationFormWidget(
-                  formKey: _formKey,
-                  fullNameController: _fullNameController, // Updated to use single controller
-                  fullNameFocusNode: _fullNameFocusNode, // Updated to use single focus node
-                  emailController: _emailController,
-                  passwordController: _passwordController,
-                  confirmPasswordController: _confirmPasswordController,
+                  // Registration Form
+                  EnhancedRegistrationFormWidget(
+                    formKey: _formKey,
+                    fullNameController: _fullNameController,
+                    fullNameFocusNode: _fullNameFocusNode,
+                    emailController: _emailController,
+                    passwordController: _passwordController,
+                    confirmPasswordController: _confirmPasswordController,
+                    emailFocusNode: _emailFocusNode,
+                    passwordFocusNode: _passwordFocusNode,
+                    confirmPasswordFocusNode: _confirmPasswordFocusNode,
+                    isPasswordVisible: _isPasswordVisible,
+                    isConfirmPasswordVisible: _isConfirmPasswordVisible,
+                    fullNameError: _fullNameError,
+                    emailError: _emailError,
+                    passwordError: _passwordError,
+                    confirmPasswordError: _confirmPasswordError,
+                    generalError: _generalError,
+                    isLoading: _isLoading,
+                    isFormValid: _isFormValid,
+                    onPasswordVisibilityToggle: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                    onConfirmPasswordVisibilityToggle: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                    onRegister: _handleRegister,
+                  ),
 
-                  emailFocusNode: _emailFocusNode,
-                  passwordFocusNode: _passwordFocusNode,
-                  confirmPasswordFocusNode: _confirmPasswordFocusNode,
-                  isPasswordVisible: _isPasswordVisible,
-                  isConfirmPasswordVisible: _isConfirmPasswordVisible,
+                  SizedBox(height: 2.h),
 
-                  fullNameError: _fullNameError, // Updated to use single error
-                  emailError: _emailError,
-                  passwordError: _passwordError,
-                  confirmPasswordError: _confirmPasswordError,
-                  generalError: _generalError,
-                  isLoading: _isLoading,
-                  isFormValid: _isFormValid,
-                  onPasswordVisibilityToggle: () {
-                    setState(() {
-                      _isPasswordVisible = !_isPasswordVisible;
-                    });
-                  },
-                  onConfirmPasswordVisibilityToggle: () {
-                    setState(() {
-                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                    });
-                  },
-                  onRegister: _handleRegister),
+                  // Enhanced Password Strength Indicator
+                  EnhancedPasswordStrengthIndicatorWidget(
+                    strength: _passwordStrength,
+                    strengthText: _passwordStrengthText,
+                  ),
 
-                SizedBox(height: 2.h),
+                  SizedBox(height: 4.h),
 
-                // Password Strength Indicator - Use real-time values
-                PasswordStrengthIndicatorWidget(
-                  strength: _passwordStrength,
-                  strengthText: _passwordStrengthText),
+                  // Enhanced Terms and Privacy
+                  EnhancedTermsAndPrivacyWidget(
+                    acceptTerms: _acceptTerms,
+                    acceptPrivacy: _acceptPrivacy,
+                    onTermsChanged: (value) {
+                      setState(() {
+                        _acceptTerms = value ?? false;
+                        _generalError = null;
+                      });
+                    },
+                    onPrivacyChanged: (value) {
+                      setState(() {
+                        _acceptPrivacy = value ?? false;
+                        _generalError = null;
+                      });
+                    },
+                    onTermsOfServiceTap: _handleTermsOfServiceTap,
+                    onPrivacyPolicyTap: _handlePrivacyPolicyTap,
+                  ),
 
-                SizedBox(height: 4.h),
+                  SizedBox(height: 4.h),
 
-                // Terms and Privacy
-                TermsAndPrivacyWidget(
-                  acceptTerms: _acceptTerms,
-                  acceptPrivacy: _acceptPrivacy,
-                  onTermsChanged: (value) {
-                    setState(() {
-                      _acceptTerms = value ?? false;
-                      _generalError = null;
-                    });
-                  },
-                  onPrivacyChanged: (value) {
-                    setState(() {
-                      _acceptPrivacy = value ?? false;
-                      _generalError = null;
-                    });
-                  },
-                  onTermsOfServiceTap: _handleTermsOfServiceTap,
-                  onPrivacyPolicyTap: _handlePrivacyPolicyTap),
+                  // Enhanced Social Registration
+                  EnhancedSocialRegistrationWidget(
+                    onGoogleSignUp: _handleGoogleSignUp,
+                    onAppleSignUp: _handleAppleSignUp,
+                  ),
 
-                SizedBox(height: 4.h),
+                  SizedBox(height: 4.h),
 
-                // Social Registration
-                SocialRegistrationWidget(
-                  onGoogleSignUp: _handleGoogleSignUp,
-                  onAppleSignUp: _handleAppleSignUp),
+                  // Sign In Link
+                  Center(
+                    child: GestureDetector(
+                      onTap: _handleSignIn,
+                      child: RichText(
+                        text: TextSpan(
+                          text: 'Already have an account? ',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            color: const Color(0xFF7B7B7B),
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Login',
+                              style: GoogleFonts.inter(
+                                fontSize: 14.sp,
+                                color: const Color(0xFF007AFF),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
 
-                SizedBox(height: 4.h),
-
-                // Sign In Link
-                Center(
-                  child: GestureDetector(
-                    onTap: _handleSignIn,
-                    child: RichText(
-                      text: TextSpan(
-                        text: 'Already have an account? ',
-                        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.secondaryText),
-                        children: [
-                          TextSpan(
-                            text: 'Sign In',
-                            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.accent,
-                              fontWeight: FontWeight.w500)),
-                        ])))),
-
-                SizedBox(height: 4.h),
-
-                // Terms of Service and Privacy Policy
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.termsOfServiceScreen);
-                      },
-                      child: Text(
-                        "Terms of Service",
-                        style: GoogleFonts.inter(
-                          
-                          fontSize: 3.5.w,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline))),
-                    SizedBox(width: 10.w),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.privacyPolicyScreen);
-                      },
-                      child: Text(
-                        "Privacy Policy",
-                        style: GoogleFonts.inter(
-                          
-                          fontSize: 3.5.w,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline))),
-                  ]),
-              ])))));
+                  SizedBox(height: 4.h),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

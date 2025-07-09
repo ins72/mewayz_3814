@@ -37,11 +37,11 @@ class RegistrationFormWidget extends StatelessWidget {
     required this.confirmPasswordFocusNode,
     required this.isPasswordVisible,
     required this.isConfirmPasswordVisible,
-    this.fullNameError,
-    this.emailError,
-    this.passwordError,
-    this.confirmPasswordError,
-    this.generalError,
+    required this.fullNameError,
+    required this.emailError,
+    required this.passwordError,
+    required this.confirmPasswordError,
+    required this.generalError,
     required this.isLoading,
     required this.isFormValid,
     required this.onPasswordVisibilityToggle,
@@ -56,234 +56,132 @@ class RegistrationFormWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Full Name Input
-          TextFormField(
+          // Full Name Field
+          CustomFormFieldWidget(
             controller: fullNameController,
             focusNode: fullNameFocusNode,
-            textInputAction: TextInputAction.next,
+            label: 'Full Name',
+            hint: 'Enter your full name',
             keyboardType: TextInputType.name,
-            style: AppTheme.darkTheme.textTheme.bodyLarge,
-            decoration: InputDecoration(
-              labelText: 'Full Name',
-              hintText: 'Enter your full name',
-              prefixIcon: const Icon(Icons.person_outline,
-                  color: AppTheme.secondaryText),
-              errorText: fullNameError,
-              filled: true,
-              fillColor: AppTheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.accent, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.error),
-              ),
-            ),
-          ),
+            textInputAction: TextInputAction.next,
+            required: true,
+            validator: (value) => fullNameError,
+            prefixIcon: CustomIconWidget(
+              iconName: 'person',
+              size: 5.w,
+              color: AppTheme.secondaryText),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(emailFocusNode);
+            }),
 
-          SizedBox(height: 2.h),
+          SizedBox(height: 3.h),
 
-          // Email Input
-          TextFormField(
+          // Email Field
+          CustomFormFieldWidget(
             controller: emailController,
             focusNode: emailFocusNode,
-            textInputAction: TextInputAction.next,
+            label: 'Email Address',
+            hint: 'Enter your email address',
             keyboardType: TextInputType.emailAddress,
-            style: AppTheme.darkTheme.textTheme.bodyLarge,
-            decoration: InputDecoration(
-              labelText: 'Email Address',
-              hintText: 'Enter your email address',
-              prefixIcon: const Icon(Icons.email_outlined,
-                  color: AppTheme.secondaryText),
-              errorText: emailError,
-              filled: true,
-              fillColor: AppTheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.accent, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.error),
-              ),
-            ),
-          ),
+            textInputAction: TextInputAction.next,
+            required: true,
+            validator: (value) => emailError,
+            prefixIcon: CustomIconWidget(
+              iconName: 'email',
+              size: 5.w,
+              color: AppTheme.secondaryText),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(passwordFocusNode);
+            }),
 
-          SizedBox(height: 2.h),
+          SizedBox(height: 3.h),
 
-          // Password Input
-          TextFormField(
+          // Password Field
+          CustomFormFieldWidget(
             controller: passwordController,
             focusNode: passwordFocusNode,
-            textInputAction: TextInputAction.next,
+            label: 'Password',
+            hint: 'Enter your password',
             obscureText: !isPasswordVisible,
-            style: AppTheme.darkTheme.textTheme.bodyLarge,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              hintText: 'Enter your password',
-              prefixIcon:
-                  const Icon(Icons.lock_outline, color: AppTheme.secondaryText),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                  color: AppTheme.secondaryText,
-                ),
-                onPressed: onPasswordVisibilityToggle,
-              ),
-              errorText: passwordError,
-              filled: true,
-              fillColor: AppTheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.accent, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.error),
-              ),
-            ),
-          ),
+            textInputAction: TextInputAction.next,
+            required: true,
+            validator: (value) => passwordError,
+            prefixIcon: CustomIconWidget(
+              iconName: 'lock',
+              size: 5.w,
+              color: AppTheme.secondaryText),
+            suffixIcon: GestureDetector(
+              onTap: onPasswordVisibilityToggle,
+              child: CustomIconWidget(
+                iconName: isPasswordVisible ? 'visibility_off' : 'visibility',
+                size: 5.w,
+                color: AppTheme.secondaryText)),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(confirmPasswordFocusNode);
+            }),
+
+          SizedBox(height: 3.h),
+
+          // Confirm Password Field
+          CustomFormFieldWidget(
+            controller: confirmPasswordController,
+            focusNode: confirmPasswordFocusNode,
+            label: 'Confirm Password',
+            hint: 'Confirm your password',
+            obscureText: !isConfirmPasswordVisible,
+            textInputAction: TextInputAction.done,
+            required: true,
+            validator: (value) => confirmPasswordError,
+            prefixIcon: CustomIconWidget(
+              iconName: 'lock',
+              size: 5.w,
+              color: AppTheme.secondaryText),
+            suffixIcon: GestureDetector(
+              onTap: onConfirmPasswordVisibilityToggle,
+              child: CustomIconWidget(
+                iconName: isConfirmPasswordVisible ? 'visibility_off' : 'visibility',
+                size: 5.w,
+                color: AppTheme.secondaryText)),
+            onFieldSubmitted: (value) {
+              if (isFormValid) {
+                onRegister();
+              }
+            }),
 
           SizedBox(height: 2.h),
 
-          // Confirm Password Input
-          TextFormField(
-            controller: confirmPasswordController,
-            focusNode: confirmPasswordFocusNode,
-            textInputAction: TextInputAction.done,
-            obscureText: !isConfirmPasswordVisible,
-            style: AppTheme.darkTheme.textTheme.bodyLarge,
-            decoration: InputDecoration(
-              labelText: 'Confirm Password',
-              hintText: 'Confirm your password',
-              prefixIcon:
-                  const Icon(Icons.lock_outline, color: AppTheme.secondaryText),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  isConfirmPasswordVisible
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  color: AppTheme.secondaryText,
-                ),
-                onPressed: onConfirmPasswordVisibilityToggle,
-              ),
-              errorText: confirmPasswordError,
-              filled: true,
-              fillColor: AppTheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.accent, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.error),
-              ),
-            ),
-          ),
-
-          if (generalError != null) ...[
-            SizedBox(height: 2.h),
+          // General Error Message
+          if (generalError != null)
             Container(
               padding: EdgeInsets.all(3.w),
               decoration: BoxDecoration(
-                color: AppTheme.error.withAlpha(26),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.error),
-              ),
+                color: Colors.red.withAlpha(26),
+                borderRadius: BorderRadius.circular(2.w),
+                border: Border.all(color: Colors.red.withAlpha(77))),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      color: AppTheme.error, size: 20),
+                  CustomIconWidget(
+                    iconName: 'error',
+                    color: Colors.red,
+                    size: 5.w),
                   SizedBox(width: 2.w),
                   Expanded(
                     child: Text(
                       generalError!,
-                      style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.error,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+                      style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                        color: Colors.red))),
+                ])),
 
           SizedBox(height: 4.h),
 
           // Register Button
-          ElevatedButton(
-            onPressed: isFormValid && !isLoading ? onRegister : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isFormValid && !isLoading
-                  ? AppTheme.primaryAction
-                  : AppTheme.border,
-              foregroundColor: isFormValid && !isLoading
-                  ? AppTheme.primaryBackground
-                  : AppTheme.secondaryText,
-              padding: EdgeInsets.symmetric(vertical: 4.w),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-            ),
-            child: isLoading
-                ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        isFormValid
-                            ? AppTheme.primaryBackground
-                            : AppTheme.secondaryText,
-                      ),
-                    ),
-                  )
-                : Text(
-                    'Create Account',
-                    style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isFormValid
-                          ? AppTheme.primaryBackground
-                          : AppTheme.secondaryText,
-                    ),
-                  ),
-          ),
-        ],
-      ),
-    );
+          CustomEnhancedButtonWidget(
+            buttonId: 'register_button',
+            child: Text('Create Account'),
+            isLoading: isLoading,
+            isEnabled: isFormValid && !isLoading,
+            onPressed: isFormValid && !isLoading ? () => onRegister() : () {},
+            buttonType: ButtonType.Primary),
+        ]));
   }
 }

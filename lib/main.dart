@@ -1,6 +1,8 @@
 
 import '../core/app_export.dart';
 import './routes/app_routes.dart' as app_routes;
+import './services/production_data_sync_service.dart';
+import './services/unified_data_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,8 +13,7 @@ void main() async {
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return CustomErrorWidget(
-      errorDetails: details,
-    );
+      errorDetails: details);
   };
 
   // 🚨 CRITICAL: Device orientation and system UI setup - DO NOT REMOVE
@@ -37,6 +38,7 @@ Future<void> _initializeServices() async {
     await _initializeSupabase();
     await _initializeAuthService();
     await _initializeStorage();
+    await _initializeDataServices();
     await _initializeApiClient();
     await _initializeAnalytics();
     await _initializeNotifications();
@@ -46,8 +48,8 @@ Future<void> _initializeServices() async {
     if (ProductionConfig.enableLogging) {
       debugPrint('✅ All services initialized successfully');
     }
-  } catch (e, stackTrace) {
-    ErrorHandler.handleError('Failed to initialize services: $e', stackTrace: stackTrace);
+  } catch (e) {
+    ErrorHandler.handleError('Failed to initialize services: $e');
   }
 }
 
@@ -90,6 +92,31 @@ Future<void> _initializeStorage() async {
   } catch (e) {
     if (ProductionConfig.enableLogging) {
       debugPrint('❌ Storage service initialization failed: $e');
+    }
+    rethrow;
+  }
+}
+
+Future<void> _initializeDataServices() async {
+  try {
+    // Initialize unified data service
+    final unifiedDataService = UnifiedDataService();
+    await unifiedDataService.initialize();
+    
+    // Initialize production data sync service
+    final productionDataSyncService = ProductionDataSyncService();
+    await productionDataSyncService.initialize();
+    
+    // Initialize main data service
+    final dataService = DataService();
+    await dataService.initialize();
+    
+    if (ProductionConfig.enableLogging) {
+      debugPrint('✅ Data services initialized');
+    }
+  } catch (e) {
+    if (ProductionConfig.enableLogging) {
+      debugPrint('❌ Data services initialization failed: $e');
     }
     rethrow;
   }
@@ -186,9 +213,7 @@ Future<void> _setupSystemUI() async {
         statusBarBrightness: Brightness.dark,
         systemNavigationBarColor: AppTheme.primaryBackground,
         systemNavigationBarIconBrightness: Brightness.light,
-        systemNavigationBarDividerColor: Colors.transparent,
-      ),
-    );
+        systemNavigationBarDividerColor: Colors.transparent));
 
     if (ProductionConfig.enableLogging) {
       debugPrint('✅ System UI configured');
@@ -216,16 +241,14 @@ class MyApp extends StatelessWidget {
           builder: (context, child) {
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(1.0),
-              ),
-              child: child!,
-            );
+                textScaler: TextScaler.linear(1.0)),
+              child: child!);
           },
           // 🚨 END CRITICAL SECTION
           
           debugShowCheckedModeBanner: ProductionConfig.isDebug,
           routes: app_routes.AppRoutes.routes,
-          initialRoute: app_routes.AppRoutes.initial,
+          initialRoute: app_routes.AppRoutes.loginScreen,
           
           // Enhanced error handling for unknown routes
           onUnknownRoute: (RouteSettings settings) {
@@ -235,11 +258,9 @@ class MyApp extends StatelessWidget {
                 appBar: AppBar(
                   title: Text(
                     'Page Not Found',
-                    style: AppTheme.darkTheme.textTheme.titleLarge,
-                  ),
+                    style: AppTheme.darkTheme.textTheme.titleLarge),
                   backgroundColor: AppTheme.primaryBackground,
-                  elevation: 0,
-                ),
+                  elevation: 0),
                 body: Center(
                   child: Container(
                     padding: EdgeInsets.all(8.w),
@@ -251,65 +272,44 @@ class MyApp extends StatelessWidget {
                           height: 20.w,
                           decoration: BoxDecoration(
                             color: AppTheme.error.withAlpha(26),
-                            borderRadius: BorderRadius.circular(10.w),
-                          ),
+                            borderRadius: BorderRadius.circular(10.w)),
                           child: Center(
                             child: CustomIconWidget(
                               iconName: 'error_outline',
                               color: AppTheme.error,
-                              size: 48,
-                            ),
-                          ),
-                        ),
+                              size: 48))),
                         SizedBox(height: 4.h),
                         Text(
                           'Page Not Found',
                           style: AppTheme.darkTheme.textTheme.headlineSmall?.copyWith(
                             color: AppTheme.primaryText,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                            fontWeight: FontWeight.w600),
+                          textAlign: TextAlign.center),
                         SizedBox(height: 2.h),
                         Text(
                           'The page "${settings.name}" could not be found.',
                           style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.secondaryText,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                            color: AppTheme.secondaryText),
+                          textAlign: TextAlign.center),
                         SizedBox(height: 4.h),
                         ElevatedButton(
                           onPressed: () => Navigator.pushNamedAndRemoveUntil(
                             context,
-                            app_routes.AppRoutes.initial,
-                            (route) => false,
-                          ),
+                            app_routes.AppRoutes.loginScreen,
+                            (route) => false),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.accent,
                             foregroundColor: AppTheme.primaryAction,
                             padding: EdgeInsets.symmetric(
                               horizontal: 8.w,
-                              vertical: 2.h,
-                            ),
-                          ),
+                              vertical: 2.h)),
                           child: Text(
-                            'Go to Home',
+                            'Go to Login',
                             style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
                               color: AppTheme.primaryAction,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+                              fontWeight: FontWeight.w600))),
+                      ])))));
+          });
+      });
   }
 }

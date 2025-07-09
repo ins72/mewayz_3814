@@ -1,415 +1,528 @@
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
-
-import './error_handler.dart';
 import './production_config.dart';
 
-/// Custom exception for storage-related errors
-class StorageException implements Exception {
-  final String message;
-  StorageException(this.message);
-}
-
-/// Service for managing local storage
+/// Enhanced storage service with production-ready features
+/// Handles authentication, caching, and offline data storage
 class StorageService {
   static final StorageService _instance = StorageService._internal();
   factory StorageService() => _instance;
   StorageService._internal();
-  
-  SharedPreferences? _prefs;
-  
+
+  late SharedPreferences _prefs;
+  bool _isInitialized = false;
+
+  /// Initialize storage service
   Future<void> initialize() async {
+    if (_isInitialized) return;
+    
     try {
       _prefs = await SharedPreferences.getInstance();
+      _isInitialized = true;
+      debugPrint('StorageService initialized successfully');
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to initialize storage: $e'));
+      throw Exception('Failed to initialize StorageService: $e');
     }
   }
-  
-  SharedPreferences get prefs {
-    if (_prefs == null) {
-      throw StorageException('Storage not initialized. Call initialize() first.');
+
+  /// Ensure storage service is initialized
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await initialize();
     }
-    return _prefs!;
   }
+
+  /// AUTH TOKEN MANAGEMENT
   
-  // Auth token management
+  /// Save authentication token
   Future<void> saveAuthToken(String token) async {
-    try {
-      await prefs.setString('auth_token', token);
-      await prefs.setInt('auth_token_timestamp', DateTime.now().millisecondsSinceEpoch);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save auth token: $e'));
-    }
+    await _ensureInitialized();
+    await _prefs.setString('auth_token', token);
   }
-  
+
+  /// Get authentication token
   Future<String?> getAuthToken() async {
-    try {
-      final token = prefs.getString('auth_token');
-      final timestamp = prefs.getInt('auth_token_timestamp');
-      
-      if (token != null && timestamp != null) {
-        final tokenDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
-        final now = DateTime.now();
-        
-        if (now.difference(tokenDate) > ProductionConfig.sessionTimeout) {
-          await clearAuthData();
-          return null;
-        }
-        
-        return token;
-      }
-      
-      return null;
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get auth token: $e'));
-      return null;
-    }
+    await _ensureInitialized();
+    return _prefs.getString('auth_token');
   }
-  
+
+  /// Save refresh token
   Future<void> saveRefreshToken(String refreshToken) async {
-    try {
-      await prefs.setString('refresh_token', refreshToken);
-      await prefs.setInt('refresh_token_timestamp', DateTime.now().millisecondsSinceEpoch);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save refresh token: $e'));
-    }
+    await _ensureInitialized();
+    await _prefs.setString('refresh_token', refreshToken);
   }
-  
+
+  /// Get refresh token
   Future<String?> getRefreshToken() async {
-    try {
-      final token = prefs.getString('refresh_token');
-      final timestamp = prefs.getInt('refresh_token_timestamp');
-      
-      if (token != null && timestamp != null) {
-        final tokenDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
-        final now = DateTime.now();
-        
-        if (now.difference(tokenDate) > ProductionConfig.refreshTokenTimeout) {
-          await clearAuthData();
-          return null;
-        }
-        
-        return token;
-      }
-      
-      return null;
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get refresh token: $e'));
-      return null;
-    }
+    await _ensureInitialized();
+    return _prefs.getString('refresh_token');
   }
-  
+
+  /// Clear authentication data
   Future<void> clearAuthData() async {
-    try {
-      await prefs.remove('auth_token');
-      await prefs.remove('auth_token_timestamp');
-      await prefs.remove('refresh_token');
-      await prefs.remove('refresh_token_timestamp');
-      await prefs.remove('user_data');
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to clear auth data: $e'));
-    }
+    await _ensureInitialized();
+    await _prefs.remove('auth_token');
+    await _prefs.remove('refresh_token');
+    await _prefs.remove('user_data');
+    await _prefs.remove('session_data');
   }
+
+  /// USER DATA MANAGEMENT
   
-  // User data management
+  /// Save user data
   Future<void> saveUserData(Map<String, dynamic> userData) async {
-    try {
-      // Save individual user data fields
-      await prefs.setString('user_id', userData['id'] ?? '');
-      await prefs.setString('user_email', userData['email'] ?? '');
-      await prefs.setString('user_full_name', userData['full_name'] ?? '');
-      await prefs.setString('user_role', userData['role'] ?? '');
-      await prefs.setBool('email_verified', userData['email_verified'] ?? false);
-      await prefs.setBool('biometric_enabled', userData['biometric_enabled'] ?? false);
-      await prefs.setBool('logged_in', userData['logged_in'] ?? false);
-      await prefs.setString('session_token', userData['session_token'] ?? '');
-      
-      debugPrint('User data saved successfully');
-    } catch (e) {
-      ErrorHandler.handleError('Failed to save user data: $e');
-      throw Exception('Failed to save user data');
-    }
+    await _ensureInitialized();
+    final jsonString = jsonEncode(userData);
+    await _prefs.setString('user_data', jsonString);
   }
-  
+
+  /// Get user data
   Future<Map<String, dynamic>?> getUserData() async {
+    await _ensureInitialized();
+    final jsonString = _prefs.getString('user_data');
+    if (jsonString != null) {
+      return Map<String, dynamic>.from(jsonDecode(jsonString));
+    }
+    return null;
+  }
+
+  /// SESSION MANAGEMENT
+  
+  /// Save session data
+  Future<void> saveSessionData(Map<String, dynamic> sessionData) async {
+    await _ensureInitialized();
+    final jsonString = jsonEncode(sessionData);
+    await _prefs.setString('session_data', jsonString);
+  }
+
+  /// Get session data
+  Future<Map<String, dynamic>?> getSessionData() async {
+    await _ensureInitialized();
+    final jsonString = _prefs.getString('session_data');
+    if (jsonString != null) {
+      return Map<String, dynamic>.from(jsonDecode(jsonString));
+    }
+    return null;
+  }
+
+  /// WORKSPACE MANAGEMENT
+  
+  /// Save current workspace
+  Future<void> saveCurrentWorkspace(String workspaceId) async {
+    await _ensureInitialized();
+    await _prefs.setString('current_workspace', workspaceId);
+  }
+
+  /// Get current workspace
+  Future<String?> getCurrentWorkspace() async {
+    await _ensureInitialized();
+    return _prefs.getString('current_workspace');
+  }
+
+  /// Save workspace data
+  Future<void> saveWorkspaceData(Map<String, dynamic> workspaceData) async {
+    await _ensureInitialized();
+    final jsonString = jsonEncode(workspaceData);
+    await _prefs.setString('workspace_data', jsonString);
+  }
+
+  /// Get workspace data
+  Future<Map<String, dynamic>?> getWorkspaceData() async {
+    await _ensureInitialized();
+    final jsonString = _prefs.getString('workspace_data');
+    if (jsonString != null) {
+      return Map<String, dynamic>.from(jsonDecode(jsonString));
+    }
+    return null;
+  }
+
+  /// CACHING SYSTEM
+  
+  /// Cache data with expiration
+  Future<void> cacheData(String key, dynamic data, {Duration? expiration}) async {
+    await _ensureInitialized();
+    
+    final cacheEntry = {
+      'data': data,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'expiration': expiration?.inMilliseconds ?? ProductionConfig.cacheExpiration.inMilliseconds,
+    };
+    
+    final jsonString = jsonEncode(cacheEntry);
+    await _prefs.setString('cache_$key', jsonString);
+  }
+
+  /// Get cached data
+  Future<dynamic> getCachedData(String key) async {
+    await _ensureInitialized();
+    
+    final jsonString = _prefs.getString('cache_$key');
+    if (jsonString == null) return null;
+    
     try {
-      final userId = prefs.getString('user_id');
-      if (userId == null || userId.isEmpty) {
+      final cacheEntry = jsonDecode(jsonString);
+      final timestamp = cacheEntry['timestamp'] as int;
+      final expiration = cacheEntry['expiration'] as int;
+      
+      // Check if cache is expired
+      if (DateTime.now().millisecondsSinceEpoch - timestamp > expiration) {
+        // Remove expired cache
+        await _prefs.remove('cache_$key');
         return null;
       }
       
-      return {
-        'id': userId,
-        'email': prefs.getString('user_email') ?? '',
-        'full_name': prefs.getString('user_full_name') ?? '',
-        'role': prefs.getString('user_role') ?? '',
-        'email_verified': prefs.getBool('email_verified') ?? false,
-        'biometric_enabled': prefs.getBool('biometric_enabled') ?? false,
-        'logged_in': prefs.getBool('logged_in') ?? false,
-        'session_token': prefs.getString('session_token') ?? '',
-      };
+      return cacheEntry['data'];
     } catch (e) {
-      ErrorHandler.handleError('Failed to get user data: $e');
+      // Remove corrupted cache
+      await _prefs.remove('cache_$key');
       return null;
     }
   }
-  
-  // App settings
-  Future<void> saveAppSettings(Map<String, dynamic> settings) async {
-    try {
-      await prefs.setString('app_settings', jsonEncode(settings));
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save app settings: $e'));
+
+  /// Clear all cached data
+  Future<void> clearCache() async {
+    await _ensureInitialized();
+    
+    final keys = _prefs.getKeys();
+    final cacheKeys = keys.where((key) => key.startsWith('cache_'));
+    
+    for (final key in cacheKeys) {
+      await _prefs.remove(key);
     }
   }
-  
-  Future<Map<String, dynamic>?> getAppSettings() async {
-    try {
-      final settings = prefs.getString('app_settings');
-      if (settings != null) {
-        return jsonDecode(settings);
-      }
-      return null;
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get app settings: $e'));
-      return null;
-    }
-  }
-  
-  // Theme preferences
-  Future<void> saveThemeMode(String themeMode) async {
-    try {
-      await prefs.setString('theme_mode', themeMode);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save theme mode: $e'));
-    }
-  }
-  
-  Future<String?> getThemeMode() async {
-    try {
-      return prefs.getString('theme_mode');
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get theme mode: $e'));
-      return null;
-    }
-  }
-  
-  // Notification preferences
-  Future<void> saveNotificationSettings(Map<String, bool> settings) async {
-    try {
-      await prefs.setString('notification_settings', jsonEncode(settings));
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save notification settings: $e'));
-    }
-  }
-  
-  Future<Map<String, bool>?> getNotificationSettings() async {
-    try {
-      final settings = prefs.getString('notification_settings');
-      if (settings != null) {
-        final decoded = jsonDecode(settings) as Map<String, dynamic>;
-        return decoded.cast<String, bool>();
-      }
-      return null;
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get notification settings: $e'));
-      return null;
-    }
-  }
-  
-  // Cache management
-  Future<void> saveCacheData(String key, dynamic data, {Duration? expiry}) async {
-    try {
-      final cacheItem = {
-        'data': data,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-        'expiry': expiry?.inMilliseconds,
-      };
-      await prefs.setString('cache_$key', jsonEncode(cacheItem));
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save cache data: $e'));
-    }
-  }
-  
-  Future<T?> getCacheData<T>(String key) async {
-    try {
-      final cached = prefs.getString('cache_$key');
-      if (cached != null) {
-        final cacheItem = jsonDecode(cached);
-        final timestamp = cacheItem['timestamp'] as int;
-        final expiry = cacheItem['expiry'] as int?;
-        
-        if (expiry != null) {
-          final expiryDate = DateTime.fromMillisecondsSinceEpoch(timestamp + expiry);
-          if (DateTime.now().isAfter(expiryDate)) {
-            await clearCacheData(key);
-            return null;
+
+  /// Clear expired cache entries
+  Future<void> clearExpiredCache() async {
+    await _ensureInitialized();
+    
+    final keys = _prefs.getKeys();
+    final cacheKeys = keys.where((key) => key.startsWith('cache_'));
+    
+    for (final key in cacheKeys) {
+      final jsonString = _prefs.getString(key);
+      if (jsonString != null) {
+        try {
+          final cacheEntry = jsonDecode(jsonString);
+          final timestamp = cacheEntry['timestamp'] as int;
+          final expiration = cacheEntry['expiration'] as int;
+          
+          // Check if cache is expired
+          if (DateTime.now().millisecondsSinceEpoch - timestamp > expiration) {
+            await _prefs.remove(key);
           }
+        } catch (e) {
+          // Remove corrupted cache
+          await _prefs.remove(key);
         }
-        
-        return cacheItem['data'] as T?;
       }
-      return null;
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get cache data: $e'));
-      return null;
-    }
-  }
-  
-  Future<void> clearCacheData(String key) async {
-    try {
-      await prefs.remove('cache_$key');
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to clear cache data: $e'));
-    }
-  }
-  
-  Future<void> clearAllCache() async {
-    try {
-      final keys = prefs.getKeys().where((key) => key.startsWith('cache_'));
-      for (final key in keys) {
-        await prefs.remove(key);
-      }
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to clear all cache: $e'));
-    }
-  }
-  
-  // Generic storage methods
-  Future<void> saveString(String key, String value) async {
-    try {
-      await prefs.setString(key, value);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save string: $e'));
     }
   }
 
-  // Generic write method (alias for saveString)
-  Future<void> write(String key, String value) async {
+  /// OFFLINE QUEUE MANAGEMENT
+  
+  /// Save offline queue
+  Future<void> saveOfflineQueue(List<Map<String, dynamic>> queue) async {
+    await _ensureInitialized();
+    final jsonString = jsonEncode(queue);
+    await _prefs.setString('offline_queue', jsonString);
+  }
+
+  /// Get offline queue
+  Future<List<Map<String, dynamic>>?> getOfflineQueue() async {
     try {
-      await prefs.setString(key, value);
+      final jsonString = _prefs.getString('offline_queue');
+      if (jsonString != null) {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        return decoded.map((item) => Map<String, dynamic>.from(item)).toList();
+      }
+      return null;
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to write data: $e'));
+      debugPrint('Failed to get offline queue: $e');
+      return null;
     }
   }
 
-  // Onboarding completion tracking
-  Future<void> saveOnboardingCompleted(bool completed) async {
-    try {
-      await prefs.setBool('onboarding_completed', completed);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save onboarding completion: $e'));
+  /// Clear offline queue
+  Future<void> clearOfflineQueue() async {
+    await _ensureInitialized();
+    await _prefs.remove('offline_queue');
+  }
+
+  /// SETTINGS MANAGEMENT
+  
+  /// Save app settings
+  Future<void> saveSettings(Map<String, dynamic> settings) async {
+    await _ensureInitialized();
+    final jsonString = jsonEncode(settings);
+    await _prefs.setString('app_settings', jsonString);
+  }
+
+  /// Get app settings
+  Future<Map<String, dynamic>?> getSettings() async {
+    await _ensureInitialized();
+    final jsonString = _prefs.getString('app_settings');
+    if (jsonString != null) {
+      return Map<String, dynamic>.from(jsonDecode(jsonString));
+    }
+    return null;
+  }
+
+  /// Save individual setting
+  Future<void> saveSetting(String key, dynamic value) async {
+    await _ensureInitialized();
+    
+    final settings = await getSettings() ?? {};
+    settings[key] = value;
+    await saveSettings(settings);
+  }
+
+  /// Get individual setting
+  Future<T?> getSetting<T>(String key) async {
+    await _ensureInitialized();
+    
+    final settings = await getSettings();
+    return settings?[key] as T?;
+  }
+
+  /// ANALYTICS AND TRACKING
+  
+  /// Save analytics data
+  Future<void> saveAnalyticsData(Map<String, dynamic> analyticsData) async {
+    await _ensureInitialized();
+    final jsonString = jsonEncode(analyticsData);
+    await _prefs.setString('analytics_data', jsonString);
+  }
+
+  /// Get analytics data
+  Future<Map<String, dynamic>?> getAnalyticsData() async {
+    await _ensureInitialized();
+    final jsonString = _prefs.getString('analytics_data');
+    if (jsonString != null) {
+      return Map<String, dynamic>.from(jsonDecode(jsonString));
+    }
+    return null;
+  }
+
+  /// ONBOARDING AND FIRST-TIME SETUP
+  
+  /// Mark onboarding as completed
+  Future<void> markOnboardingCompleted() async {
+    await _ensureInitialized();
+    await _prefs.setBool('onboarding_completed', true);
+  }
+
+  /// Check if onboarding is completed
+  Future<bool> isOnboardingCompleted() async {
+    await _ensureInitialized();
+    return _prefs.getBool('onboarding_completed') ?? false;
+  }
+
+  /// Mark first launch
+  Future<void> markFirstLaunch() async {
+    await _ensureInitialized();
+    await _prefs.setBool('first_launch', true);
+  }
+
+  /// Check if this is first launch
+  Future<bool> isFirstLaunch() async {
+    await _ensureInitialized();
+    return _prefs.getBool('first_launch') ?? true;
+  }
+
+  /// UTILITY METHODS
+  
+  /// Get storage size (approximate)
+  Future<int> getStorageSize() async {
+    await _ensureInitialized();
+    
+    int totalSize = 0;
+    final keys = _prefs.getKeys();
+    
+    for (final key in keys) {
+      final value = _prefs.get(key);
+      if (value is String) {
+        totalSize += value.length;
+      }
+    }
+    
+    return totalSize;
+  }
+
+  /// Clear all data
+  Future<void> clearAll() async {
+    await _ensureInitialized();
+    await _prefs.clear();
+  }
+
+  /// Get all keys
+  Future<Set<String>> getAllKeys() async {
+    await _ensureInitialized();
+    return _prefs.getKeys();
+  }
+
+  /// Export data for backup
+  Future<Map<String, dynamic>> exportData() async {
+    await _ensureInitialized();
+    
+    final data = <String, dynamic>{};
+    final keys = _prefs.getKeys();
+    
+    for (final key in keys) {
+      // Skip sensitive data
+      if (key.contains('auth_token') || key.contains('refresh_token')) {
+        continue;
+      }
+      
+      data[key] = _prefs.get(key);
+    }
+    
+    return data;
+  }
+
+  /// Import data from backup
+  Future<void> importData(Map<String, dynamic> data) async {
+    await _ensureInitialized();
+    
+    for (final entry in data.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      
+      // Skip sensitive data
+      if (key.contains('auth_token') || key.contains('refresh_token')) {
+        continue;
+      }
+      
+      if (value is String) {
+        await _prefs.setString(key, value);
+      } else if (value is bool) {
+        await _prefs.setBool(key, value);
+      } else if (value is int) {
+        await _prefs.setInt(key, value);
+      } else if (value is double) {
+        await _prefs.setDouble(key, value);
+      } else if (value is List<String>) {
+        await _prefs.setStringList(key, value);
+      }
     }
   }
-  
-  Future<bool> getOnboardingCompleted() async {
+
+  /// Check if key exists
+  Future<bool> hasKey(String key) async {
+    await _ensureInitialized();
+    return _prefs.containsKey(key);
+  }
+
+  /// Remove specific key
+  Future<void> removeKey(String key) async {
+    await _ensureInitialized();
+    await _prefs.remove(key);
+  }
+
+  /// Set string value
+  Future<bool> setString(String key, String value) async {
     try {
-      return prefs.getBool('onboarding_completed') ?? false;
+      await _prefs.setString(key, value);
+      return true;
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get onboarding completion: $e'));
+      debugPrint('Failed to set string: $e');
       return false;
     }
   }
-  
-  // Workspace management
-  Future<void> saveCurrentWorkspace(String workspaceId) async {
+
+  /// Get string value
+  Future<String?> getValue(String key) async {
     try {
-      await prefs.setString('current_workspace', workspaceId);
+      return _prefs.getString(key);
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save current workspace: $e'));
-    }
-  }
-  
-  Future<String?> getCurrentWorkspace() async {
-    try {
-      return prefs.getString('current_workspace');
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get current workspace: $e'));
-      return null;
-    }
-  }
-  
-  Future<void> saveWorkspacesData(List<Map<String, dynamic>> workspaces) async {
-    try {
-      await prefs.setString('workspaces_data', jsonEncode(workspaces));
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save workspaces data: $e'));
-    }
-  }
-  
-  Future<List<Map<String, dynamic>>?> getWorkspacesData() async {
-    try {
-      final data = prefs.getString('workspaces_data');
-      if (data != null) {
-        final List<dynamic> decoded = jsonDecode(data);
-        return decoded.cast<Map<String, dynamic>>();
-      }
-      return null;
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get workspaces data: $e'));
+      debugPrint('Failed to get value: $e');
       return null;
     }
   }
 
-  Future<String?> getString(String key) async {
+  /// Save value (generic method)
+  Future<bool> saveValue(String key, String value) async {
+    return await setString(key, value);
+  }
+
+  /// Delete all stored data
+  Future<bool> deleteAll() async {
     try {
-      return prefs.getString(key);
+      await _prefs.clear();
+      return true;
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get string: $e'));
+      debugPrint('Failed to delete all: $e');
+      return false;
+    }
+  }
+
+  /// Get offline queue
+  Future<List<Map<String, dynamic>>?> getOfflineQueue() async {
+    try {
+      final jsonString = _prefs.getString('offline_queue');
+      if (jsonString != null) {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        return decoded.map((item) => Map<String, dynamic>.from(item)).toList();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Failed to get offline queue: $e');
       return null;
     }
   }
-  
-  Future<void> saveInt(String key, int value) async {
+
+  /// Save offline queue
+  Future<bool> saveOfflineQueue(List<Map<String, dynamic>> queue) async {
     try {
-      await prefs.setInt(key, value);
+      final jsonString = jsonEncode(queue);
+      await _prefs.setString('offline_queue', jsonString);
+      return true;
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save int: $e'));
+      debugPrint('Failed to save offline queue: $e');
+      return false;
     }
   }
-  
-  Future<int?> getInt(String key) async {
+
+  /// Cache data
+  Future<bool> cacheData(String key, List<Map<String, dynamic>> data) async {
     try {
-      return prefs.getInt(key);
+      final jsonString = jsonEncode(data);
+      await _prefs.setString('cache_$key', jsonString);
+      return true;
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get int: $e'));
+      debugPrint('Failed to cache data: $e');
+      return false;
+    }
+  }
+
+  /// Get cached data
+  Future<List<Map<String, dynamic>>?> getCachedData(String key) async {
+    try {
+      final jsonString = _prefs.getString('cache_$key');
+      if (jsonString != null) {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        return decoded.map((item) => Map<String, dynamic>.from(item)).toList();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Failed to get cached data: $e');
       return null;
     }
   }
-  
-  Future<void> saveBool(String key, bool value) async {
+
+  /// Clear cache
+  Future<bool> clearCache() async {
     try {
-      await prefs.setBool(key, value);
+      final keys = _prefs.getKeys();
+      for (final key in keys) {
+        if (key.startsWith('cache_')) {
+          await _prefs.remove(key);
+        }
+      }
+      return true;
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save bool: $e'));
-    }
-  }
-  
-  Future<bool?> getBool(String key) async {
-    try {
-      return prefs.getBool(key);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get bool: $e'));
-      return null;
-    }
-  }
-  
-  Future<void> remove(String key) async {
-    try {
-      await prefs.remove(key);
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to remove key: $e'));
-    }
-  }
-  
-  Future<void> clear() async {
-    try {
-      await prefs.clear();
-    } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to clear storage: $e'));
+      debugPrint('Failed to clear cache: $e');
+      return false;
     }
   }
 }

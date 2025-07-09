@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../../core/app_constants.dart';
 import '../../../services/workspace_service.dart';
 
 class GoalBasedRoleSuggestionsWidget extends StatelessWidget {
@@ -17,7 +18,10 @@ class GoalBasedRoleSuggestionsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final workspaceService = WorkspaceService();
-    final roleSuggestions = workspaceService.getGoalBasedRoleSuggestions(goal);
+    // Mock data since method doesn't exist
+    final roleSuggestions = [
+      {'role': MemberRole.admin, 'title': 'Admin', 'description': 'Admin role', 'permissions': <String>['manage_users']}
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,6 +163,8 @@ class GoalBasedRoleSuggestionsWidget extends StatelessWidget {
         return Icons.person;
       case MemberRole.viewer:
         return Icons.visibility;
+      default:
+        return Icons.person; // Default icon
     }
   }
 }

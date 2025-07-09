@@ -1,4 +1,5 @@
 import '../../core/app_export.dart';
+import '../../services/workspace_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -80,15 +81,24 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       final authService = AuthService();
       final storageService = StorageService();
+      final workspaceService = WorkspaceService();
       
       // Check if user is authenticated
-      if (authService.isAuthenticated) {
+      if (await authService.isUserLoggedIn()) {
         // Check if onboarding is completed
-        final onboardingCompleted = await storageService.getOnboardingCompleted();
+        final onboardingCompleted = await storageService.isOnboardingCompleted();
         
         if (onboardingCompleted) {
-          // Navigate to workspace dashboard
-          Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+          // Check if user has workspace
+          final hasWorkspace = await workspaceService.hasUserWorkspace();
+          
+          if (hasWorkspace) {
+            // Navigate to workspace dashboard
+            Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+          } else {
+            // Navigate to workspace selector
+            Navigator.pushReplacementNamed(context, AppRoutes.workspaceSelectorScreen);
+          }
         } else {
           // Navigate to onboarding
           Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
@@ -98,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
         Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
       }
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
       // Fallback to login screen
       Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
     }

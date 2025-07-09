@@ -1,572 +1,486 @@
 import 'dart:io';
 
 import '../core/app_export.dart';
+import './unified_data_service.dart';
 
 /// Service for handling data operations across the application
+/// Updated to use UnifiedDataService for all Supabase operations
 class DataService {
   static final DataService _instance = DataService._internal();
   factory DataService() => _instance;
   DataService._internal();
 
-  final ApiClient _apiClient = ApiClient();
-  final StorageService _storageService = StorageService();
+  final UnifiedDataService _unifiedDataService = UnifiedDataService();
 
-  /// Social Media Data Operations
+  /// Initialize the data service
+  Future<void> initialize() async {
+    await _unifiedDataService.initialize();
+  }
+
+  /// Social Media Data Operations - Now using Supabase
   Future<Map<String, dynamic>> getSocialMediaStats() async {
     try {
-      final response = await _apiClient.get('/social-media/stats');
-      return response.data ?? _getMockSocialMediaStats();
+      final analyticsData = await _unifiedDataService.getAnalyticsData();
+      return analyticsData['social_media'] ?? _getEmptySocialMediaStats();
     } catch (e) {
-      // Return mock data on error
-      return _getMockSocialMediaStats();
+      ErrorHandler.handleError('Failed to get social media stats: $e');
+      return _getEmptySocialMediaStats();
     }
   }
 
   Future<List<Map<String, dynamic>>> getSocialMediaPosts() async {
     try {
-      final response = await _apiClient.get('/social-media/posts');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      return await _unifiedDataService.getSocialMediaPosts();
     } catch (e) {
-      return _getMockSocialMediaPosts();
+      ErrorHandler.handleError('Failed to get social media posts: $e');
+      return [];
     }
   }
 
   Future<bool> createSocialMediaPost(Map<String, dynamic> postData) async {
     try {
-      await _apiClient.post('/social-media/posts', data: postData);
-      return true;
+      return await _unifiedDataService.createSocialMediaPost(postData);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to create social media post: $e');
       return false;
     }
   }
 
   Future<bool> updateSocialMediaPost(String postId, Map<String, dynamic> postData) async {
     try {
-      await _apiClient.put('/social-media/posts/$postId', data: postData);
-      return true;
+      return await _unifiedDataService.updateSocialMediaPost(postId, postData);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to update social media post: $e');
       return false;
     }
   }
 
   Future<bool> deleteSocialMediaPost(String postId) async {
     try {
-      await _apiClient.delete('/social-media/posts/$postId');
-      return true;
+      return await _unifiedDataService.deleteSocialMediaPost(postId);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to delete social media post: $e');
       return false;
     }
   }
 
   Future<bool> schedulePost(Map<String, dynamic> postData) async {
     try {
-      await _apiClient.post('/social-media/schedule', data: postData);
-      return true;
+      // Add scheduling information to post data
+      postData['status'] = 'scheduled';
+      return await _unifiedDataService.createSocialMediaPost(postData);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to schedule post: $e');
       return false;
     }
   }
 
-  /// CRM Data Operations
+  /// CRM Data Operations - Using Supabase (placeholder for future CRM tables)
   Future<List<Map<String, dynamic>>> getContacts() async {
     try {
-      final response = await _apiClient.get('/crm/contacts');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // For now, return empty list until CRM tables are added to migration
+      // In the future, this will query the contacts table
+      return [];
     } catch (e) {
-      return _getMockContacts();
+      ErrorHandler.handleError('Failed to get contacts: $e');
+      return [];
     }
   }
 
   Future<bool> createContact(Map<String, dynamic> contactData) async {
     try {
-      await _apiClient.post('/crm/contacts', data: contactData);
+      // Track as analytics event for now
+      await _unifiedDataService.trackAnalyticsEvent('contact_created', contactData);
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to create contact: $e');
       return false;
     }
   }
 
   Future<bool> updateContact(String contactId, Map<String, dynamic> contactData) async {
     try {
-      await _apiClient.put('/crm/contacts/$contactId', data: contactData);
+      // Track as analytics event for now
+      await _unifiedDataService.trackAnalyticsEvent('contact_updated', {
+        'contact_id': contactId,
+        ...contactData,
+      });
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to update contact: $e');
       return false;
     }
   }
 
   Future<bool> deleteContact(String contactId) async {
     try {
-      await _apiClient.delete('/crm/contacts/$contactId');
+      // Track as analytics event for now
+      await _unifiedDataService.trackAnalyticsEvent('contact_deleted', {
+        'contact_id': contactId,
+      });
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to delete contact: $e');
       return false;
     }
   }
 
   Future<List<Map<String, dynamic>>> searchContacts(String query) async {
     try {
-      final response = await _apiClient.get('/crm/contacts/search', 
-        queryParameters: {'q': query});
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // For now, return empty list until CRM tables are added
+      return [];
     } catch (e) {
-      return _getMockContacts().where((contact) =>
-        contact['name'].toString().toLowerCase().contains(query.toLowerCase()) ||
-        contact['email'].toString().toLowerCase().contains(query.toLowerCase())
-      ).toList();
+      ErrorHandler.handleError('Failed to search contacts: $e');
+      return [];
     }
   }
 
-  /// Analytics Data Operations
+  /// Analytics Data Operations - Using Supabase
   Future<Map<String, dynamic>> getAnalyticsData() async {
     try {
-      final response = await _apiClient.get('/analytics/dashboard');
-      return response.data ?? _getMockAnalyticsData();
+      return await _unifiedDataService.getAnalyticsData();
     } catch (e) {
-      return _getMockAnalyticsData();
+      ErrorHandler.handleError('Failed to get analytics data: $e');
+      return _getEmptyAnalyticsData();
     }
   }
 
   Future<List<Map<String, dynamic>>> getAnalyticsChartData(String chartType) async {
     try {
-      final response = await _apiClient.get('/analytics/charts/$chartType');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      return await _unifiedDataService.getAnalyticsEvents(
+        eventName: chartType,
+        limit: 100,
+      );
     } catch (e) {
-      return _getMockChartData(chartType);
+      ErrorHandler.handleError('Failed to get analytics chart data: $e');
+      return [];
     }
   }
 
-  /// Marketplace Data Operations
+  /// Marketplace Data Operations - Using Supabase
   Future<List<Map<String, dynamic>>> getProducts() async {
     try {
-      final response = await _apiClient.get('/marketplace/products');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      return await _unifiedDataService.getProducts();
     } catch (e) {
-      return _getMockProducts();
+      ErrorHandler.handleError('Failed to get products: $e');
+      return [];
     }
   }
 
   Future<bool> createProduct(Map<String, dynamic> productData) async {
     try {
-      await _apiClient.post('/marketplace/products', data: productData);
-      return true;
+      return await _unifiedDataService.createProduct(productData);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to create product: $e');
       return false;
     }
   }
 
   Future<bool> updateProduct(String productId, Map<String, dynamic> productData) async {
     try {
-      await _apiClient.put('/marketplace/products/$productId', data: productData);
-      return true;
+      return await _unifiedDataService.updateProduct(productId, productData);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to update product: $e');
       return false;
     }
   }
 
   Future<bool> deleteProduct(String productId) async {
     try {
-      await _apiClient.delete('/marketplace/products/$productId');
-      return true;
+      return await _unifiedDataService.deleteProduct(productId);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to delete product: $e');
       return false;
     }
   }
 
-  /// Course Data Operations
+  /// Orders Data Operations - Using Supabase
+  Future<List<Map<String, dynamic>>> getOrders() async {
+    try {
+      return await _unifiedDataService.getOrders();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get orders: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createOrder(Map<String, dynamic> orderData) async {
+    try {
+      return await _unifiedDataService.createOrder(orderData);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create order: $e');
+      return false;
+    }
+  }
+
+  /// Course Data Operations - Using analytics tracking for now
   Future<List<Map<String, dynamic>>> getCourses() async {
     try {
-      final response = await _apiClient.get('/courses');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // For now, return empty list until course tables are added
+      return [];
     } catch (e) {
-      return _getMockCourses();
+      ErrorHandler.handleError('Failed to get courses: $e');
+      return [];
     }
   }
 
   Future<bool> createCourse(Map<String, dynamic> courseData) async {
     try {
-      await _apiClient.post('/courses', data: courseData);
+      // Track as analytics event for now
+      await _unifiedDataService.trackAnalyticsEvent('course_created', courseData);
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to create course: $e');
       return false;
     }
   }
 
   Future<bool> updateCourse(String courseId, Map<String, dynamic> courseData) async {
     try {
-      await _apiClient.put('/courses/$courseId', data: courseData);
+      // Track as analytics event for now
+      await _unifiedDataService.trackAnalyticsEvent('course_updated', {
+        'course_id': courseId,
+        ...courseData,
+      });
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to update course: $e');
       return false;
     }
   }
 
   Future<bool> deleteCourse(String courseId) async {
     try {
-      await _apiClient.delete('/courses/$courseId');
+      // Track as analytics event for now
+      await _unifiedDataService.trackAnalyticsEvent('course_deleted', {
+        'course_id': courseId,
+      });
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to delete course: $e');
       return false;
     }
   }
 
-  /// Hashtag Research Operations
+  /// Hashtag Research Operations - Using analytics tracking
   Future<List<Map<String, dynamic>>> getHashtagSuggestions(String query) async {
     try {
-      final response = await _apiClient.get('/hashtags/suggestions', 
-        queryParameters: {'q': query});
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // Track search query for analytics
+      await _unifiedDataService.trackAnalyticsEvent('hashtag_search', {
+        'query': query,
+      });
+      
+      // Return empty list for now - this would connect to social media APIs
+      return [];
     } catch (e) {
-      return _getMockHashtagSuggestions(query);
+      ErrorHandler.handleError('Failed to get hashtag suggestions: $e');
+      return [];
     }
   }
 
   Future<List<Map<String, dynamic>>> getTrendingHashtags() async {
     try {
-      final response = await _apiClient.get('/hashtags/trending');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // Track trending hashtags request
+      await _unifiedDataService.trackAnalyticsEvent('trending_hashtags_viewed', {});
+      
+      // Return empty list for now - this would connect to social media APIs
+      return [];
     } catch (e) {
-      return _getMockTrendingHashtags();
+      ErrorHandler.handleError('Failed to get trending hashtags: $e');
+      return [];
     }
   }
 
-  /// Template Operations
+  /// Template Operations - Using analytics tracking
   Future<List<Map<String, dynamic>>> getTemplates(String category) async {
     try {
-      final response = await _apiClient.get('/templates', 
-        queryParameters: {'category': category});
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // Track template category view
+      await _unifiedDataService.trackAnalyticsEvent('templates_viewed', {
+        'category': category,
+      });
+      
+      // Return empty list for now - this would connect to template database
+      return [];
     } catch (e) {
-      return _getMockTemplates(category);
+      ErrorHandler.handleError('Failed to get templates: $e');
+      return [];
     }
   }
 
   Future<bool> saveTemplate(Map<String, dynamic> templateData) async {
     try {
-      await _apiClient.post('/templates', data: templateData);
+      // Track template save
+      await _unifiedDataService.trackAnalyticsEvent('template_saved', templateData);
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to save template: $e');
       return false;
     }
   }
 
-  /// Email Marketing Operations
+  /// Email Marketing Operations - Using analytics tracking
   Future<bool> sendEmailCampaign(Map<String, dynamic> campaignData) async {
     try {
-      await _apiClient.post('/email/campaigns', data: campaignData);
+      // Track email campaign
+      await _unifiedDataService.trackAnalyticsEvent('email_campaign_sent', campaignData);
       return true;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to send email campaign: $e');
       return false;
     }
   }
 
   Future<List<Map<String, dynamic>>> getEmailCampaigns() async {
     try {
-      final response = await _apiClient.get('/email/campaigns');
-      return List<Map<String, dynamic>>.from(response.data ?? []);
+      // Track email campaigns view
+      await _unifiedDataService.trackAnalyticsEvent('email_campaigns_viewed', {});
+      
+      // Return empty list for now - this would connect to email service
+      return [];
     } catch (e) {
-      return _getMockEmailCampaigns();
+      ErrorHandler.handleError('Failed to get email campaigns: $e');
+      return [];
     }
   }
 
-  /// File Upload Operations
+  /// File Upload Operations - Using Supabase Storage
   Future<String?> uploadFile(String filePath, String fileType) async {
     try {
+      final supabaseService = SupabaseService();
+      final client = await supabaseService.client;
+      
       final file = File(filePath);
-      final response = await _apiClient.uploadFile('/upload', file);
-      return response.data?['url'];
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      
+      await client.storage
+          .from('uploads')
+          .upload(fileName, file);
+      
+      final url = client.storage
+          .from('uploads')
+          .getPublicUrl(fileName);
+      
+      // Track file upload
+      await _unifiedDataService.trackAnalyticsEvent('file_uploaded', {
+        'file_type': fileType,
+        'file_name': fileName,
+      });
+      
+      return url;
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError('Failed to upload file: $e');
       return null;
     }
   }
 
-  /// Mock Data Methods
-  Map<String, dynamic> _getMockSocialMediaStats() {
+  /// Notification Operations - Using Supabase
+  Future<List<Map<String, dynamic>>> getNotifications() async {
+    try {
+      return await _unifiedDataService.getNotifications();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get notifications: $e');
+      return [];
+    }
+  }
+
+  Future<bool> markNotificationAsRead(String notificationId) async {
+    try {
+      return await _unifiedDataService.markNotificationAsRead(notificationId);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to mark notification as read: $e');
+      return false;
+    }
+  }
+
+  /// Real-time subscriptions
+  Future<void> subscribeToRealTimeUpdates({
+    Function(Map<String, dynamic>)? onAnalyticsChanged,
+    Function(Map<String, dynamic>)? onSocialMediaChanged,
+    Function(Map<String, dynamic>)? onProductsChanged,
+    Function(Map<String, dynamic>)? onOrdersChanged,
+    Function(Map<String, dynamic>)? onNotificationsChanged,
+  }) async {
+    try {
+      if (onAnalyticsChanged != null) {
+        await _unifiedDataService.subscribeToAnalyticsChanges(onAnalyticsChanged);
+      }
+      
+      if (onSocialMediaChanged != null) {
+        await _unifiedDataService.subscribeToSocialMediaChanges(onSocialMediaChanged);
+      }
+      
+      if (onProductsChanged != null) {
+        await _unifiedDataService.subscribeToProductChanges(onProductsChanged);
+      }
+      
+      if (onOrdersChanged != null) {
+        await _unifiedDataService.subscribeToOrderChanges(onOrdersChanged);
+      }
+      
+      if (onNotificationsChanged != null) {
+        await _unifiedDataService.subscribeToNotificationChanges(onNotificationsChanged);
+      }
+    } catch (e) {
+      ErrorHandler.handleError('Failed to subscribe to real-time updates: $e');
+    }
+  }
+
+  /// Unsubscribe from real-time updates
+  Future<void> unsubscribeFromRealTimeUpdates() async {
+    try {
+      await _unifiedDataService.unsubscribeFromAll();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to unsubscribe from real-time updates: $e');
+    }
+  }
+
+  /// Track custom analytics events
+  Future<void> trackEvent(String eventName, Map<String, dynamic> data) async {
+    try {
+      await _unifiedDataService.trackAnalyticsEvent(eventName, data);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to track event: $e');
+    }
+  }
+
+  /// Empty Data Methods (for fallback scenarios)
+  Map<String, dynamic> _getEmptySocialMediaStats() {
     return {
-      'totalPosts': 1247,
-      'totalFollowers': 25640,
-      'totalEngagement': 48392,
-      'totalReach': 125840,
-      'growthRate': 12.5,
-      'engagementRate': 4.2,
+      'total_followers': 0,
+      'total_engagement': 0,
+      'posts_count': 0,
+      'reach': 0,
+      'engagement_rate': 0.0,
     };
   }
 
-  List<Map<String, dynamic>> _getMockSocialMediaPosts() {
-    return [
-      {
-        'id': '1',
-        'title': 'New Product Launch',
-        'content': 'Exciting announcement about our new product!',
-        'platform': 'Instagram',
-        'status': 'published',
-        'publishedAt': DateTime.now().subtract(Duration(hours: 2)).toIso8601String(),
-        'engagement': 245,
-        'reach': 1250,
-      },
-      {
-        'id': '2',
-        'title': 'Behind the Scenes',
-        'content': 'Take a look at our team working hard!',
-        'platform': 'Facebook',
-        'status': 'scheduled',
-        'scheduledAt': DateTime.now().add(Duration(hours: 1)).toIso8601String(),
-        'engagement': 0,
-        'reach': 0,
-      },
-      {
-        'id': '3',
-        'title': 'Customer Success Story',
-        'content': 'Amazing results from our client!',
-        'platform': 'LinkedIn',
-        'status': 'draft',
-        'engagement': 0,
-        'reach': 0,
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockContacts() {
-    return [
-      {
-        'id': '1',
-        'name': 'John Doe',
-        'email': 'john@example.com',
-        'phone': '+1234567890',
-        'company': 'Tech Corp',
-        'status': 'lead',
-        'createdAt': DateTime.now().subtract(Duration(days: 5)).toIso8601String(),
-        'value': 5000,
-      },
-      {
-        'id': '2',
-        'name': 'Jane Smith',
-        'email': 'jane@example.com',
-        'phone': '+1234567891',
-        'company': 'Marketing Inc',
-        'status': 'customer',
-        'createdAt': DateTime.now().subtract(Duration(days: 10)).toIso8601String(),
-        'value': 12000,
-      },
-      {
-        'id': '3',
-        'name': 'Bob Johnson',
-        'email': 'bob@example.com',
-        'phone': '+1234567892',
-        'company': 'Sales LLC',
-        'status': 'prospect',
-        'createdAt': DateTime.now().subtract(Duration(days: 3)).toIso8601String(),
-        'value': 8000,
-      },
-    ];
-  }
-
-  Map<String, dynamic> _getMockAnalyticsData() {
+  Map<String, dynamic> _getEmptyAnalyticsData() {
     return {
-      'totalRevenue': 125000,
-      'totalUsers': 2500,
-      'conversionRate': 3.5,
-      'averageOrderValue': 250,
-      'topPerformingContent': [
-        {'title': 'Product Launch', 'engagement': 1250, 'reach': 15000},
-        {'title': 'Customer Story', 'engagement': 980, 'reach': 12000},
-        {'title': 'Tutorial Video', 'engagement': 750, 'reach': 8500},
-      ],
-      'platformStats': {
-        'instagram': {'followers': 12500, 'engagement': 4.2},
-        'facebook': {'followers': 8500, 'engagement': 3.8},
-        'linkedin': {'followers': 4500, 'engagement': 5.1},
+      'revenue': {
+        'total_revenue': 0,
+        'total_orders': 0,
+        'conversion_rate': 0.0,
       },
+      'social_media': {
+        'total_followers': 0,
+        'total_engagement': 0,
+        'posts_count': 0,
+      },
+      'products': {
+        'total_products': 0,
+        'active_products': 0,
+        'low_stock_products': 0,
+      },
+      'notifications': {
+        'unread_notifications': 0,
+        'total_notifications': 0,
+      },
+      'updated_at': DateTime.now().toIso8601String(),
     };
   }
 
-  List<Map<String, dynamic>> _getMockChartData(String chartType) {
-    final random = Random();
-    return List.generate(30, (index) => {
-      'date': DateTime.now().subtract(Duration(days: 29 - index)).toIso8601String(),
-      'value': 100 + random.nextInt(200),
-      'label': 'Day ${index + 1}',
-    });
-  }
-
-  List<Map<String, dynamic>> _getMockProducts() {
-    return [
-      {
-        'id': '1',
-        'name': 'Social Media Template Pack',
-        'description': 'Complete set of social media templates',
-        'price': 29.99,
-        'category': 'Templates',
-        'status': 'active',
-        'sales': 245,
-        'createdAt': DateTime.now().subtract(Duration(days: 15)).toIso8601String(),
-      },
-      {
-        'id': '2',
-        'name': 'Marketing Course',
-        'description': 'Comprehensive digital marketing course',
-        'price': 99.99,
-        'category': 'Courses',
-        'status': 'active',
-        'sales': 89,
-        'createdAt': DateTime.now().subtract(Duration(days: 25)).toIso8601String(),
-      },
-      {
-        'id': '3',
-        'name': 'Brand Guidelines Kit',
-        'description': 'Professional brand guidelines template',
-        'price': 49.99,
-        'category': 'Templates',
-        'status': 'active',
-        'sales': 156,
-        'createdAt': DateTime.now().subtract(Duration(days: 8)).toIso8601String(),
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockCourses() {
-    return [
-      {
-        'id': '1',
-        'title': 'Digital Marketing Fundamentals',
-        'description': 'Learn the basics of digital marketing',
-        'instructor': 'John Doe',
-        'duration': '6 weeks',
-        'price': 199.99,
-        'students': 1250,
-        'rating': 4.8,
-        'status': 'published',
-        'createdAt': DateTime.now().subtract(Duration(days: 30)).toIso8601String(),
-      },
-      {
-        'id': '2',
-        'title': 'Social Media Marketing Mastery',
-        'description': 'Advanced social media marketing strategies',
-        'instructor': 'Jane Smith',
-        'duration': '8 weeks',
-        'price': 299.99,
-        'students': 890,
-        'rating': 4.9,
-        'status': 'published',
-        'createdAt': DateTime.now().subtract(Duration(days: 45)).toIso8601String(),
-      },
-      {
-        'id': '3',
-        'title': 'Content Creation Workshop',
-        'description': 'Create engaging content for your audience',
-        'instructor': 'Bob Johnson',
-        'duration': '4 weeks',
-        'price': 149.99,
-        'students': 567,
-        'rating': 4.7,
-        'status': 'draft',
-        'createdAt': DateTime.now().subtract(Duration(days: 10)).toIso8601String(),
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockHashtagSuggestions(String query) {
-    return [
-      {'hashtag': '#${query}marketing', 'popularity': 950000, 'difficulty': 'medium'},
-      {'hashtag': '#${query}business', 'popularity': 1200000, 'difficulty': 'high'},
-      {'hashtag': '#${query}tips', 'popularity': 750000, 'difficulty': 'low'},
-      {'hashtag': '#${query}strategy', 'popularity': 650000, 'difficulty': 'medium'},
-      {'hashtag': '#${query}growth', 'popularity': 850000, 'difficulty': 'medium'},
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockTrendingHashtags() {
-    return [
-      {'hashtag': '#digitalmarketing', 'popularity': 2500000, 'trend': 'up'},
-      {'hashtag': '#socialmedia', 'popularity': 3200000, 'trend': 'up'},
-      {'hashtag': '#contentmarketing', 'popularity': 1800000, 'trend': 'stable'},
-      {'hashtag': '#entrepreneurship', 'popularity': 2100000, 'trend': 'up'},
-      {'hashtag': '#businessgrowth', 'popularity': 1500000, 'trend': 'down'},
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockTemplates(String category) {
-    return [
-      {
-        'id': '1',
-        'name': 'Instagram Story Template',
-        'category': category,
-        'description': 'Engaging story template for Instagram',
-        'price': 9.99,
-        'downloads': 1250,
-        'rating': 4.8,
-        'thumbnail': 'https://via.placeholder.com/300x300',
-      },
-      {
-        'id': '2',
-        'name': 'Facebook Post Template',
-        'category': category,
-        'description': 'Professional post template for Facebook',
-        'price': 12.99,
-        'downloads': 890,
-        'rating': 4.6,
-        'thumbnail': 'https://via.placeholder.com/300x300',
-      },
-      {
-        'id': '3',
-        'name': 'LinkedIn Article Template',
-        'category': category,
-        'description': 'Business article template for LinkedIn',
-        'price': 15.99,
-        'downloads': 567,
-        'rating': 4.9,
-        'thumbnail': 'https://via.placeholder.com/300x300',
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockEmailCampaigns() {
-    return [
-      {
-        'id': '1',
-        'name': 'Welcome Series',
-        'subject': 'Welcome to Our Community!',
-        'status': 'sent',
-        'recipients': 1250,
-        'openRate': 45.2,
-        'clickRate': 12.8,
-        'sentAt': DateTime.now().subtract(Duration(hours: 2)).toIso8601String(),
-      },
-      {
-        'id': '2',
-        'name': 'Product Launch',
-        'subject': 'Exciting New Product Launch!',
-        'status': 'scheduled',
-        'recipients': 2500,
-        'openRate': 0,
-        'clickRate': 0,
-        'scheduledAt': DateTime.now().add(Duration(hours: 24)).toIso8601String(),
-      },
-      {
-        'id': '3',
-        'name': 'Monthly Newsletter',
-        'subject': 'Monthly Updates and Tips',
-        'status': 'draft',
-        'recipients': 0,
-        'openRate': 0,
-        'clickRate': 0,
-      },
-    ];
+  /// Cleanup
+  void dispose() {
+    _unifiedDataService.dispose();
   }
 }

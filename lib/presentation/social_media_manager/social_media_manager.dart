@@ -71,7 +71,7 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
         _trendingHashtags = hashtags;
       });
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
     } finally {
       setState(() => _isLoading = false);
     }
@@ -258,7 +258,7 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post created successfully')));
       } catch (e) {
-        ErrorHandler.handleError(e);
+        ErrorHandler.handleError(e.toString());
       }
     });
   }
@@ -272,7 +272,7 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post scheduled successfully')));
       } catch (e) {
-        ErrorHandler.handleError(e);
+        ErrorHandler.handleError(e.toString());
       }
     });
   }
@@ -297,7 +297,7 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Post deleted successfully')));
         } catch (e) {
-          ErrorHandler.handleError(e);
+          ErrorHandler.handleError(e.toString());
         }
       });
     }

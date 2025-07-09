@@ -7,6 +7,15 @@ import './widgets/privacy_settings_widget.dart';
 import './widgets/progress_step_widget.dart';
 import './widgets/workspace_settings_widget.dart';
 
+// Define the WorkspaceGoal enum
+enum WorkspaceGoal {
+  socialMediaManagement,
+  ecommerceBusiness,
+  courseCreation,
+  leadGeneration,
+  allInOneBusiness,
+}
+
 class GoalBasedWorkspaceCreationScreen extends StatefulWidget {
   const GoalBasedWorkspaceCreationScreen({Key? key}) : super(key: key);
 
@@ -109,13 +118,7 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
       final workspace = await _workspaceService.createWorkspace(
         name: _nameController.text,
         description: _descriptionController.text,
-        goal: _selectedGoal!,
-        logoUrl: _logoUrl,
-        settings: {
-          'privacy_level': _privacyLevel,
-          'default_permissions': _defaultPermissions,
-          'billing_preferences': _billingPreferences,
-        });
+        goal: _selectedGoal!.toString());
 
       if (workspace != null) {
         // Navigate to team invitation screen
@@ -292,7 +295,6 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
           
           // Goal Selection Cards
           GoalSelectionCardWidget(
-            goal: WorkspaceGoal.socialMediaManagement,
             title: 'Social Media Management',
             description: 'Instagram growth, content scheduling, analytics',
             icon: Icons.campaign,
@@ -308,7 +310,6 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
           SizedBox(height: 2.h),
           
           GoalSelectionCardWidget(
-            goal: WorkspaceGoal.ecommerceBusiness,
             title: 'E-commerce Business',
             description: 'Product sales, inventory management, customer support',
             icon: Icons.store,
@@ -324,7 +325,6 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
           SizedBox(height: 2.h),
           
           GoalSelectionCardWidget(
-            goal: WorkspaceGoal.courseCreation,
             title: 'Course Creation',
             description: 'Online education, student management, content delivery',
             icon: Icons.school,
@@ -340,7 +340,6 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
           SizedBox(height: 2.h),
           
           GoalSelectionCardWidget(
-            goal: WorkspaceGoal.leadGeneration,
             title: 'Lead Generation',
             description: 'CRM management, email marketing, conversion tracking',
             icon: Icons.trending_up,
@@ -356,7 +355,6 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
           SizedBox(height: 2.h),
           
           GoalSelectionCardWidget(
-            goal: WorkspaceGoal.allInOneBusiness,
             title: 'All-in-One Business',
             description: 'Comprehensive features for complete business management',
             icon: Icons.business_center,
@@ -434,13 +432,14 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
               child: CustomEnhancedButtonWidget(
                 buttonId: 'prev_button',
                 child: Text('Back'),
-                onPressed: () => _previousStep())),
+                onPressed: _previousStep)),
           if (_currentStep > 0) SizedBox(width: 2.w),
           Expanded(
             child: CustomEnhancedButtonWidget(
               buttonId: 'next_button',
               child: Text(_currentStep < 2 ? 'Next' : 'Create'),
-              onPressed: _canProceed ? () => _nextStep() : null,
+              onPressed: _canProceed ? _nextStep : () {},
+              isEnabled: _canProceed,
               isLoading: _isLoading)),
         ]));
   }

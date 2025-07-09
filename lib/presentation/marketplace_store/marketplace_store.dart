@@ -1,5 +1,7 @@
 
 import '../../core/app_export.dart';
+import '../../services/store_data_service.dart';
+import '../../services/workspace_service.dart';
 import './widgets/add_product_dialog_widget.dart';
 import './widgets/analytics_dashboard_widget.dart';
 import './widgets/order_management_widget.dart';
@@ -18,107 +20,21 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
     with TickerProviderStateMixin {
   late TabController _tabController;
   bool _isLoading = false;
-
-  // Mock store data
-  final Map<String, dynamic> storeData = {
-    "storeName": "TechHub Electronics",
-    "rating": 4.8,
-    "isVerified": true,
-    "bannerImage":
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=300&fit=crop",
-    "totalProducts": 156,
-    "totalOrders": 2847,
-    "revenue": "\$45,230",
-    "description":
-        "Premium electronics and gadgets for tech enthusiasts worldwide"
-  };
-
-  final List<Map<String, dynamic>> products = [
-{ "id": 1,
-"name": "Wireless Bluetooth Headphones",
-"price": "\$89.99",
-"image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-"stock": 25,
-"status": "active",
-"isBestseller": true,
-"category": "Electronics" },
-{ "id": 2,
-"name": "Smart Watch Pro",
-"price": "\$299.99",
-"image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-"stock": 5,
-"status": "low_stock",
-"isBestseller": false,
-"category": "Wearables" },
-{ "id": 3,
-"name": "USB-C Hub Adapter",
-"price": "\$49.99",
-"image": "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=400&fit=crop",
-"stock": 0,
-"status": "out_of_stock",
-"isBestseller": false,
-"category": "Accessories" },
-{ "id": 4,
-"name": "Portable Power Bank",
-"price": "\$39.99",
-"image": "https://images.unsplash.com/photo-1609592806596-4d8d2b0e8b8e?w=400&h=400&fit=crop",
-"stock": 50,
-"status": "active",
-"isBestseller": true,
-"category": "Accessories" },
-{ "id": 5,
-"name": "Gaming Mechanical Keyboard",
-"price": "\$129.99",
-"image": "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop",
-"stock": 15,
-"status": "active",
-"isBestseller": false,
-"category": "Gaming" },
-{ "id": 6,
-"name": "4K Webcam",
-"price": "\$159.99",
-"image": "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=400&fit=crop",
-"stock": 8,
-"status": "low_stock",
-"isBestseller": false,
-"category": "Electronics" }
-];
-
-  final List<Map<String, dynamic>> orders = [
-{ "id": "ORD-2024-001",
-"customerName": "John Smith",
-"items": 3,
-"total": "\$179.97",
-"status": "pending",
-"date": "2024-01-15",
-"shippingAddress": "123 Main St, New York, NY 10001" },
-{ "id": "ORD-2024-002",
-"customerName": "Sarah Johnson",
-"items": 1,
-"total": "\$299.99",
-"status": "processing",
-"date": "2024-01-14",
-"shippingAddress": "456 Oak Ave, Los Angeles, CA 90210" },
-{ "id": "ORD-2024-003",
-"customerName": "Mike Davis",
-"items": 2,
-"total": "\$89.98",
-"status": "shipped",
-"date": "2024-01-13",
-"shippingAddress": "789 Pine St, Chicago, IL 60601" },
-{ "id": "ORD-2024-004",
-"customerName": "Emily Wilson",
-"items": 1,
-"total": "\$129.99",
-"status": "delivered",
-"date": "2024-01-12",
-"shippingAddress": "321 Elm St, Houston, TX 77001" }
-];
+  
+  final StoreDataService _storeService = StoreDataService();
+  final WorkspaceService _workspaceService = WorkspaceService();
+  
+  String? _currentWorkspaceId;
+  Map<String, dynamic> _storeData = {};
+  List<Map<String, dynamic>> _products = [];
+  List<Map<String, dynamic>> _orders = [];
+  Map<String, dynamic> _storeAnalytics = {};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _loadStoreData();
   }
 
   @override
@@ -127,30 +43,136 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
     super.dispose();
   }
 
-  Future<void> _refreshData() async {
+  Future<void> _loadStoreData() async {
     setState(() {
       _isLoading = true;
     });
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Get current workspace
+      final workspaces = await _workspaceService.getUserWorkspaces();
+      if (workspaces.isNotEmpty) {
+        _currentWorkspaceId = workspaces.first['id'];
+        
+        // Load store data
+        final storeData = await _storeService.getStoreData(_currentWorkspaceId!);
+        final products = await _storeService.getProducts(_currentWorkspaceId!);
+        final orders = await _storeService.getOrders(_currentWorkspaceId!);
+        final analytics = await _storeService.getStoreAnalytics(_currentWorkspaceId!);
+        
+        setState(() {
+          _storeData = storeData;
+          _products = products;
+          _orders = orders;
+          _storeAnalytics = analytics;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load store data: $e');
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
-    setState(() {
-      _isLoading = false;
-    });
+  Future<void> _refreshData() async {
+    await _loadStoreData();
   }
 
   void _showAddProductDialog() {
     showDialog(
       context: context,
       builder: (context) => AddProductDialogWidget(
-        onProductAdded: (product) {
-          setState(() {
-            products.add(product);
-          });
-        },
-      ),
-    );
+        onProductAdded: (product) async {
+          if (_currentWorkspaceId != null) {
+            final success = await _storeService.createProduct(_currentWorkspaceId!, product);
+            if (success) {
+              await _refreshData();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Product added successfully'),
+                  backgroundColor: AppTheme.success));
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to add product'),
+                  backgroundColor: AppTheme.error));
+            }
+          }
+        }));
+  }
+
+  void _onProductAction(Map<String, dynamic> product, String action) async {
+    if (_currentWorkspaceId == null) return;
+
+    switch (action) {
+      case 'delete':
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(
+              'Delete Product',
+              style: GoogleFonts.inter(
+                color: AppTheme.primaryText,
+                fontWeight: FontWeight.w600)),
+            content: Text(
+              'Are you sure you want to delete "${product['name']}"?',
+              style: GoogleFonts.inter(
+                color: AppTheme.secondaryText)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.secondaryText))),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.error),
+                child: Text('Delete')),
+            ]));
+        
+        if (confirmed == true) {
+          final success = await _storeService.deleteProduct(_currentWorkspaceId!, product['id']);
+          if (success) {
+            await _refreshData();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Product deleted successfully'),
+                backgroundColor: AppTheme.success));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to delete product'),
+                backgroundColor: AppTheme.error));
+          }
+        }
+        break;
+      case 'edit':
+        // Handle product editing
+        break;
+      case 'duplicate':
+        // Handle product duplication
+        break;
+      case 'toggle_status':
+        final newStatus = product['status'] == 'active' ? 'inactive' : 'active';
+        final success = await _storeService.updateProduct(_currentWorkspaceId!, product['id'], {
+          'status': newStatus,
+        });
+        if (success) {
+          await _refreshData();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Product status updated'),
+              backgroundColor: AppTheme.success));
+        }
+        break;
+    }
   }
 
   @override
@@ -165,13 +187,10 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
           icon: CustomIconWidget(
             iconName: 'arrow_back',
             color: AppTheme.primaryText,
-            size: 24,
-          ),
-        ),
+            size: 24)),
         title: Text(
           'My Store',
-          style: AppTheme.darkTheme.textTheme.titleLarge,
-        ),
+          style: AppTheme.darkTheme.textTheme.titleLarge),
         actions: [
           IconButton(
             onPressed: () {
@@ -180,9 +199,7 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
             icon: CustomIconWidget(
               iconName: 'settings',
               color: AppTheme.primaryText,
-              size: 24,
-            ),
-          ),
+              size: 24)),
           SizedBox(width: 2.w),
         ],
         bottom: TabBar(
@@ -192,70 +209,54 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
             Tab(text: 'Products'),
             Tab(text: 'Orders'),
             Tab(text: 'Analytics'),
-          ],
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        color: AppTheme.accent,
-        backgroundColor: AppTheme.surface,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            // Overview Tab
-            SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
+          ])),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _refreshData,
+              color: AppTheme.accent,
+              backgroundColor: AppTheme.surface,
+              child: TabBarView(
+                controller: _tabController,
                 children: [
-                  StoreHeaderWidget(storeData: storeData),
-                  SizedBox(height: 2.h),
-                  StoreHeroSectionWidget(storeData: storeData),
-                  SizedBox(height: 2.h),
+                  // Overview Tab
+                  SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        StoreHeaderWidget(storeData: _storeData),
+                        SizedBox(height: 2.h),
+                        StoreHeroSectionWidget(storeData: _storeData),
+                        SizedBox(height: 2.h),
+                        ProductGridWidget(
+                          products: _products.take(4).toList(),
+                          isPreview: true,
+                          onProductTap: (product) {
+                            // Handle product tap
+                          },
+                          onProductAction: _onProductAction),
+                        SizedBox(height: 2.h),
+                      ])),
+                  // Products Tab
                   ProductGridWidget(
-                    products: products.take(4).toList(),
-                    isPreview: true,
+                    products: _products,
+                    isPreview: false,
                     onProductTap: (product) {
                       // Handle product tap
                     },
-                    onProductAction: (product, action) {
-                      // Handle product actions
-                    },
-                  ),
-                  SizedBox(height: 2.h),
-                ],
-              ),
-            ),
-            // Products Tab
-            ProductGridWidget(
-              products: products,
-              isPreview: false,
-              onProductTap: (product) {
-                // Handle product tap
-              },
-              onProductAction: (product, action) {
-                setState(() {
-                  if (action == 'delete') {
-                    products.removeWhere((p) => p['id'] == product['id']);
-                  }
-                });
-              },
-            ),
-            // Orders Tab
-            OrderManagementWidget(
-              orders: orders,
-              onOrderTap: (order) {
-                // Handle order tap
-              },
-            ),
-            // Analytics Tab
-            AnalyticsDashboardWidget(
-              storeData: storeData,
-              products: products,
-              orders: orders,
-            ),
-          ],
-        ),
-      ),
+                    onProductAction: _onProductAction),
+                  // Orders Tab
+                  OrderManagementWidget(
+                    orders: _orders,
+                    onOrderTap: (order) {
+                      // Handle order tap
+                    }),
+                  // Analytics Tab
+                  AnalyticsDashboardWidget(
+                    storeData: _storeData,
+                    products: _products,
+                    orders: _orders),
+                ])),
       floatingActionButton: _tabController.index == 1
           ? FloatingActionButton.extended(
               onPressed: _showAddProductDialog,
@@ -264,16 +265,11 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
               icon: CustomIconWidget(
                 iconName: 'add',
                 color: AppTheme.primaryBackground,
-                size: 24,
-              ),
+                size: 24),
               label: Text(
                 'Add Product',
                 style: AppTheme.darkTheme.textTheme.labelLarge?.copyWith(
-                  color: AppTheme.primaryBackground,
-                ),
-              ),
-            )
-          : null,
-    );
+                  color: AppTheme.primaryBackground)))
+          : null);
   }
 }

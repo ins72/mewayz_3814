@@ -5,7 +5,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import './app_constants.dart';
 import './environment_config.dart';
 import './storage_service.dart';
 
@@ -48,7 +47,7 @@ class AnalyticsService {
       _sessionStartTime = DateTime.now();
       
       // Track app open
-      trackEvent(AppConstants.analyticsAppOpen);
+      trackEvent('app_open');
       
       _isInitialized = true;
       
@@ -394,7 +393,7 @@ class AnalyticsService {
     String context,
     Map<String, dynamic>? additionalData,
   ) {
-    trackEvent(AppConstants.analyticsErrorOccurred, {
+    trackEvent('error_occurred', {
       'error_message': errorMessage,
       'error_type': errorType,
       'error_context': context,
@@ -473,7 +472,7 @@ class AnalyticsService {
       });
     }
     
-    trackEvent(AppConstants.analyticsAppClose);
+    trackEvent('app_close');
   }
 
   /// Generate session ID

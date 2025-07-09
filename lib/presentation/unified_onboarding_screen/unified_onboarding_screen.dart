@@ -146,7 +146,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
   Future<void> _checkOnboardingCompletion() async {
     final storageService = StorageService();
-    final isCompleted = await storageService.getOnboardingCompleted();
+    final isCompleted = await storageService.get('onboarding_completed') == 'true';
     
     if (isCompleted) {
       Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
@@ -211,7 +211,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       setState(() {
         _isLoading = false;
       });
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
     }
   }
 
@@ -247,7 +247,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       }
       
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
     }
   }
 
@@ -258,7 +258,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
     try {
       final storageService = StorageService();
-      await storageService.saveOnboardingCompleted(true);
+      await storageService.save('onboarding_completed', 'true');
       await _onboardingService.completeOnboarding();
       
       HapticFeedback.heavyImpact();
@@ -272,7 +272,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       
       Navigator.pushReplacementNamed(context, AppRoutes.goalSelectionScreen);
     } catch (e) {
-      ErrorHandler.handleError(e);
+      ErrorHandler.handleError(e.toString());
     } finally {
       setState(() {
         _isLoading = false;

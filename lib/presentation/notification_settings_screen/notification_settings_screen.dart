@@ -1,4 +1,6 @@
 import '../../core/app_export.dart';
+import '../../services/notification_data_service.dart';
+import '../../services/workspace_service.dart';
 import './widgets/notification_category_widget.dart';
 import './widgets/notification_preview_widget.dart';
 import './widgets/quiet_hours_widget.dart';
@@ -14,51 +16,98 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
   bool _hasChanges = false;
+  bool _isLoading = false;
+  
+  final NotificationDataService _notificationService = NotificationDataService();
+  final WorkspaceService _workspaceService = WorkspaceService();
+  
+  String? _currentWorkspaceId;
+  String? _currentUserId;
 
   // Notification Categories
-  Map<String, Map<String, bool>> _notificationSettings = {
-    'workspace': {
-      'email': true,
-      'push': true,
-      'inApp': true,
-    },
-    'social': {
-      'email': false,
-      'push': true,
-      'inApp': true,
-    },
-    'crm': {
-      'email': true,
-      'push': true,
-      'inApp': true,
-    },
-    'courses': {
-      'email': true,
-      'push': false,
-      'inApp': true,
-    },
-    'marketplace': {
-      'email': true,
-      'push': true,
-      'inApp': true,
-    },
-    'financial': {
-      'email': true,
-      'push': true,
-      'inApp': true,
-    },
-    'system': {
-      'email': true,
-      'push': false,
-      'inApp': true,
-    },
-  };
+  Map<String, Map<String, bool>> _notificationSettings = {};
 
   // Quiet Hours
   TimeOfDay _quietHoursStart = TimeOfDay(hour: 22, minute: 0);
   TimeOfDay _quietHoursEnd = TimeOfDay(hour: 8, minute: 0);
   bool _quietHoursEnabled = false;
-  String _selectedTimezone = 'UTC-5 (Eastern Time)';
+  String _selectedTimezone = 'UTC';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationSettings();
+  }
+
+  Future<void> _loadNotificationSettings() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Get current workspace and user
+      final workspaces = await _workspaceService.getUserWorkspaces();
+      if (workspaces.isNotEmpty) {
+        _currentWorkspaceId = workspaces.first['id'];
+        _currentUserId = workspaces.first['user_id'];
+        
+        // Load notification settings
+        final settings = await _notificationService.getNotificationSettings(
+          _currentUserId!,
+          _currentWorkspaceId!,
+        );
+        
+        setState(() {
+          _notificationSettings = Map<String, Map<String, bool>>.from(
+            settings['notification_settings'] ?? {},
+          );
+          _quietHoursEnabled = settings['quiet_hours_enabled'] ?? false;
+          _quietHoursStart = _parseTime(settings['quiet_hours_start'] ?? '22:00') ?? TimeOfDay(hour: 22, minute: 0);
+          _quietHoursEnd = _parseTime(settings['quiet_hours_end'] ?? '08:00') ?? TimeOfDay(hour: 8, minute: 0);
+          _selectedTimezone = settings['timezone'] ?? 'UTC';
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load notification settings: $e');
+      }
+      _setDefaultSettings();
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _setDefaultSettings() {
+    setState(() {
+      _notificationSettings = {
+        'workspace': {'email': true, 'push': true, 'inApp': true},
+        'social_media': {'email': false, 'push': true, 'inApp': true},
+        'crm': {'email': true, 'push': true, 'inApp': true},
+        'courses': {'email': true, 'push': false, 'inApp': true},
+        'marketplace': {'email': true, 'push': true, 'inApp': true},
+        'financial': {'email': true, 'push': true, 'inApp': true},
+        'system': {'email': true, 'push': false, 'inApp': true},
+      };
+    });
+  }
+
+  TimeOfDay? _parseTime(String timeString) {
+    try {
+      final parts = timeString.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to parse time: $e');
+      }
+    }
+    return null;
+  }
 
   void _onSettingChanged(String category, String type, bool value) {
     setState(() {
@@ -119,21 +168,13 @@ class _NotificationSettingsScreenState
   }
 
   void _resetSettings() {
+    _setDefaultSettings();
     setState(() {
-      _notificationSettings = {
-        'workspace': {'email': true, 'push': true, 'inApp': true},
-        'social': {'email': false, 'push': true, 'inApp': true},
-        'crm': {'email': true, 'push': true, 'inApp': true},
-        'courses': {'email': true, 'push': false, 'inApp': true},
-        'marketplace': {'email': true, 'push': true, 'inApp': true},
-        'financial': {'email': true, 'push': true, 'inApp': true},
-        'system': {'email': true, 'push': false, 'inApp': true},
-      };
       _quietHoursEnabled = false;
       _quietHoursStart = TimeOfDay(hour: 22, minute: 0);
       _quietHoursEnd = TimeOfDay(hour: 8, minute: 0);
-      _selectedTimezone = 'UTC-5 (Eastern Time)';
-      _hasChanges = false;
+      _selectedTimezone = 'UTC';
+      _hasChanges = true;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -144,17 +185,65 @@ class _NotificationSettingsScreenState
     );
   }
 
-  void _saveChanges() {
-    // TODO: Implement save logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Notification settings saved successfully'),
-        backgroundColor: AppTheme.success,
-      ),
-    );
+  Future<void> _saveChanges() async {
+    if (_currentUserId == null || _currentWorkspaceId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to save settings. Please try again.'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+      return;
+    }
+
     setState(() {
-      _hasChanges = false;
+      _isLoading = true;
     });
+
+    try {
+      final success = await _notificationService.updateNotificationSettings(
+        _currentUserId!,
+        _currentWorkspaceId!,
+        _notificationSettings,
+        quietHoursEnabled: _quietHoursEnabled,
+        quietHoursStart: '${_quietHoursStart.hour.toString().padLeft(2, '0')}:${_quietHoursStart.minute.toString().padLeft(2, '0')}',
+        quietHoursEnd: '${_quietHoursEnd.hour.toString().padLeft(2, '0')}:${_quietHoursEnd.minute.toString().padLeft(2, '0')}',
+        timezone: _selectedTimezone,
+      );
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Notification settings saved successfully'),
+            backgroundColor: AppTheme.success,
+          ),
+        );
+        setState(() {
+          _hasChanges = false;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save notification settings'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to save notification settings: $e');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving notification settings'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _enableAllCategory(String category) {
@@ -181,6 +270,15 @@ class _NotificationSettingsScreenState
       backgroundColor: AppTheme.primaryBackground,
       body: Stack(
         children: [
+          // Loading overlay
+          if (_isLoading)
+            Container(
+              color: AppTheme.primaryBackground.withAlpha(204),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          
           // Main content
           SingleChildScrollView(
             padding: EdgeInsets.only(
@@ -196,7 +294,7 @@ class _NotificationSettingsScreenState
                   description:
                       'Team member activity, project updates, and mentions',
                   icon: Icons.groups_outlined,
-                  settings: _notificationSettings['workspace']!,
+                  settings: _notificationSettings['workspace'] ?? {'email': true, 'push': true, 'inApp': true},
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('workspace', type, value),
                   onEnableAll: () => _enableAllCategory('workspace'),
@@ -211,11 +309,11 @@ class _NotificationSettingsScreenState
                   description:
                       'Post scheduling, engagement alerts, and follower milestones',
                   icon: Icons.share_outlined,
-                  settings: _notificationSettings['social']!,
+                  settings: _notificationSettings['social_media'] ?? {'email': false, 'push': true, 'inApp': true},
                   onSettingChanged: (type, value) =>
-                      _onSettingChanged('social', type, value),
-                  onEnableAll: () => _enableAllCategory('social'),
-                  onDisableAll: () => _disableAllCategory('social'),
+                      _onSettingChanged('social_media', type, value),
+                  onEnableAll: () => _enableAllCategory('social_media'),
+                  onDisableAll: () => _disableAllCategory('social_media'),
                 ),
 
                 const SizedBox(height: 16),
@@ -226,7 +324,7 @@ class _NotificationSettingsScreenState
                   description:
                       'New leads, pipeline updates, and email campaign results',
                   icon: Icons.people_outline,
-                  settings: _notificationSettings['crm']!,
+                  settings: _notificationSettings['crm'] ?? {'email': true, 'push': true, 'inApp': true},
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('crm', type, value),
                   onEnableAll: () => _enableAllCategory('crm'),
@@ -241,7 +339,7 @@ class _NotificationSettingsScreenState
                   description:
                       'Student enrollments, completion certificates, and discussions',
                   icon: Icons.school_outlined,
-                  settings: _notificationSettings['courses']!,
+                  settings: _notificationSettings['courses'] ?? {'email': true, 'push': false, 'inApp': true},
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('courses', type, value),
                   onEnableAll: () => _enableAllCategory('courses'),
@@ -256,7 +354,7 @@ class _NotificationSettingsScreenState
                   description:
                       'New orders, payment confirmations, and review notifications',
                   icon: Icons.store_outlined,
-                  settings: _notificationSettings['marketplace']!,
+                  settings: _notificationSettings['marketplace'] ?? {'email': true, 'push': true, 'inApp': true},
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('marketplace', type, value),
                   onEnableAll: () => _enableAllCategory('marketplace'),
@@ -271,7 +369,7 @@ class _NotificationSettingsScreenState
                   description:
                       'Invoice payments, subscription renewals, and transactions',
                   icon: Icons.payment_outlined,
-                  settings: _notificationSettings['financial']!,
+                  settings: _notificationSettings['financial'] ?? {'email': true, 'push': true, 'inApp': true},
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('financial', type, value),
                   onEnableAll: () => _enableAllCategory('financial'),
@@ -286,7 +384,7 @@ class _NotificationSettingsScreenState
                   description:
                       'Maintenance, feature announcements, and security alerts',
                   icon: Icons.system_update_outlined,
-                  settings: _notificationSettings['system']!,
+                  settings: _notificationSettings['system'] ?? {'email': true, 'push': false, 'inApp': true},
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('system', type, value),
                   onEnableAll: () => _enableAllCategory('system'),

@@ -18,17 +18,13 @@ class _GoalCustomizedWorkspaceDashboardState extends State<GoalCustomizedWorkspa
   late TabController _tabController;
   late AnimationController _refreshController;
   bool _isRefreshing = false;
-  String _selectedWorkspace = 'Creative Studio';
+  String _selectedWorkspace = 'My Workspace';
   int _selectedTabIndex = 0;
-  String _workspaceGoal = 'social_media_growth';
+  String _workspaceGoal = 'general';
   Map<String, dynamic> _workspaceData = {};
   bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _workspaces = [
-{'name': 'Creative Studio', 'goal': 'social_media_growth', 'members': 5, 'status': 'Active'},
-{'name': 'Online Store', 'goal': 'e_commerce_sales', 'members': 3, 'status': 'Active'},
-{'name': 'Course Platform', 'goal': 'course_creation', 'members': 2, 'status': 'Active'},
-];
+  final List<Map<String, dynamic>> _workspaces = [];
 
   @override
   void initState() {
@@ -58,15 +54,10 @@ class _GoalCustomizedWorkspaceDashboardState extends State<GoalCustomizedWorkspa
       _isLoading = true;
     });
     
-    // Simulate loading workspace data
+    // Load workspace data without sample data
     Future.delayed(const Duration(milliseconds: 800), () {
-      final workspace = _workspaces.firstWhere(
-        (w) => w['name'] == _selectedWorkspace,
-        orElse: () => _workspaces.first,
-      );
-      
       setState(() {
-        _workspaceGoal = workspace['goal'];
+        _workspaceGoal = 'general';
         _workspaceData = _getWorkspaceDataForGoal(_workspaceGoal);
         _isLoading = false;
       });

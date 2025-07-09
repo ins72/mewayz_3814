@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import './app_constants.dart';
 import './environment_config.dart';
 import './storage_service.dart';
 
@@ -529,13 +528,13 @@ class SecurityService {
       'suggestions': <String>[],
     };
 
-    if (password.length < AppConstants.minPasswordLength) {
-      result['issues'].add('Password must be at least ${AppConstants.minPasswordLength} characters');
+    if (password.length < 8) {
+      result['issues'].add('Password must be at least 8 characters');
       result['suggestions'].add('Use a longer password');
     }
 
-    if (password.length > AppConstants.maxPasswordLength) {
-      result['issues'].add('Password must be no more than ${AppConstants.maxPasswordLength} characters');
+    if (password.length > 32) {
+      result['issues'].add('Password must be no more than 32 characters');
       result['suggestions'].add('Use a shorter password');
     }
 
@@ -583,8 +582,8 @@ class SecurityService {
         'data': data,
       };
 
-      // Using available methods instead of undefined storeSecurityEvent
-      await _storageService.write('security_event_${DateTime.now().millisecondsSinceEpoch}', jsonEncode(logData));
+      // Store security event using available methods
+      await _storageService.save('security_event_${DateTime.now().millisecondsSinceEpoch}', jsonEncode(logData));
       
       if (kDebugMode) {
         debugPrint('Security event logged: $event');
@@ -614,7 +613,7 @@ class SecurityService {
   /// Clear security data
   Future<void> clearSecurityData() async {
     try {
-      // Using available methods instead of undefined clearSecurityEvents
+      // Clear security data using available methods
       await _storageService.clear();
       
       if (kDebugMode) {
