@@ -270,50 +270,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 3));
+      final authService = AuthService();
+      final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
+      
+      final response = await authService.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        fullName: fullName,
+      );
 
-      // Simulate registration success
-      final userData = {
-        'firstName': _firstNameController.text.trim(),
-        'lastName': _lastNameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'acceptNewsletter': _acceptNewsletter,
-      };
+      if (response?.user != null) {
+        // Trigger haptic feedback
+        HapticFeedback.lightImpact();
 
-      // Trigger haptic feedback
-      HapticFeedback.lightImpact();
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                CustomIconWidget(
+                  iconName: 'check_circle',
+                  color: Colors.green,
+                  size: 20),
+                SizedBox(width: 2.w),
+                const Text('Registration successful! Please check your email to verify your account.'),
+              ]),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              })));
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              CustomIconWidget(
-                iconName: 'check_circle',
-                color: Colors.green,
-                size: 20),
-              SizedBox(width: 2.w),
-              const Text('Registration successful! Please check your email to verify your account.'),
-            ]),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            })));
-
-      // Navigate to email verification screen
-      Navigator.pushReplacementNamed(
-        context, 
-        AppRoutes.emailVerificationScreen,
-        arguments: userData);
-
+        // Navigate to email verification screen
+        Navigator.pushReplacementNamed(
+          context, 
+          AppRoutes.emailVerificationScreen,
+          arguments: {
+            'email': _emailController.text.trim(),
+            'fullName': fullName,
+          });
+      } else {
+        setState(() {
+          _generalError = 'Registration failed. Please try again.';
+        });
+      }
     } catch (e) {
       setState(() {
-        _generalError = 'Registration failed. Please try again.';
+        _generalError = 'Registration failed: ${e.toString()}';
       });
     } finally {
       setState(() {

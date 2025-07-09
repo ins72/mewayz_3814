@@ -30,9 +30,9 @@ import '../presentation/security_settings_screen/security_settings_screen.dart';
 import '../presentation/settings_screen/settings_screen.dart';
 import '../presentation/setup_progress_screen/setup_progress_screen.dart';
 import '../presentation/social_media_analytics_screen/social_media_analytics_screen.dart';
+import '../presentation/social_media_management_hub/social_media_management_hub.dart';
 import '../presentation/social_media_manager/social_media_manager.dart';
 import '../presentation/social_media_scheduler/social_media_scheduler.dart';
-import '../presentation/social_media_scheduler_screen/social_media_scheduler_screen.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/team_member_invitation_screen/team_member_invitation_screen.dart';
 import '../presentation/two_factor_authentication_screen/two_factor_authentication_screen.dart';
@@ -42,6 +42,7 @@ import '../presentation/workspace_creation_screen/workspace_creation_screen.dart
 import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/workspace_selector_screen/workspace_selector_screen.dart';
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
+import '../presentation/settings_account_management/settings_account_management.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -61,8 +62,8 @@ class AppRoutes {
   static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
   static const String linkInBioBuilder = '/link-in-bio-builder';
   static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
+  static const String socialMediaManagementHub = '/social-media-management-hub';
   static const String socialMediaManagerScreen = '/social-media-manager-screen';
-  static const String socialMediaSchedulerScreen = '/social-media-scheduler-screen';
   static const String socialMediaScheduler = '/social-media-scheduler';
   static const String socialMediaAnalyticsScreen = '/social-media-analytics-screen';
   static const String hashtagResearchScreen = '/hashtag-research-screen';
@@ -75,10 +76,7 @@ class AppRoutes {
   static const String crmContactManagement = '/crm-contact-management';
   static const String marketplaceStore = '/marketplace-store';
   static const String courseCreator = '/course-creator';
-  static const String analyticsScreen = '/analytics-screen';
-  static const String analyticsDetailsScreen = '/analytics-details-screen';
-  static const String analyticsReportScreen = '/analytics-report-screen';
-  static const String analyticsExportScreen = '/analytics-export-screen';
+  static const String settingsAccountManagement = '/settings-account-management';
   static const String settingsScreen = '/settings-screen';
   static const String profileSettingsScreen = '/profile-settings-screen';
   static const String accountSettingsScreen = '/account-settings-screen';
@@ -110,8 +108,8 @@ class AppRoutes {
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
     linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),    linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
+    socialMediaManagementHub: (context) => const SocialMediaManagementHub(),
     socialMediaManagerScreen: (context) => const SocialMediaManager(),
-    socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
     socialMediaScheduler: (context) => const SocialMediaScheduler(),
     socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
     hashtagResearchScreen: (context) => const HashtagResearchScreen(),
@@ -124,10 +122,7 @@ class AppRoutes {
     crmContactManagement: (context) => const CrmContactManagement(),
     marketplaceStore: (context) => const MarketplaceStore(),
     courseCreator: (context) => const CourseCreator(),
-    analyticsScreen: (context) => const AnalyticsDashboard(),
-    analyticsDetailsScreen: (context) => const AnalyticsDashboard(),
-    analyticsReportScreen: (context) => const AnalyticsDashboard(),
-    analyticsExportScreen: (context) => const AnalyticsDashboard(),
+    settingsAccountManagement: (context) => const SettingsAccountManagement(),
     settingsScreen: (context) => const SettingsScreen(),
     profileSettingsScreen: (context) => const ProfileSettingsScreen(),
     accountSettingsScreen: (context) => const AccountSettingsScreen(),

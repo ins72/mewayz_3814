@@ -1,9 +1,8 @@
 
 import '../../../core/app_export.dart';
-import '../user_onboarding_screen.dart';
 
 class FeaturePreviewCardWidget extends StatefulWidget {
-  final FeaturePreviewData featureData;
+  final dynamic featureData;
   final Duration animationDelay;
 
   const FeaturePreviewCardWidget({
@@ -102,6 +101,8 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
   }
 
   Widget _buildFeaturePreviewDialog() {
+    final featureData = widget.featureData as Map<String, dynamic>? ?? {};
+    
     return Dialog(
       backgroundColor: AppTheme.surface,
       shape: RoundedRectangleBorder(
@@ -122,7 +123,7 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
               ),
               child: Center(
                 child: CustomIconWidget(
-                  iconName: widget.featureData.icon,
+                  iconName: featureData['icon'] ?? 'info',
                   color: AppTheme.accent,
                   size: 8.w,
                 ),
@@ -133,7 +134,7 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
 
             // Feature title
             Text(
-              widget.featureData.title,
+              featureData['title'] ?? '',
               style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -145,7 +146,7 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
 
             // Feature description
             Text(
-              'This feature will help you ${widget.featureData.description.toLowerCase()}. You can access it from the main dashboard once you complete the setup.',
+              'This feature will help you ${(featureData['description'] ?? '').toString().toLowerCase()}. You can access it from the main dashboard once you complete the setup.',
               style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
                 color: AppTheme.secondaryText,
                 fontSize: 11.sp,
@@ -193,6 +194,8 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
 
   @override
   Widget build(BuildContext context) {
+    final featureData = widget.featureData as Map<String, dynamic>? ?? {};
+    
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -242,7 +245,7 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
                             ),
                             child: Center(
                               child: CustomIconWidget(
-                                iconName: widget.featureData.icon,
+                                iconName: featureData['icon'] ?? 'info',
                                 color: AppTheme.accent,
                                 size: 5.w,
                               ),
@@ -257,7 +260,7 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.featureData.title,
+                                  featureData['title'] ?? '',
                                   style: AppTheme
                                       .darkTheme.textTheme.titleMedium
                                       ?.copyWith(
@@ -267,7 +270,7 @@ class _FeaturePreviewCardWidgetState extends State<FeaturePreviewCardWidget>
                                 ),
                                 SizedBox(height: 0.5.h),
                                 Text(
-                                  widget.featureData.description,
+                                  featureData['description'] ?? '',
                                   style: AppTheme.darkTheme.textTheme.bodySmall
                                       ?.copyWith(
                                     color: AppTheme.secondaryText,

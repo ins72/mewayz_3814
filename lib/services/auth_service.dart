@@ -42,6 +42,15 @@ class AuthService {
 
       if (response.user != null) {
         debugPrint('User signed up successfully: ${response.user!.email}');
+        
+        // Save user data to local storage
+        final storageService = StorageService();
+        await storageService.saveUserData({
+          'id': response.user!.id,
+          'email': response.user!.email,
+          'full_name': fullName,
+          'role': role,
+        });
       }
 
       return response;
@@ -64,6 +73,15 @@ class AuthService {
 
       if (response.user != null) {
         debugPrint('User signed in successfully: ${response.user!.email}');
+        
+        // Save user data to local storage
+        final storageService = StorageService();
+        await storageService.saveUserData({
+          'id': response.user!.id,
+          'email': response.user!.email,
+          'full_name': response.user!.userMetadata?['full_name'] ?? '',
+          'role': response.user!.userMetadata?['role'] ?? 'creator',
+        });
       }
 
       return response;
@@ -77,6 +95,11 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+      
+      // Clear user data from local storage
+      final storageService = StorageService();
+      await storageService.clearAuthData();
+      
       debugPrint('User signed out successfully');
     } catch (e) {
       ErrorHandler.handleError('Failed to sign out user: $e');

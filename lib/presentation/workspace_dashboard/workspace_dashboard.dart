@@ -1,5 +1,8 @@
 
 import '../../core/app_export.dart';
+import '../crm_contact_management/crm_contact_management.dart';
+import '../marketplace_store/marketplace_store.dart';
+import '../social_media_manager/social_media_manager.dart';
 import './widgets/activity_item_widget.dart';
 import './widgets/metrics_card_widget.dart';
 import './widgets/quick_action_widget.dart';
@@ -20,10 +23,10 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   bool _isLoading = false;
 
   final List<Map<String, dynamic>> workspaces = [
-{"id": 1, "name": "Digital Marketing Agency", "isActive": true},
-{"id": 2, "name": "E-commerce Store", "isActive": false},
-{"id": 3, "name": "Course Creator Hub", "isActive": false},
-{"id": 4, "name": "Freelance Business", "isActive": false},
+{"id": "1", "name": "Digital Marketing Agency", "isActive": true},
+{"id": "2", "name": "E-commerce Store", "isActive": false},
+{"id": "3", "name": "Course Creator Hub", "isActive": false},
+{"id": "4", "name": "Freelance Business", "isActive": false},
 ];
 
   final List<Map<String, dynamic>> metricsData = [
@@ -134,6 +137,53 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
     _loadDashboardData();
+    _loadWorkspaceData();
+  }
+
+  Future<void> _loadWorkspaceData() async {
+    try {
+      final storageService = StorageService();
+      final currentWorkspaceId = await storageService.getCurrentWorkspace();
+      final workspacesData = await storageService.getWorkspacesData();
+      
+      if (workspacesData != null) {
+        setState(() {
+          workspaces.clear();
+          workspaces.addAll(workspacesData);
+        });
+      }
+      
+      if (currentWorkspaceId != null) {
+        final currentWorkspace = workspaces.firstWhere(
+          (ws) => ws['id'] == currentWorkspaceId,
+          orElse: () => workspaces.first,
+        );
+        setState(() {
+          selectedWorkspace = currentWorkspace['name'];
+          // Update active workspace
+          for (var ws in workspaces) {
+            ws['isActive'] = ws['id'] == currentWorkspaceId;
+          }
+        });
+      }
+    } catch (e) {
+      ErrorHandler.handleError(e);
+    }
+  }
+
+  Future<void> _saveWorkspaceData() async {
+    try {
+      final storageService = StorageService();
+      await storageService.saveWorkspacesData(workspaces);
+      
+      final activeWorkspace = workspaces.firstWhere(
+        (ws) => ws['isActive'] == true,
+        orElse: () => workspaces.first,
+      );
+      await storageService.saveCurrentWorkspace(activeWorkspace['id']);
+    } catch (e) {
+      ErrorHandler.handleError(e);
+    }
   }
 
   @override
@@ -259,7 +309,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                         size: 24,
                       )
                     : null,
-                onTap: () {
+                onTap: () async {
                   setState(() {
                     selectedWorkspace = workspace["name"];
                     // Update active workspace
@@ -267,7 +317,12 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                       ws["isActive"] = ws["id"] == workspace["id"];
                     }
                   });
+                  
+                  await _saveWorkspaceData();
                   Navigator.pop(context);
+                  
+                  // Refresh dashboard data for new workspace
+                  await _handleRefresh();
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusM),
@@ -275,6 +330,24 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               ),
             )),
             SizedBox(height: AppTheme.spacingL),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppRoutes.workspaceCreationScreen);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accent,
+                foregroundColor: AppTheme.primaryAction,
+                minimumSize: Size(double.infinity, 6.h),
+              ),
+              child: Text(
+                'Create New Workspace',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -610,38 +683,133 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   }
 
   Widget _buildSocialTab() {
-    return const CustomEmptyStateWidget(
-      title: 'Social Media Hub',
-      subtitle: 'Manage all your social media accounts in one place',
-      iconName: 'favorite',
-      buttonText: 'Get Started',
+    return Navigator(
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => const SocialMediaManager(),
+        );
+      },
     );
   }
 
   Widget _buildCRMTab() {
-    return const CustomEmptyStateWidget(
-      title: 'Customer Relationship Management',
-      subtitle: 'Track leads, manage contacts, and grow your business',
-      iconName: 'contacts',
-      buttonText: 'Add Contact',
+    return Navigator(
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => const CrmContactManagement(),
+        );
+      },
     );
   }
 
   Widget _buildStoreTab() {
-    return const CustomEmptyStateWidget(
-      title: 'Online Store',
-      subtitle: 'Sell products and services online',
-      iconName: 'store',
-      buttonText: 'Add Product',
+    return Navigator(
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => const MarketplaceStore(),
+        );
+      },
     );
   }
 
   Widget _buildMoreTab() {
-    return const CustomEmptyStateWidget(
-      title: 'More Features',
-      subtitle: 'Explore additional tools and features',
-      iconName: 'more_horiz',
-      buttonText: 'Explore',
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(AppTheme.spacingM),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "More Features",
+            style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: AppTheme.spacingL),
+          
+          // Quick Access Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppTheme.spacingM,
+              mainAxisSpacing: AppTheme.spacingM,
+              childAspectRatio: 1.2,
+            ),
+            itemCount: quickActions.length,
+            itemBuilder: (context, index) {
+              return QuickActionWidget(
+                data: quickActions[index],
+                onTap: () => Navigator.pushNamed(
+                    context, quickActions[index]["route"]),
+              );
+            },
+          ),
+          
+          SizedBox(height: AppTheme.spacingXl),
+          
+          // Settings Section
+          Container(
+            padding: EdgeInsets.all(AppTheme.spacingM),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusM),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Settings & Tools",
+                  style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: AppTheme.spacingM),
+                
+                ListTile(
+                  leading: CustomIconWidget(
+                    iconName: 'settings',
+                    color: AppTheme.accent,
+                    size: 24,
+                  ),
+                  title: Text('Settings'),
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.settingsScreen),
+                ),
+                
+                ListTile(
+                  leading: CustomIconWidget(
+                    iconName: 'analytics',
+                    color: AppTheme.accent,
+                    size: 24,
+                  ),
+                  title: Text('Analytics Dashboard'),
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.analyticsDashboard),
+                ),
+                
+                ListTile(
+                  leading: CustomIconWidget(
+                    iconName: 'people',
+                    color: AppTheme.accent,
+                    size: 24,
+                  ),
+                  title: Text('Team Management'),
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.usersTeamManagementScreen),
+                ),
+                
+                ListTile(
+                  leading: CustomIconWidget(
+                    iconName: 'help',
+                    color: AppTheme.accent,
+                    size: 24,
+                  ),
+                  title: Text('Contact Support'),
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.contactUsScreen),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -258,7 +258,65 @@ class StorageService {
       ErrorHandler.handleError(StorageException('Failed to save string: $e'));
     }
   }
+
+  // Onboarding completion tracking
+  Future<void> saveOnboardingCompleted(bool completed) async {
+    try {
+      await prefs.setBool('onboarding_completed', completed);
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to save onboarding completion: $e'));
+    }
+  }
   
+  Future<bool> getOnboardingCompleted() async {
+    try {
+      return prefs.getBool('onboarding_completed') ?? false;
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to get onboarding completion: $e'));
+      return false;
+    }
+  }
+  
+  // Workspace management
+  Future<void> saveCurrentWorkspace(String workspaceId) async {
+    try {
+      await prefs.setString('current_workspace', workspaceId);
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to save current workspace: $e'));
+    }
+  }
+  
+  Future<String?> getCurrentWorkspace() async {
+    try {
+      return prefs.getString('current_workspace');
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to get current workspace: $e'));
+      return null;
+    }
+  }
+  
+  Future<void> saveWorkspacesData(List<Map<String, dynamic>> workspaces) async {
+    try {
+      await prefs.setString('workspaces_data', jsonEncode(workspaces));
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to save workspaces data: $e'));
+    }
+  }
+  
+  Future<List<Map<String, dynamic>>?> getWorkspacesData() async {
+    try {
+      final data = prefs.getString('workspaces_data');
+      if (data != null) {
+        final List<dynamic> decoded = jsonDecode(data);
+        return decoded.cast<Map<String, dynamic>>();
+      }
+      return null;
+    } catch (e) {
+      ErrorHandler.handleError(StorageException('Failed to get workspaces data: $e'));
+      return null;
+    }
+  }
+
   Future<String?> getString(String key) async {
     try {
       return prefs.getString(key);

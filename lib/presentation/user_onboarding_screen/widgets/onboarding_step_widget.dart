@@ -1,10 +1,9 @@
 
 import '../../../core/app_export.dart';
-import '../user_onboarding_screen.dart';
 import './feature_preview_card_widget.dart';
 
 class OnboardingStepWidget extends StatefulWidget {
-  final OnboardingStepData stepData;
+  final Map<String, dynamic> stepData;
   final bool isActive;
 
   const OnboardingStepWidget({
@@ -148,7 +147,7 @@ class _OnboardingStepWidgetState extends State<OnboardingStepWidget>
               ),
               SizedBox(height: 2.h),
               Text(
-                widget.stepData.illustration.replaceAll('_', ' ').toUpperCase(),
+                (widget.stepData['illustration'] ?? '').toString().replaceAll('_', ' ').toUpperCase(),
                 style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(
                   color: AppTheme.secondaryText,
                   fontSize: 8.sp,
@@ -163,7 +162,7 @@ class _OnboardingStepWidgetState extends State<OnboardingStepWidget>
   }
 
   String _getIllustrationIcon() {
-    switch (widget.stepData.illustration) {
+    switch (widget.stepData['illustration']) {
       case 'workspace_illustration':
         return 'business_center';
       case 'social_media_illustration':
@@ -184,7 +183,7 @@ class _OnboardingStepWidgetState extends State<OnboardingStepWidget>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.stepData.title,
+          widget.stepData['title'] ?? '',
           style: AppTheme.darkTheme.textTheme.headlineSmall?.copyWith(
             color: AppTheme.primaryText,
             fontSize: 18.sp,
@@ -193,7 +192,7 @@ class _OnboardingStepWidgetState extends State<OnboardingStepWidget>
         ),
         SizedBox(height: 1.h),
         Text(
-          widget.stepData.subtitle,
+          widget.stepData['subtitle'] ?? '',
           style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
             color: AppTheme.accent,
             fontSize: 12.sp,
@@ -206,7 +205,7 @@ class _OnboardingStepWidgetState extends State<OnboardingStepWidget>
 
   Widget _buildDescription() {
     return Text(
-      widget.stepData.description,
+      widget.stepData['description'] ?? '',
       style: AppTheme.darkTheme.textTheme.bodyLarge?.copyWith(
         color: AppTheme.secondaryText,
         fontSize: 12.sp,
@@ -216,14 +215,16 @@ class _OnboardingStepWidgetState extends State<OnboardingStepWidget>
   }
 
   Widget _buildFeaturePreviewCards() {
+    final features = widget.stepData['features'] as List<dynamic>? ?? [];
+    
     return Expanded(
       child: ListView.separated(
         physics: const BouncingScrollPhysics(),
-        itemCount: widget.stepData.features.length,
+        itemCount: features.length,
         separatorBuilder: (context, index) => SizedBox(height: 2.h),
         itemBuilder: (context, index) {
           return FeaturePreviewCardWidget(
-            featureData: widget.stepData.features[index],
+            featureData: features[index],
             animationDelay: Duration(milliseconds: 200 * index),
           );
         },
