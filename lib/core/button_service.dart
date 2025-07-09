@@ -68,6 +68,49 @@ class ButtonService {
     }
   }
 
+  // Navigation helper methods
+  static Future<void> navigateTo({
+    required BuildContext context,
+    required String route,
+    Object? arguments,
+    bool showFeedback = false,
+    String? feedbackMessage,
+  }) async {
+    try {
+      if (showFeedback && feedbackMessage != null) {
+        // Show loading or feedback message
+        debugPrint('ButtonService: $feedbackMessage');
+      }
+      
+      await Navigator.pushNamed(
+        context,
+        route,
+        arguments: arguments,
+      );
+    } catch (error) {
+      ErrorHandler.handleError(
+        'Navigation failed to $route: $error',
+        context: 'ButtonService.navigateTo',
+      );
+    }
+  }
+
+  static Future<void> handleNavigation({
+    required BuildContext context,
+    required String route,
+    Object? arguments,
+    bool showFeedback = false,
+    String? feedbackMessage,
+  }) async {
+    await navigateTo(
+      context: context,
+      route: route,
+      arguments: arguments,
+      showFeedback: showFeedback,
+      feedbackMessage: feedbackMessage,
+    );
+  }
+
   // Trigger haptic feedback with delay
   static Future<void> _triggerHapticFeedback(HapticFeedbackType type) async {
     try {

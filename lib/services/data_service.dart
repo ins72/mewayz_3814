@@ -1,5 +1,6 @@
-import '../core/app_export.dart';
 import 'dart:io';
+
+import '../core/app_export.dart';
 
 /// Service for handling data operations across the application
 class DataService {

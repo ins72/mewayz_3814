@@ -13,7 +13,7 @@ class CustomEnhancedButtonWidget extends StatefulWidget {
   final bool enableHaptic;
   final bool enableDebounce;
   final Duration? customDebounceDelay;
-  final button_service.HapticFeedbackType hapticType;
+  final HapticFeedbackType hapticType;
   final bool isLoading;
   final Widget? loadingChild;
   final ButtonType buttonType;
@@ -28,7 +28,7 @@ class CustomEnhancedButtonWidget extends StatefulWidget {
     this.enableHaptic = true,
     this.enableDebounce = true,
     this.customDebounceDelay,
-    this.hapticType = button_service.HapticFeedbackType.lightImpact,
+    this.hapticType = HapticFeedbackType.lightImpact,
     this.isLoading = false,
     this.loadingChild,
     this.buttonType = ButtonType.elevated,

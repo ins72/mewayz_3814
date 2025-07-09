@@ -1,9 +1,7 @@
 import 'dart:io';
-import 'package:sizer/sizer.dart';
+
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
-import '../../../widgets/custom_icon_widget.dart';
 import './workspace_logo_upload_widget.dart';
 
 class WorkspaceSetupStepWidget extends StatelessWidget {

@@ -13,7 +13,7 @@ import './widgets/quick_post_modal_widget.dart';
 import './widgets/recent_activity_widget.dart';
 import './widgets/social_media_header_widget.dart';
 import './widgets/social_media_stats_widget.dart';
-import './widgets/trending_hashtags_widget';
+import './widgets/trending_hashtags_widget.dart';
 
 class SocialMediaManager extends StatefulWidget {
   const SocialMediaManager({Key? key}) : super(key: key);
@@ -92,7 +92,9 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
   }
 
   Future<void> _refreshData() async {
-    await ButtonService.handleButtonPress(() {});
+    await ButtonService.handleButtonPress('refreshData', () async {
+      await _loadSocialMediaData();
+    });
   }
 
   void _toggleRealTimeUpdates() {
@@ -109,6 +111,130 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
     }
   }
 
+  void _showCreatePostModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXl))),
+      builder: (context) => QuickPostModalWidget());
+  }
+
+  void _showAnalyticsModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXl))),
+      builder: (context) => Container(
+        height: 90.h,
+        padding: EdgeInsets.all(AppTheme.spacingM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 48,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.border,
+                  borderRadius: BorderRadius.circular(2)))),
+            SizedBox(height: AppTheme.spacingL),
+            
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Analytics Overview",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600)),
+                IconButton(
+                  onPressed: () async {
+                    await ButtonService.handleButtonPress('closeAnalytics', () {
+                      Navigator.pop(context);
+                    });
+                  },
+                  icon: const Icon(Icons.close)),
+              ]),
+            
+            SizedBox(height: AppTheme.spacingL),
+            
+            // Analytics content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const AnalyticsCardsWidget(),
+                    SizedBox(height: AppTheme.spacingL),
+                    const PerformanceChartsWidget(),
+                    SizedBox(height: AppTheme.spacingL),
+                    const SocialMediaStatsWidget(),
+                  ]))),
+          ])));
+  }
+
+  void _showSettingsModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXl))),
+      builder: (context) => Container(
+        padding: EdgeInsets.all(AppTheme.spacingM),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 48,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.border,
+                  borderRadius: BorderRadius.circular(2)))),
+            SizedBox(height: AppTheme.spacingL),
+            
+            Text(
+              "Settings",
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600)),
+            
+            SizedBox(height: AppTheme.spacingL),
+            
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text("General Settings"),
+              onTap: () async {
+                await ButtonService.handleButtonPress('generalSettings', () {
+                  Navigator.pop(context);
+                });
+              }),
+            
+            ListTile(
+              leading: const Icon(Icons.notifications),
+              title: const Text("Notifications"),
+              onTap: () async {
+                await ButtonService.handleButtonPress('notifications', () {
+                  Navigator.pop(context);
+                });
+              }),
+            
+            ListTile(
+              leading: const Icon(Icons.security),
+              title: const Text("Privacy & Security"),
+              onTap: () async {
+                await ButtonService.handleButtonPress('privacySecurity', () {
+                  Navigator.pop(context);
+                });
+              }),
+            
+            SizedBox(height: AppTheme.spacingL),
+          ])));
+  }
+
   Future<void> _showQuickPostModal() async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -122,11 +248,31 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
   }
 
   Future<void> _handleCreatePost(Map<String, dynamic> postData) async {
-    await ButtonService.handleButtonPress(() {});
+    await ButtonService.handleButtonPress('createPost', () async {
+      // Implementation for creating post
+      try {
+        await _dataService.createPost(postData);
+        await _loadSocialMediaData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post created successfully')));
+      } catch (e) {
+        ErrorHandler.handleError(e);
+      }
+    });
   }
 
   Future<void> _handleSchedulePost(Map<String, dynamic> postData) async {
-    await ButtonService.handleButtonPress(() {});
+    await ButtonService.handleButtonPress('schedulePost', () async {
+      // Implementation for scheduling post
+      try {
+        await _dataService.schedulePost(postData);
+        await _loadSocialMediaData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post scheduled successfully')));
+      } catch (e) {
+        ErrorHandler.handleError(e);
+      }
+    });
   }
 
   Future<void> _handleDeletePost(String postId) async {
@@ -138,12 +284,19 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
-        ],
-      ),
-    ) ?? false;
+        ])) ?? false;
 
     if (confirmed) {
-      await ButtonService.handleButtonPress(() {});
+      await ButtonService.handleButtonPress('deletePost', () async {
+        try {
+          await _dataService.deletePost(postId);
+          await _loadSocialMediaData();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post deleted successfully')));
+        } catch (e) {
+          ErrorHandler.handleError(e);
+        }
+      });
     }
   }
 
@@ -617,7 +770,11 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             title: const Text('Share Post'),
             onTap: () async {
               Navigator.pop(context);
-              await ButtonService.handleButtonPress(() {});
+              await ButtonService.handleButtonPress('sharePost', () async {
+                // Implementation for sharing post
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Post shared successfully')));
+              });
             }),
           ListTile(
             leading: const Icon(Icons.analytics, color: AppTheme.warning),
@@ -776,5 +933,65 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppTheme.secondaryText)),
         ]));
+  }
+
+  Widget _buildActionButton({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        await ButtonService.handleButtonPress('${title.toLowerCase()}Button', onTap);
+      },
+      child: Container(
+        padding: EdgeInsets.all(AppTheme.spacingM),
+        decoration: BoxDecoration(
+          color: color.withAlpha(26),
+          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          border: Border.all(
+            color: color.withAlpha(77),
+            width: 1)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(AppTheme.spacingS),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(AppTheme.radiusS)),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: AppTheme.iconSizeL)),
+            SizedBox(height: AppTheme.spacingS),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center),
+            SizedBox(height: AppTheme.spacingXs),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.secondaryText),
+              textAlign: TextAlign.center),
+          ])));
+  }
+
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () async {
+        await ButtonService.handleButtonPress('createPostFAB', () {
+          _showCreatePostModal();
+        });
+      },
+      backgroundColor: AppTheme.accent,
+      child: CustomIconWidget(
+        iconName: 'add',
+        color: AppTheme.primaryAction,
+        size: AppTheme.iconSizeL));
   }
 }

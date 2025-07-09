@@ -1,10 +1,7 @@
-import 'package:sizer/sizer.dart';
 import 'dart:io';
 
+
 import '../../core/app_export.dart';
-import '../../routes/app_routes.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/custom_icon_widget.dart';
 import './widgets/progress_indicator_widget.dart';
 import './widgets/team_invitation_widget.dart';
 import './widgets/workspace_preview_widget.dart';

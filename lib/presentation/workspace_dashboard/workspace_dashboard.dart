@@ -1,5 +1,15 @@
 import '../../core/app_export.dart';
+import '../../core/button_service.dart';
+import '../../core/error_handler.dart';
+import '../../core/storage_service.dart';
+import '../../routes/app_routes.dart';
+import '../../services/data_service.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/custom_app_bar_widget.dart';
 import '../../widgets/custom_bottom_navigation_widget.dart' as CustomBottomNav;
+import '../../widgets/custom_enhanced_button_widget.dart';
+import '../../widgets/custom_icon_widget.dart';
+import '../../widgets/custom_loading_widget.dart';
 import '../crm_contact_management/crm_contact_management.dart';
 import '../marketplace_store/marketplace_store.dart';
 import '../social_media_manager/social_media_manager.dart';
@@ -23,7 +33,6 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   bool _isLoading = false;
 
   final DataService _dataService = DataService();
-  final ButtonService _buttonService = ButtonService();
   final StorageService _storageService = StorageService();
 
   final List<Map<String, dynamic>> workspaces = [
@@ -247,7 +256,9 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   }
 
   Future<void> _handleRefresh() async {
-    await ButtonService.handleButtonPress('refreshButton', () {});
+    await ButtonService.handleButtonPress('refreshButton', () async {
+      await _loadDashboardData();
+    });
   }
 
   void _showWorkspaceSelector() {
@@ -314,7 +325,18 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
   }
 
   Future<void> _switchWorkspace(Map<String, dynamic> workspace) async {
-    await ButtonService.handleButtonPress('switchWorkspace', () {});
+    await ButtonService.handleButtonPress('switchWorkspace', () async {
+      setState(() {
+        selectedWorkspace = workspace['name'];
+        // Update all workspace items active state
+        for (var ws in workspaces) {
+          ws['isActive'] = ws['id'] == workspace['id'];
+        }
+      });
+      await _loadDashboardData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Switched to ${workspace['name']}')));
+    });
   }
 
   void _showQuickCreateMenu() {
@@ -368,7 +390,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     return GestureDetector(
       onTap: () async {
         Navigator.pop(context);
-        await _buttonService.handleNavigation(
+        await ButtonService.handleNavigation(
           context: context,
           route: route,
           showFeedback: true,
@@ -439,7 +461,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
         actions: [
           IconButton(
             onPressed: () async {
-              await _buttonService.handleNavigation(
+              await ButtonService.navigateTo(
                 context: context,
                 route: AppRoutes.analyticsDashboard,
                 showFeedback: true,
@@ -451,7 +473,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               size: AppTheme.iconSizeL)),
           IconButton(
             onPressed: () async {
-              await _buttonService.navigateTo(
+              await ButtonService.navigateTo(
                 context: context,
                 route: AppRoutes.notificationSettingsScreen,
                 showFeedback: true,
@@ -561,7 +583,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 return QuickActionWidget(
                   data: quickActions[index],
                   onTap: () async {
-                    await _buttonService.handleNavigation(
+                    await ButtonService.handleNavigation(
                       context: context,
                       route: quickActions[index]["route"],
                       showFeedback: true,
@@ -581,7 +603,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                     fontWeight: FontWeight.w600)),
                 TextButton(
                   onPressed: () async {
-                    await _buttonService.handleNavigation(
+                    await ButtonService.handleNavigation(
                       context: context,
                       route: AppRoutes.analyticsDashboard,
                       showFeedback: true,
@@ -613,24 +635,30 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const SocialMediaManager();
-      });
+          builder: (context) => const SocialMediaManager(),
+        );
+      },
+    );
   }
 
   Widget _buildCRMTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const CrmContactManagement();
-      });
+          builder: (context) => const CrmContactManagement(),
+        );
+      },
+    );
   }
 
   Widget _buildStoreTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const MarketplaceStore();
-      });
+          builder: (context) => const MarketplaceStore(),
+        );
+      },
+    );
   }
 
   Widget _buildMoreTab() {
@@ -659,7 +687,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               return QuickActionWidget(
                 data: quickActions[index],
                 onTap: () async {
-                  await _buttonService.handleNavigation(
+                  await ButtonService.handleNavigation(
                     context: context,
                     route: quickActions[index]["route"],
                     showFeedback: true,
@@ -686,7 +714,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   icon: Icons.settings,
                   title: 'Settings',
                   onTap: () async {
-                    await _buttonService.handleNavigation(
+                    await ButtonService.handleNavigation(
                       context: context,
                       route: AppRoutes.settingsScreen,
                       showFeedback: true,
@@ -697,7 +725,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   icon: Icons.analytics,
                   title: 'Analytics Dashboard',
                   onTap: () async {
-                    await _buttonService.handleNavigation(
+                    await ButtonService.handleNavigation(
                       context: context,
                       route: AppRoutes.analyticsDashboard,
                       showFeedback: true,
@@ -708,7 +736,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   icon: Icons.people,
                   title: 'Team Management',
                   onTap: () async {
-                    await _buttonService.handleNavigation(
+                    await ButtonService.handleNavigation(
                       context: context,
                       route: AppRoutes.usersTeamManagementScreen,
                       showFeedback: true,
@@ -719,7 +747,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   icon: Icons.help,
                   title: 'Contact Support',
                   onTap: () async {
-                    await _buttonService.handleNavigation(
+                    await ButtonService.handleNavigation(
                       context: context,
                       route: AppRoutes.contactUsScreen,
                       showFeedback: true,
@@ -828,7 +856,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await _buttonService.handleNavigation(
+              await ButtonService.handleNavigation(
                 context: context,
                 route: AppRoutes.analyticsDashboard,
                 showFeedback: true,

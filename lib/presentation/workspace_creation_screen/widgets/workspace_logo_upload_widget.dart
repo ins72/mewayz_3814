@@ -1,10 +1,7 @@
 import 'dart:io';
-import 'package:sizer/sizer.dart';
+
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
-import '../../../widgets/custom_icon_widget.dart';
-import '../../../widgets/custom_image_widget.dart';
 
 class WorkspaceLogoUploadWidget extends StatelessWidget {
   final File? logoFile;

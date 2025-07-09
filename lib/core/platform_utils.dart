@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
-
-// Conditional import for dart:io
-import 'dart:io' if (dart.library.html) 'dart:html' as io;
+import 'dart:io' as io;
 
 /// Utility class for platform-specific operations
 class PlatformUtils {
