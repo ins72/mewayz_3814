@@ -13,6 +13,8 @@ import '../presentation/email_marketing_campaign/email_marketing_campaign.dart';
 import '../presentation/email_verification_screen/email_verification_screen.dart';
 import '../presentation/enhanced_workspace_dashboard/enhanced_workspace_dashboard.dart';
 import '../presentation/forgot_password_screen/forgot_password_screen.dart';
+import '../presentation/goal_based_workspace_creation_screen/goal_based_workspace_creation_screen.dart';
+import '../presentation/goal_customized_workspace_dashboard/goal_customized_workspace_dashboard.dart';
 import '../presentation/goal_selection_screen/goal_selection_screen.dart';
 import '../presentation/hashtag_research_screen/hashtag_research_screen.dart';
 import '../presentation/instagram_lead_search/instagram_lead_search.dart';
@@ -22,6 +24,7 @@ import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
 import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
 import '../presentation/notification_settings_screen/notification_settings_screen.dart';
+import '../presentation/post_creation_team_invitation_screen/post_creation_team_invitation_screen.dart';
 import '../presentation/premium_social_media_hub/premium_social_media_hub.dart';
 import '../presentation/privacy_policy_screen/privacy_policy_screen.dart';
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
@@ -34,6 +37,7 @@ import '../presentation/role_based_access_control_screen/role_based_access_contr
 import '../presentation/security_settings_screen/security_settings_screen.dart';
 import '../presentation/settings_account_management/settings_account_management.dart';
 import '../presentation/settings_screen/settings_screen.dart';
+import '../presentation/setup_progress_screen/setup_progress_screen.dart';
 import '../presentation/social_media_analytics_screen/social_media_analytics_screen.dart';
 import '../presentation/social_media_management_hub/social_media_management_hub.dart';
 import '../presentation/social_media_management_screen/social_media_management_screen.dart';
@@ -52,18 +56,31 @@ import '../presentation/workspace_creation_screen/workspace_creation_screen.dart
 import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/workspace_selector_screen/workspace_selector_screen.dart';
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
-import '../presentation/setup_progress_screen/setup_progress_screen.dart';
 
 class AppRoutes {
   static const String initial = '/';
   static const String splashScreen = '/splash-screen';
+  static const String onboarding = '/onboarding';
+  static const String home = '/home';
+  static const String linkInBio = '/link-in-bio';
+  static const String forgotPassword = '/forgot-password';
+  static const String register = '/register';
+  static const String postingScreen = '/posting-screen';
+  static const String scheduler = '/scheduler';
+  static const String socialMediaAnalytics = '/social-media-analytics';
+  static const String linkInBioAnalytics = '/link-in-bio-analytics';
+  static const String qrCodeGenerator = '/qr-code-generator';
   static const String goalSelectionScreen = '/goal-selection-screen';
+  static const String goalBasedWorkspaceCreationScreen = '/goal-based-workspace-creation-screen';
+  static const String postCreationTeamInvitationScreen = '/post-creation-team-invitation-screen';
   static const String workspaceCreationScreen = '/workspace-creation-screen';
   static const String workspaceSelectorScreen = '/workspace-selector-screen';
   static const String workspaceDashboard = '/workspace-dashboard';
   static const String enhancedWorkspaceDashboard = '/enhanced-workspace-dashboard';
+  static const String goalCustomizedWorkspaceDashboard = '/goal-customized-workspace-dashboard';
   static const String premiumSocialMediaHub = '/premium-social-media-hub';
   static const String loginScreen = '/login-screen';
+  static const String onboardingScreen = '/onboarding-screen';
   static const String registerScreen = '/register-screen';
   static const String termsOfServiceScreen = '/terms-of-service-screen';
   static const String privacyPolicyScreen = '/privacy-policy-screen';
@@ -72,9 +89,7 @@ class AppRoutes {
   static const String emailVerificationScreen = '/email-verification-screen';
   static const String twoFactorAuthenticationScreen = '/two-factor-authentication-screen';
   static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
-  static const String linkInBioRoute = '/link-in-bio-builder';
   static const String advancedCrmManagementHub = '/advanced-crm-management-hub';
-  
   static const String socialMediaManagementScreen = '/social-media-management-screen';
   static const String socialMediaManagementHub = '/social-media-management-hub';
   static const String socialMediaManager = '/social-media-manager';
@@ -87,11 +102,9 @@ class AppRoutes {
   static const String profileSettingsScreen = '/profile-settings-screen';
   static const String notificationSettingsScreen = '/notification-settings-screen';
   static const String securitySettingsScreen = '/security-settings-screen';
-  static const String onboardingScreen = '/onboarding-screen';
   static const String analyticsDashboard = '/analytics-dashboard';
   static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
   static const String unifiedSettingsScreen = '/unified-settings-screen';
-  
   static const String hashtagResearchScreen = '/hashtag-research-screen';
   static const String instagramLeadSearch = '/instagram-lead-search';
   static const String multiPlatformPostingScreen = '/multi-platform-posting-screen';
@@ -114,13 +127,24 @@ class AppRoutes {
 
   static Map<String, Widget Function(BuildContext)> get routes => {
     initial: (context) => const SplashScreen(),
-    splashScreen: (context) => const SplashScreen(),
-    onboardingScreen: (context) => const UnifiedOnboardingScreen(),
+    splashScreen: (context) => const SplashScreen(),    onboardingScreen: (context) => const UnifiedOnboardingScreen(),
+    home: (context) => const WorkspaceDashboard(),
+    linkInBio: (context) => const LinkInBioTemplatesScreen(),
+    forgotPassword: (context) => const ForgotPasswordScreen(),
+    register: (context) => const RegisterScreen(),
+    postingScreen: (context) => const MultiPlatformPostingScreen(),
+    scheduler: (context) => const SocialMediaScheduler(),
+    socialMediaAnalytics: (context) => const SocialMediaAnalyticsScreen(),
+    linkInBioAnalytics: (context) => const LinkInBioAnalyticsScreen(),
+    qrCodeGenerator: (context) => const QrCodeGeneratorScreen(),
     goalSelectionScreen: (context) => const GoalSelectionScreen(),
+    goalBasedWorkspaceCreationScreen: (context) => const GoalBasedWorkspaceCreationScreen(),
+    postCreationTeamInvitationScreen: (context) => const PostCreationTeamInvitationScreen(),
     workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
     workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
     workspaceDashboard: (context) => const WorkspaceDashboard(),
     enhancedWorkspaceDashboard: (context) => const EnhancedWorkspaceDashboard(),
+    goalCustomizedWorkspaceDashboard: (context) => const GoalCustomizedWorkspaceDashboard(),
     premiumSocialMediaHub: (context) => const PremiumSocialMediaHub(),
     loginScreen: (context) => const LoginScreen(),
     registerScreen: (context) => const RegisterScreen(),
@@ -130,7 +154,8 @@ class AppRoutes {
     resetPasswordScreen: (context) => const ResetPasswordScreen(),
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
-    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),    advancedCrmManagementHub: (context) => const AdvancedCrmManagementHub(),
+    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
+    advancedCrmManagementHub: (context) => const AdvancedCrmManagementHub(),
     socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
     socialMediaManagementHub: (context) => const SocialMediaManagementHub(),
     socialMediaManager: (context) => const SocialMediaManager(),
@@ -146,7 +171,6 @@ class AppRoutes {
     analyticsDashboard: (context) => const AnalyticsDashboard(),
     linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
     unifiedSettingsScreen: (context) => const UnifiedSettingsScreen(),
-    
     hashtagResearchScreen: (context) => const HashtagResearchScreen(),
     instagramLeadSearch: (context) => const InstagramLeadSearch(),
     multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
@@ -178,5 +202,6 @@ class AppRoutes {
     '/setup-progress': (context) => const SetupProgressScreen(),
     '/content-scheduler': (context) => const SocialMediaScheduler(),
     '/unified-settings': (context) => const UnifiedSettingsScreen(),
+    '/goal-customized-workspace-dashboard': (context) => const GoalCustomizedWorkspaceDashboard(),
   };
 }

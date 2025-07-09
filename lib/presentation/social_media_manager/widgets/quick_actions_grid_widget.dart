@@ -36,15 +36,17 @@ class QuickActionsGridWidget extends StatelessWidget {
               'Instagram Lead Search',
               Icons.search_rounded,
               AppTheme.accent,
-              () => Navigator.pushNamed(
-                  context, AppRoutes.instagramLeadSearch),
+              () => {
+                  // Navigate to Instagram lead search
+              },
             ),
             _buildActionCard(
               'Content Scheduler',
               Icons.schedule_send_rounded,
               AppTheme.success,
-              () => Navigator.pushNamed(
-                  context, AppRoutes.socialMediaScheduler),
+              () => {
+                  // Navigate to content scheduler
+              },
             ),
             _buildActionCard(
               'Post Creator',

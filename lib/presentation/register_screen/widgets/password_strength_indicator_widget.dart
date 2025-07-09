@@ -16,10 +16,12 @@ class PasswordStrengthIndicatorWidget extends StatelessWidget {
       case 1:
         return AppTheme.error;
       case 2:
-        return AppTheme.warning;
+        return Colors.orange;
       case 3:
-        return AppTheme.accent;
+        return AppTheme.warning;
       case 4:
+        return AppTheme.accent;
+      case 5:
         return AppTheme.success;
       default:
         return AppTheme.border;
@@ -28,7 +30,8 @@ class PasswordStrengthIndicatorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (strength == 0) {
+    // Show indicator when password is being typed (strength > 0) or when there's text
+    if (strength == 0 && strengthText.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -44,22 +47,23 @@ class PasswordStrengthIndicatorWidget extends StatelessWidget {
                 color: AppTheme.secondaryText,
               ),
             ),
-            Text(
-              strengthText,
-              style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
-                color: _getStrengthColor(strength),
-                fontWeight: FontWeight.w500,
+            if (strengthText.isNotEmpty)
+              Text(
+                strengthText,
+                style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                  color: _getStrengthColor(strength),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
           ],
         ),
         SizedBox(height: 1.h),
         Row(
-          children: List.generate(4, (index) {
+          children: List.generate(5, (index) {
             return Expanded(
               child: Container(
                 height: 4,
-                margin: EdgeInsets.only(right: index < 3 ? 1.w : 0),
+                margin: EdgeInsets.only(right: index < 4 ? 1.w : 0),
                 decoration: BoxDecoration(
                   color: index < strength
                       ? _getStrengthColor(strength)
@@ -70,7 +74,46 @@ class PasswordStrengthIndicatorWidget extends StatelessWidget {
             );
           }),
         ),
+        SizedBox(height: 1.h),
+        // Password requirements helper text
+        if (strength > 0) ...[
+          Text(
+            'Password Requirements:',
+            style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+              color: AppTheme.secondaryText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 0.5.h),
+          _buildRequirementRow('At least 8 characters', strength >= 1),
+          _buildRequirementRow('One uppercase letter', strength >= 2),
+          _buildRequirementRow('One lowercase letter', strength >= 3),
+          _buildRequirementRow('One number', strength >= 4),
+          _buildRequirementRow('One special character', strength >= 5),
+        ],
       ],
+    );
+  }
+
+  Widget _buildRequirementRow(String requirement, bool isMet) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 0.5.h),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.circle_outlined,
+            size: 16,
+            color: isMet ? AppTheme.success : AppTheme.secondaryText,
+          ),
+          SizedBox(width: 2.w),
+          Text(
+            requirement,
+            style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+              color: isMet ? AppTheme.success : AppTheme.secondaryText,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

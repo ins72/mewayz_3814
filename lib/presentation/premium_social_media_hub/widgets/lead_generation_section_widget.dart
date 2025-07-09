@@ -1,7 +1,7 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../../../routes/app_routes.dart';
+
 
 class LeadGenerationSectionWidget extends StatelessWidget {
   const LeadGenerationSectionWidget({Key? key}) : super(key: key);
@@ -69,7 +69,8 @@ class LeadGenerationSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.instagramLeadSearch);
+                  // Navigation code removed due to undefined route
+                  // Navigator.pushNamed(context, AppRoutes.instagramLeadSearch);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -259,7 +260,8 @@ class LeadGenerationSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.hashtagResearchScreen);
+                  // Navigation code removed due to undefined route
+                  // Navigator.pushNamed(context, AppRoutes.hashtagResearchScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -416,7 +418,8 @@ class LeadGenerationSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen);
+                  // Navigation code removed due to undefined route
+                  // Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

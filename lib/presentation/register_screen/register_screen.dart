@@ -14,13 +14,11 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController(); // Combined full name
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final FocusNode _firstNameFocusNode = FocusNode();
-  final FocusNode _lastNameFocusNode = FocusNode();
+  final FocusNode _fullNameFocusNode = FocusNode(); // Combined full name focus
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _confirmPasswordFocusNode = FocusNode();
@@ -32,12 +30,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _acceptPrivacy = false;
   bool _acceptNewsletter = false;
 
-  String? _firstNameError;
-  String? _lastNameError;
+  String? _fullNameError; // Combined full name error
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
   String? _generalError;
+
+  // Add real-time password strength tracking
+  int _passwordStrength = 0;
+  String _passwordStrengthText = '';
 
   late AuthService _authService;
 
@@ -46,33 +47,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.initState();
     _authService = AuthService();
     _setupFocusListeners();
+    _setupPasswordListener();
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _fullNameController.dispose(); // Updated disposal
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _firstNameFocusNode.dispose();
-    _lastNameFocusNode.dispose();
+    _fullNameFocusNode.dispose(); // Updated disposal
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
-  void _setupFocusListeners() {
-    _firstNameFocusNode.addListener(() {
-      if (!_firstNameFocusNode.hasFocus && _firstNameController.text.isNotEmpty) {
-        _validateFirstName();
-      }
+  void _setupPasswordListener() {
+    _passwordController.addListener(() {
+      setState(() {
+        _passwordStrength = _getPasswordStrength();
+        _passwordStrengthText = _getPasswordStrengthText();
+      });
     });
+  }
 
-    _lastNameFocusNode.addListener(() {
-      if (!_lastNameFocusNode.hasFocus && _lastNameController.text.isNotEmpty) {
-        _validateLastName();
+  void _setupFocusListeners() {
+    _fullNameFocusNode.addListener(() { // Updated focus listener
+      if (!_fullNameFocusNode.hasFocus && _fullNameController.text.isNotEmpty) {
+        _validateFullName();
       }
     });
 
@@ -95,46 +98,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  bool _validateFirstName() {
-    final firstName = _firstNameController.text.trim();
-    if (firstName.isEmpty) {
+  bool _validateFullName() { // Updated validation method
+    final fullName = _fullNameController.text.trim();
+    if (fullName.isEmpty) {
       setState(() {
-        _firstNameError = 'First name is required';
+        _fullNameError = 'Full name is required';
       });
       return false;
     }
 
-    if (firstName.length < 2) {
+    if (fullName.length < 2) {
       setState(() {
-        _firstNameError = 'First name must be at least 2 characters';
+        _fullNameError = 'Full name must be at least 2 characters';
       });
       return false;
     }
 
-    setState(() {
-      _firstNameError = null;
-    });
-    return true;
-  }
-
-  bool _validateLastName() {
-    final lastName = _lastNameController.text.trim();
-    if (lastName.isEmpty) {
+    // Check if it contains at least first and last name (space separated)
+    final nameParts = fullName.split(' ').where((part) => part.isNotEmpty).toList();
+    if (nameParts.length < 2) {
       setState(() {
-        _lastNameError = 'Last name is required';
-      });
-      return false;
-    }
-
-    if (lastName.length < 2) {
-      setState(() {
-        _lastNameError = 'Last name must be at least 2 characters';
+        _fullNameError = 'Please enter both first and last name';
       });
       return false;
     }
 
     setState(() {
-      _lastNameError = null;
+      _fullNameError = null;
     });
     return true;
   }
@@ -202,10 +192,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false;
     }
 
-    // Check for at least one special character
-    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
+    // Check for at least one special character - Fixed regex pattern
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]').hasMatch(password)) {
       setState(() {
-        _passwordError = 'Password must contain at least one special character';
+        _passwordError = 'Password must contain at least one special character (!@#\$%^&*(),.?":{}|<>_-+=[]\\\/~`)';
       });
       return false;
     }
@@ -239,13 +229,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool get _isFormValid {
-    return _firstNameController.text.isNotEmpty &&
-        _lastNameController.text.isNotEmpty &&
+    return _fullNameController.text.isNotEmpty && // Updated validation check
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _confirmPasswordController.text.isNotEmpty &&
-        _firstNameError == null &&
-        _lastNameError == null &&
+        _fullNameError == null && // Updated error check
         _emailError == null &&
         _passwordError == null &&
         _confirmPasswordError == null &&
@@ -254,8 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    if (!_validateFirstName() || 
-        !_validateLastName() || 
+    if (!_validateFullName() || // Updated validation call
         !_validateEmail() || 
         !_validatePassword() || 
         !_validateConfirmPassword()) {
@@ -275,13 +262,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
+      final fullName = _fullNameController.text.trim(); // Use single controller
       
       final response = await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        fullName: fullName,
-      );
+        fullName: fullName);
 
       if (response?.user != null) {
         // Trigger haptic feedback
@@ -301,10 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Text(
                     'Registration successful! Please check your email to verify your account.',
                     style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                      color: Colors.white))),
               ]),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 5),
@@ -412,8 +395,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleTermsOfServiceTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.termsOfServiceScreen,
-    );
+      AppRoutes.termsOfServiceScreen);
     
     if (result == true) {
       setState(() {
@@ -425,8 +407,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handlePrivacyPolicyTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.privacyPolicyScreen,
-    );
+      AppRoutes.privacyPolicyScreen);
     
     if (result == true) {
       setState(() {
@@ -444,11 +425,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (password.isEmpty) return 0;
     
     int strength = 0;
+    
+    // Length check
     if (password.length >= 8) strength++;
+    
+    // Uppercase letter check
     if (RegExp(r'[A-Z]').hasMatch(password)) strength++;
+    
+    // Lowercase letter check
     if (RegExp(r'[a-z]').hasMatch(password)) strength++;
+    
+    // Number check
     if (RegExp(r'[0-9]').hasMatch(password)) strength++;
-    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) strength++;
+    
+    // Special character check - Fixed regex pattern
+    if (RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]').hasMatch(password)) strength++;
     
     return strength;
   }
@@ -457,16 +448,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final strength = _getPasswordStrength();
     switch (strength) {
       case 0:
+        return '';
       case 1:
-        return 'Weak';
+        return 'Very Weak';
       case 2:
+        return 'Weak';
       case 3:
-        return 'Medium';
+        return 'Fair';
       case 4:
+        return 'Good';
       case 5:
         return 'Strong';
       default:
-        return 'Weak';
+        return '';
     }
   }
 
@@ -520,8 +514,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Registration Form
                 RegistrationFormWidget(
                   formKey: _formKey,
-                  fullNameController: _firstNameController,
-                  fullNameFocusNode: _firstNameFocusNode,
+                  fullNameController: _fullNameController, // Updated to use single controller
+                  fullNameFocusNode: _fullNameFocusNode, // Updated to use single focus node
                   emailController: _emailController,
                   passwordController: _passwordController,
                   confirmPasswordController: _confirmPasswordController,
@@ -532,6 +526,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   isPasswordVisible: _isPasswordVisible,
                   isConfirmPasswordVisible: _isConfirmPasswordVisible,
 
+                  fullNameError: _fullNameError, // Updated to use single error
                   emailError: _emailError,
                   passwordError: _passwordError,
                   confirmPasswordError: _confirmPasswordError,
@@ -552,11 +547,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 SizedBox(height: 2.h),
 
-                // Password Strength Indicator
+                // Password Strength Indicator - Use real-time values
                 PasswordStrengthIndicatorWidget(
-                  strength: _getPasswordStrength(),
-                  strengthText: _getPasswordStrengthText(),
-                ),
+                  strength: _passwordStrength,
+                  strengthText: _passwordStrengthText),
 
                 SizedBox(height: 4.h),
 
@@ -577,16 +571,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     });
                   },
                   onTermsOfServiceTap: _handleTermsOfServiceTap,
-                  onPrivacyPolicyTap: _handlePrivacyPolicyTap,
-                ),
+                  onPrivacyPolicyTap: _handlePrivacyPolicyTap),
 
                 SizedBox(height: 4.h),
 
                 // Social Registration
                 SocialRegistrationWidget(
                   onGoogleSignUp: _handleGoogleSignUp,
-                  onAppleSignUp: _handleAppleSignUp,
-                ),
+                  onAppleSignUp: _handleAppleSignUp),
 
                 SizedBox(height: 4.h),
 
@@ -608,6 +600,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ])))),
 
                 SizedBox(height: 4.h),
+
+                // Terms of Service and Privacy Policy
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.termsOfServiceScreen);
+                      },
+                      child: Text(
+                        "Terms of Service",
+                        style: GoogleFonts.inter(
+                          
+                          fontSize: 3.5.w,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline))),
+                    SizedBox(width: 10.w),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.privacyPolicyScreen);
+                      },
+                      child: Text(
+                        "Privacy Policy",
+                        style: GoogleFonts.inter(
+                          
+                          fontSize: 3.5.w,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline))),
+                  ]),
               ])))));
   }
 }

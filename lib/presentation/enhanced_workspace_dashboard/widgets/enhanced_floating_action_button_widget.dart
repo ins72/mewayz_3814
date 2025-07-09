@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../routes/app_routes.dart';
 
 class EnhancedFloatingActionButtonWidget extends StatefulWidget {
   const EnhancedFloatingActionButtonWidget({Key? key}) : super(key: key);
@@ -20,22 +19,22 @@ class _EnhancedFloatingActionButtonWidgetState extends State<EnhancedFloatingAct
 { 'title': 'New Post',
 'icon': Icons.add_photo_alternate,
 'color': const Color(0xFF007AFF),
-'route': AppRoutes.multiPlatformPostingScreen,
+'route': '/multi_platform_posting_screen',
 },
 { 'title': 'Add Lead',
 'icon': Icons.person_add,
 'color': const Color(0xFF34C759),
-'route': AppRoutes.crmContactManagement,
+'route': '/crm_contact_management',
 },
 { 'title': 'Create QR',
 'icon': Icons.qr_code,
 'color': const Color(0xFF8E8E93),
-'route': AppRoutes.qrCodeGeneratorScreen,
+'route': '/qr_code_generator_screen',
 },
 { 'title': 'Schedule',
 'icon': Icons.schedule,
 'color': const Color(0xFFFF9500),
-'route': AppRoutes.socialMediaScheduler,
+'route': '/social_media_scheduler',
 },
 ];
 

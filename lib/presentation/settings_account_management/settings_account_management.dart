@@ -37,7 +37,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
 { 'title': 'Workspace Management',
 'description': 'Settings, team members, roles, and invitations',
 'icon': Icons.business_outlined,
-'route': AppRoutes.workspaceSettingsScreen,
+'route': '/workspace-settings',
 'subcategories': [ {'title': 'Workspace Settings', 'description': 'General workspace configuration'},
 {'title': 'Team Members', 'description': 'Manage team members and roles'},
 {'title': 'Role Management', 'description': 'Create and assign roles'},
@@ -67,7 +67,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
 { 'title': 'Support & Help',
 'description': 'Contact options, documentation, feedback',
 'icon': Icons.help_outline,
-'route': AppRoutes.contactUsScreen,
+'route': '/contact-us',
 'subcategories': [ {'title': 'Contact Support', 'description': 'Get help from our support team'},
 {'title': 'Documentation', 'description': 'Browse help articles and guides'},
 {'title': 'Submit Feedback', 'description': 'Share your thoughts and suggestions'},
@@ -398,7 +398,7 @@ class _SettingsAccountManagementState extends State<SettingsAccountManagement> {
               Icons.help_outline,
               () {
                 Navigator.pop(context);
-                _navigateToSetting(AppRoutes.contactUsScreen);
+                _navigateToSetting('/contact-us');
               },
             ),
           ],

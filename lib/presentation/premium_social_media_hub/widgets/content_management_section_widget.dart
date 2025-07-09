@@ -1,7 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../../routes/app_routes.dart';
+
 
 class ContentManagementSectionWidget extends StatelessWidget {
   const ContentManagementSectionWidget({Key? key}) : super(key: key);
@@ -69,7 +69,7 @@ class ContentManagementSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.socialMediaScheduler);
+                  // Navigator.pushNamed(context, AppRoutes.socialMediaScheduler);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -261,7 +261,7 @@ class ContentManagementSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen);
+                  // Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -396,7 +396,7 @@ class ContentManagementSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.multiPlatformPostingScreen);
+                  // Navigator.pushNamed(context, AppRoutes.multiPlatformPostingScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

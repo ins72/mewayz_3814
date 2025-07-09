@@ -91,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
           Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
         } else {
           // Navigate to onboarding
-          Navigator.pushReplacementNamed(context, AppRoutes.onboardingScreen);
+          Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
         }
       } else {
         // Navigate to login screen

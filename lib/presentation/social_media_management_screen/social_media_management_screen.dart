@@ -288,13 +288,13 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
             onSelected: (value) {
               switch (value) {
                 case 'settings':
-                  Navigator.pushNamed(context, AppRoutes.settingsScreen);
+                  // Navigator.pushNamed(context, AppRoutes.settingsScreen);
                   break;
                 case 'help':
-                  Navigator.pushNamed(context, AppRoutes.contactUsScreen);
+                  // Navigator.pushNamed(context, AppRoutes.contactUsScreen);
                   break;
                 case 'templates':
-                  Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen);
+                  // Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen);
                   break;
               }
             },
@@ -822,25 +822,25 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           'Templates',
           'Browse content templates',
           Icons.help_outline,
-          () => Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen),
+          () {},
           AppTheme.accent),
         _buildActionCard(
           'Multi-Platform',
           'Post to multiple platforms',
           Icons.public,
-          () => Navigator.pushNamed(context, AppRoutes.multiPlatformPostingScreen),
+          () {},
           AppTheme.success),
         _buildActionCard(
           'Calendar',
           'View content calendar',
           Icons.calendar_today,
-          () => Navigator.pushNamed(context, AppRoutes.contentCalendarScreen),
+          () {},
           AppTheme.warning),
         _buildActionCard(
           'Hashtags',
           'Research hashtags',
           Icons.tag,
-          () => Navigator.pushNamed(context, AppRoutes.hashtagResearchScreen),
+          () {},
           AppTheme.error),
       ]);
   }

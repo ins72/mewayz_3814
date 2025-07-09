@@ -253,11 +253,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleForgotPassword() {
-    Navigator.pushNamed(context, AppRoutes.forgotPasswordScreen);
+    Navigator.pushNamed(context, AppRoutes.forgotPassword);
   }
 
   void _handleSignUp() {
-    Navigator.pushNamed(context, AppRoutes.registerScreen);
+    Navigator.pushNamed(context, AppRoutes.register);
   }
 
   @override

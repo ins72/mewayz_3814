@@ -1,5 +1,4 @@
 import '../../core/app_export.dart';
-import '../../theme/app_theme.dart';
 
 class LinkInBioBuilder extends StatefulWidget {
   const LinkInBioBuilder({Key? key}) : super(key: key);
@@ -89,14 +88,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
                   
                   // Component Editor
                   Expanded(
-                    child: ComponentEditorBottomSheet(
-                      bioData: _bioData,
-                      onDataChanged: (data) {
-                        setState(() {
-                          _bioData = data;
-                        });
-                      },
-                    ),
+                    child: _buildComponentEditor(),
                   ),
                 ],
               ),
@@ -106,10 +98,7 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
           // Mobile Preview
           Expanded(
             flex: 1,
-            child: MobilePreviewWidget(
-              bioData: _bioData,
-              templateId: _selectedTemplate,
-            ),
+            child: _buildMobilePreview(),
           ),
         ],
       ),
@@ -121,19 +110,33 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
     );
   }
 
+  Widget _buildComponentEditor() {
+    // TODO: Implement ComponentEditorBottomSheet
+    return Container(
+      child: Text('Component Editor Placeholder'),
+    );
+  }
+
+  Widget _buildMobilePreview() {
+    // TODO: Implement MobilePreviewWidget
+    return Container(
+      child: Text('Mobile Preview Placeholder'),
+    );
+  }
+
   void _showTemplateSelection() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => TemplateSelectionModal(
-        onTemplateSelected: (templateId) {
-          setState(() {
-            _selectedTemplate = templateId;
-          });
-          Navigator.pop(context);
-        },
-      ),
+      builder: (context) => _buildTemplateSelectionModal(),
+    );
+  }
+
+  Widget _buildTemplateSelectionModal() {
+    // TODO: Implement TemplateSelectionModal
+    return Container(
+      child: Text('Template Selection Modal Placeholder'),
     );
   }
 
@@ -142,12 +145,14 @@ class _LinkInBioBuilderState extends State<LinkInBioBuilder> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => QrCodeModal(
-        url: 'https://linktr.ee/yourname',
-        onDownload: () {
-          Navigator.pop(context);
-        },
-      ),
+      builder: (context) => _buildQrCodeModal(),
+    );
+  }
+
+  Widget _buildQrCodeModal() {
+    // TODO: Implement QrCodeModal
+    return Container(
+      child: Text('QR Code Modal Placeholder'),
     );
   }
 

@@ -529,7 +529,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   buttonId: 'view_analytics',
                   child: const Text('View All'),
                   onPressed: () async {
-                    Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen);
+                    // Using Navigator.push instead of pushNamed with undefined route
+                    _showAnalyticsModal();
                   }),
               ])),
           SizedBox(height: 6.h),
@@ -601,7 +602,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   buttonId: 'open_scheduler',
                   child: const Text('Schedule Post'),
                   onPressed: () async {
-                    Navigator.pushNamed(context, AppRoutes.socialMediaScheduler);
+                    // Using showModalBottomSheet instead of undefined route
+                    _showCreatePostModal();
                   }),
               ])),
           SizedBox(height: 6.h),
@@ -652,7 +654,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   buttonId: 'hashtag_research',
                   child: const Text('Research'),
                   onPressed: () async {
-                    Navigator.pushNamed(context, AppRoutes.hashtagResearchScreen);
+                    // Using local function instead of undefined route
+                    _showFilterOptions();
                   }),
               ])),
           SizedBox(height: 6.h),
@@ -765,8 +768,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             title: const Text('Edit Post'),
             onTap: () async {
               Navigator.pop(context);
-              // Using Navigator directly
-              Navigator.pushNamed(context, AppRoutes.socialMediaScheduler, arguments: content);
+              // Using local function instead of undefined route
+              _showCreatePostModal();
             }),
           ListTile(
             leading: const Icon(Icons.share, color: AppTheme.success),
@@ -784,8 +787,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             title: const Text('View Analytics'),
             onTap: () async {
               Navigator.pop(context);
-              // Using Navigator directly
-              Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen, arguments: content);
+              // Using local function instead of undefined route
+              _showAnalyticsModal();
             }),
           ListTile(
             leading: const Icon(Icons.delete, color: AppTheme.error),
@@ -815,7 +818,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                 buttonId: 'open_library',
                 child: const Text('View All'),
                 onPressed: () async {
-                  Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen);
+                  // Using local function instead of undefined route
+                  _showCreatePostModal();
                 }),
             ]),
           SizedBox(height: 4.h),
@@ -889,7 +893,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                 buttonId: 'audience_insights',
                 child: const Text('View Details'),
                 onPressed: () async {
-                  Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen);
+                  // Using local function instead of undefined route
+                  _showAnalyticsModal();
                 }),
             ]),
           SizedBox(height: 4.h),

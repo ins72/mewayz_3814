@@ -67,37 +67,37 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
 { "title": "Instagram Search",
 "subtitle": "Find leads",
 "icon": "search",
-"route": AppRoutes.instagramLeadSearch,
+"route": "",
 "color": AppTheme.accent,
 },
 { "title": "Post Scheduler",
 "subtitle": "Schedule posts",
 "icon": "schedule",
-"route": AppRoutes.socialMediaScheduler,
+"route": "",
 "color": AppTheme.success,
 },
 { "title": "Link in Bio",
 "subtitle": "Build pages",
 "icon": "link",
-"route": AppRoutes.linkInBioTemplatesScreen,
+"route": "",
 "color": AppTheme.warning,
 },
 { "title": "Course Creator",
 "subtitle": "Create courses",
 "icon": "play_circle_filled",
-"route": AppRoutes.courseCreator,
+"route": "",
 "color": AppTheme.accent,
 },
 { "title": "Marketplace",
 "subtitle": "Manage store",
 "icon": "store",
-"route": AppRoutes.marketplaceStore,
+"route": "",
 "color": AppTheme.success,
 },
 { "title": "CRM",
 "subtitle": "Manage contacts",
 "icon": "contacts",
-"route": AppRoutes.crmContactManagement,
+"route": "",
 "color": AppTheme.warning,
 },
 ];
@@ -363,21 +363,21 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               mainAxisSpacing: AppTheme.spacingM,
               children: [
                 _buildQuickCreateItem(
-                    "Post", "edit", AppRoutes.socialMediaScheduler),
+                    "Post", "edit", ""),
                 _buildQuickCreateItem(
-                    "Product", "add_shopping_cart", AppRoutes.marketplaceStore),
+                    "Product", "add_shopping_cart", ""),
                 _buildQuickCreateItem(
-                    "Course", "play_circle_filled", AppRoutes.courseCreator),
+                    "Course", "play_circle_filled", ""),
                 _buildQuickCreateItem(
-                    "Contact", "person_add", AppRoutes.crmContactManagement),
+                    "Contact", "person_add", ""),
                 _buildQuickCreateItem(
-                    "Link Page", "link", AppRoutes.linkInBioTemplatesScreen),
+                    "Link Page", "link", ""),
                 _buildQuickCreateItem(
-                    "QR Code", "qr_code", AppRoutes.qrCodeGeneratorScreen),
+                    "QR Code", "qr_code", ""),
                 _buildQuickCreateItem(
-                    "Email", "email", AppRoutes.emailMarketingCampaign),
+                    "Email", "email", ""),
                 _buildQuickCreateItem(
-                    "Template", "description", AppRoutes.contentTemplatesScreen),
+                    "Template", "description", ""),
               ]),
             SizedBox(height: AppTheme.spacingL),
           ])));
@@ -389,10 +389,10 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       onTap: () async {
         Navigator.pop(context);
         // Remove reference to linkInBioBuilder route
-        if (route == AppRoutes.linkInBioTemplatesScreen) {
+        if (route == "") {
           await ButtonService.handleNavigation(
             context: context,
-            route: route,
+            
             showFeedback: true,
             feedbackMessage: 'Opening $title creation...');
         } else {
@@ -470,7 +470,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
             onPressed: () async {
               await ButtonService.navigateTo(
                 context: context,
-                route: AppRoutes.analyticsDashboard,
+                route: "",
                 showFeedback: true,
                 feedbackMessage: 'Opening analytics...');
             },
@@ -482,7 +482,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
             onPressed: () async {
               await ButtonService.navigateTo(
                 context: context,
-                route: AppRoutes.notificationSettingsScreen,
+                route: "",
                 showFeedback: true,
                 feedbackMessage: 'Opening notifications...');
             },
@@ -613,7 +613,6 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onPressed: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: AppRoutes.analyticsDashboard,
                       showFeedback: true,
                       feedbackMessage: 'Opening activity log...');
                   },
@@ -643,30 +642,24 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const SocialMediaManager(),
-        );
-      },
-    );
+          builder: (context) => const SocialMediaManager());
+      });
   }
 
   Widget _buildCRMTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const CrmContactManagement(),
-        );
-      },
-    );
+          builder: (context) => const CrmContactManagement());
+      });
   }
 
   Widget _buildStoreTab() {
     return Navigator(
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => const MarketplaceStore(),
-        );
-      },
-    );
+          builder: (context) => const MarketplaceStore());
+      });
   }
 
   Widget _buildMoreTab() {
@@ -724,7 +717,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onTap: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: AppRoutes.unifiedSettingsScreen,
+                      route: "",
                       showFeedback: true,
                       feedbackMessage: 'Opening settings...');
                   }),
@@ -735,7 +728,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onTap: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: AppRoutes.analyticsDashboard,
+                      route: "",
                       showFeedback: true,
                       feedbackMessage: 'Opening analytics...');
                   }),
@@ -746,7 +739,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onTap: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: AppRoutes.usersTeamManagementScreen,
+                      route: "",
                       showFeedback: true,
                       feedbackMessage: 'Opening team management...');
                   }),
@@ -757,7 +750,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onTap: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: AppRoutes.contactUsScreen,
+                      route: "",
                       showFeedback: true,
                       feedbackMessage: 'Opening support...');
                   }),
@@ -869,7 +862,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
               Navigator.pop(context);
               await ButtonService.handleNavigation(
                 context: context,
-                route: AppRoutes.analyticsDashboard,
+                route: "",
                 showFeedback: true,
                 feedbackMessage: 'Opening analytics dashboard...');
             },
