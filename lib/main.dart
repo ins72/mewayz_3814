@@ -35,6 +35,7 @@ Future<void> _initializeServices() async {
     
     // Initialize services in proper order
     await _initializeSupabase();
+    await _initializeAuthService();
     await _initializeStorage();
     await _initializeApiClient();
     await _initializeAnalytics();
@@ -59,6 +60,21 @@ Future<void> _initializeSupabase() async {
   } catch (e) {
     if (ProductionConfig.enableLogging) {
       debugPrint('❌ Supabase initialization failed: $e');
+    }
+    rethrow;
+  }
+}
+
+Future<void> _initializeAuthService() async {
+  try {
+    final authService = AuthService();
+    await authService.initialize();
+    if (ProductionConfig.enableLogging) {
+      debugPrint('✅ Auth service initialized');
+    }
+  } catch (e) {
+    if (ProductionConfig.enableLogging) {
+      debugPrint('❌ Auth service initialization failed: $e');
     }
     rethrow;
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 import './error_handler.dart';
 import './production_config.dart';
@@ -116,21 +117,42 @@ class StorageService {
   // User data management
   Future<void> saveUserData(Map<String, dynamic> userData) async {
     try {
-      await prefs.setString('user_data', jsonEncode(userData));
+      // Save individual user data fields
+      await prefs.setString('user_id', userData['id'] ?? '');
+      await prefs.setString('user_email', userData['email'] ?? '');
+      await prefs.setString('user_full_name', userData['full_name'] ?? '');
+      await prefs.setString('user_role', userData['role'] ?? '');
+      await prefs.setBool('email_verified', userData['email_verified'] ?? false);
+      await prefs.setBool('biometric_enabled', userData['biometric_enabled'] ?? false);
+      await prefs.setBool('logged_in', userData['logged_in'] ?? false);
+      await prefs.setString('session_token', userData['session_token'] ?? '');
+      
+      debugPrint('User data saved successfully');
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to save user data: $e'));
+      ErrorHandler.handleError('Failed to save user data: $e');
+      throw Exception('Failed to save user data');
     }
   }
   
   Future<Map<String, dynamic>?> getUserData() async {
     try {
-      final userData = prefs.getString('user_data');
-      if (userData != null) {
-        return jsonDecode(userData);
+      final userId = prefs.getString('user_id');
+      if (userId == null || userId.isEmpty) {
+        return null;
       }
-      return null;
+      
+      return {
+        'id': userId,
+        'email': prefs.getString('user_email') ?? '',
+        'full_name': prefs.getString('user_full_name') ?? '',
+        'role': prefs.getString('user_role') ?? '',
+        'email_verified': prefs.getBool('email_verified') ?? false,
+        'biometric_enabled': prefs.getBool('biometric_enabled') ?? false,
+        'logged_in': prefs.getBool('logged_in') ?? false,
+        'session_token': prefs.getString('session_token') ?? '',
+      };
     } catch (e) {
-      ErrorHandler.handleError(StorageException('Failed to get user data: $e'));
+      ErrorHandler.handleError('Failed to get user data: $e');
       return null;
     }
   }

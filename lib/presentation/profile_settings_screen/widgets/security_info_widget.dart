@@ -1,4 +1,9 @@
+import 'package:sizer/sizer.dart';
+
 import '../../../core/app_export.dart';
+import '../../../services/auth_service.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/custom_icon_widget.dart';
 
 class SecurityInfoWidget extends StatelessWidget {
   const SecurityInfoWidget({Key? key}) : super(key: key);
@@ -318,5 +323,117 @@ class SecurityInfoWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildBiometricToggle(BuildContext context) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isBiometricEnabled = false;
+        
+        return Container(
+          padding: EdgeInsets.all(4.w),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(3.w),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 12.w,
+                    height: 12.w,
+                    decoration: BoxDecoration(
+                      color: AppTheme.accent.withAlpha(26),
+                      borderRadius: BorderRadius.circular(2.w),
+                    ),
+                    child: Center(
+                      child: CustomIconWidget(
+                        iconName: 'fingerprint',
+                        color: AppTheme.accent,
+                        size: 6.w,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 4.w),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Biometric Login',
+                        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'Use fingerprint or face ID to login',
+                        style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                          color: AppTheme.secondaryText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Switch(
+                value: isBiometricEnabled,
+                onChanged: (value) => _handleBiometricToggle(value, context, setState, isBiometricEnabled),
+                activeColor: AppTheme.accent,
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  Future<void> _handleBiometricToggle(
+    bool value, 
+    BuildContext context, 
+    Function(void Function()) setState,
+    bool isBiometricEnabled
+  ) async {
+    try {
+      final authService = AuthService();
+      
+      if (value) {
+        final success = await authService.enableBiometricAuthentication();
+        if (success) {
+          setState(() {
+            isBiometricEnabled = true;
+          });
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Biometric authentication enabled'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        final success = await authService.disableBiometricAuthentication();
+        if (success) {
+          setState(() {
+            isBiometricEnabled = false;
+          });
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Biometric authentication disabled'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

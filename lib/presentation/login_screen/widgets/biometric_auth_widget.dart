@@ -14,8 +14,26 @@ class BiometricAuthWidget extends StatefulWidget {
 }
 
 class _BiometricAuthWidgetState extends State<BiometricAuthWidget> {
-  bool _isBiometricAvailable = true;
+  bool _isBiometricAvailable = false;
   bool _isAuthenticating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final authService = AuthService();
+      final isAvailable = await authService.isBiometricAvailable();
+      setState(() {
+        _isBiometricAvailable = isAvailable;
+      });
+    } catch (e) {
+      debugPrint('Error checking biometric availability: $e');
+    }
+  }
 
   Future<void> _authenticateWithBiometrics() async {
     if (_isAuthenticating) return;
@@ -25,14 +43,16 @@ class _BiometricAuthWidgetState extends State<BiometricAuthWidget> {
     });
 
     try {
-      // Simulate biometric authentication
-      await Future.delayed(const Duration(seconds: 1));
+      final authService = AuthService();
+      final didAuthenticate = await authService.authenticateWithBiometrics();
 
-      // Simulate successful authentication
-      HapticFeedback.lightImpact();
-      widget.onBiometricAuth();
+      if (didAuthenticate) {
+        HapticFeedback.lightImpact();
+        widget.onBiometricAuth();
+      } else {
+        _showBiometricError();
+      }
     } catch (e) {
-      // Handle biometric authentication error
       _showBiometricError();
     } finally {
       setState(() {
@@ -45,6 +65,7 @@ class _BiometricAuthWidgetState extends State<BiometricAuthWidget> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surface,
         title: Text(
           'Authentication Failed',
           style: AppTheme.darkTheme.textTheme.titleLarge,
@@ -56,7 +77,10 @@ class _BiometricAuthWidgetState extends State<BiometricAuthWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(
+              'OK',
+              style: TextStyle(color: AppTheme.accent),
+            ),
           ),
         ],
       ),

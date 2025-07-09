@@ -109,24 +109,19 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
   void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
+      vsync: this);
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
+      end: 1.0).animate(CurvedAnimation(
       parent: _animationController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    ));
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut)));
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
+      end: Offset.zero).animate(CurvedAnimation(
       parent: _animationController,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
-    ));
+      curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic)));
 
     _animationController.forward();
   }
@@ -159,8 +154,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const QuickPostModalWidget(),
-    );
+      builder: (context) => const QuickPostModalWidget());
   }
 
   void _showAddPostModal() {
@@ -179,24 +173,17 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                   height: 24,
                   decoration: BoxDecoration(
                     color: AppTheme.success,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                    borderRadius: BorderRadius.circular(12)),
                   child: const Icon(
                     Icons.check,
                     color: Colors.white,
-                    size: 16,
-                  ),
-                ),
+                    size: 16)),
                 const SizedBox(width: 12),
                 const Text('Post scheduled successfully'),
-              ],
-            ),
+              ]),
             backgroundColor: AppTheme.surface,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }),
-    );
+            behavior: SnackBarBehavior.floating));
+      }));
   }
 
   void _showBulkUploadModal() {
@@ -215,24 +202,17 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                   height: 24,
                   decoration: BoxDecoration(
                     color: AppTheme.success,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                    borderRadius: BorderRadius.circular(12)),
                   child: const Icon(
                     Icons.check,
                     color: Colors.white,
-                    size: 16,
-                  ),
-                ),
+                    size: 16)),
                 const SizedBox(width: 12),
                 Text('${posts.length} posts uploaded successfully'),
-              ],
-            ),
+              ]),
             backgroundColor: AppTheme.surface,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }),
-    );
+            behavior: SnackBarBehavior.floating));
+      }));
   }
 
   void _togglePlatformConnection(String platform) {
@@ -269,18 +249,10 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                           _buildAnalyticsTab(),
                           _buildContentTab(),
                           _buildActivityTab(),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: _buildFloatingActionButton(),
-    );
+                        ])));
+                }))),
+        ]),
+      floatingActionButton: _buildFloatingActionButton());
   }
 
   Widget _buildSliverAppBar() {
@@ -294,31 +266,24 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
+          borderRadius: BorderRadius.circular(12)),
         child: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.primaryText),
-        ),
-      ),
+          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.primaryText))),
       actions: [
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
+            borderRadius: BorderRadius.circular(12)),
           child: IconButton(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.analyticsScreen),
-            icon: const Icon(Icons.analytics, color: AppTheme.primaryText),
-          ),
-        ),
+            onPressed: () {},
+            icon: const Icon(Icons.analytics, color: AppTheme.primaryText))),
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
+            borderRadius: BorderRadius.circular(12)),
           child: PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {
@@ -343,9 +308,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                     const Icon(Icons.help_outline, color: AppTheme.primaryText, size: 20),
                     const SizedBox(width: 12),
                     Text('Templates', style: GoogleFonts.inter(color: AppTheme.primaryText, fontSize: 14)),
-                  ],
-                ),
-              ),
+                  ])),
               PopupMenuItem(
                 value: 'settings',
                 child: Row(
@@ -353,9 +316,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                     const Icon(Icons.settings, color: AppTheme.primaryText, size: 20),
                     const SizedBox(width: 12),
                     Text('Settings', style: GoogleFonts.inter(color: AppTheme.primaryText, fontSize: 14)),
-                  ],
-                ),
-              ),
+                  ])),
               PopupMenuItem(
                 value: 'help',
                 child: Row(
@@ -363,12 +324,8 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                     const Icon(Icons.help_outline, color: AppTheme.primaryText, size: 20),
                     const SizedBox(width: 12),
                     Text('Help', style: GoogleFonts.inter(color: AppTheme.primaryText, fontSize: 14)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+                  ])),
+            ])),
       ],
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
@@ -376,19 +333,13 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           style: GoogleFonts.inter(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: AppTheme.primaryText,
-          ),
-        ),
+            color: AppTheme.primaryText)),
         background: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppTheme.primaryBackground, AppTheme.surface],
-            ),
-          ),
-        ),
-      ),
+              colors: [AppTheme.primaryBackground, AppTheme.surface])))),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: Container(
@@ -397,10 +348,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
             border: Border(
               bottom: BorderSide(
                 color: AppTheme.border,
-                width: 0.5,
-              ),
-            ),
-          ),
+                width: 0.5))),
           child: TabBar(
             controller: _tabController,
             labelColor: AppTheme.primaryText,
@@ -410,12 +358,10 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
             indicatorSize: TabBarIndicatorSize.label,
             labelStyle: GoogleFonts.inter(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+              fontWeight: FontWeight.w600),
             unselectedLabelStyle: GoogleFonts.inter(
               fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ),
+              fontWeight: FontWeight.w400),
             isScrollable: true,
             tabs: const [
               Tab(text: 'Overview'),
@@ -423,11 +369,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Tab(text: 'Analytics'),
               Tab(text: 'Content'),
               Tab(text: 'Activity'),
-            ],
-          ),
-        ),
-      ),
-    );
+            ]))));
   }
 
   Widget _buildFloatingActionButton() {
@@ -438,10 +380,8 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           BoxShadow(
             color: AppTheme.accent.withAlpha(77),
             blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+            offset: const Offset(0, 8)),
+        ]),
       child: FloatingActionButton.extended(
         onPressed: _showQuickPostModal,
         backgroundColor: AppTheme.accent,
@@ -450,12 +390,8 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           'Quick Post',
           style: GoogleFonts.inter(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        icon: const Icon(Icons.add, size: 24),
-      ),
-    );
+            fontWeight: FontWeight.w600)),
+        icon: const Icon(Icons.add, size: 24)));
   }
 
   Widget _buildOverviewTab() {
@@ -471,9 +407,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           _buildQuickActionsSection(),
           const SizedBox(height: 32),
           _buildRecentActivityPreview(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildSchedulerTab() {
@@ -487,9 +421,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           _buildCalendarSection(),
           const SizedBox(height: 32),
           _buildSchedulerActions(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildAnalyticsTab() {
@@ -502,27 +434,21 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           const SizedBox(height: 24),
           MetricsOverviewWidget(
             dateRange: '${DateTime.now().subtract(const Duration(days: 30)).day}/${DateTime.now().subtract(const Duration(days: 30)).month}/${DateTime.now().subtract(const Duration(days: 30)).year} - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-            selectedPlatforms: _platforms.keys.toList(),
-          ),
+            selectedPlatforms: _platforms.keys.toList()),
           const SizedBox(height: 24),
           PlatformTabsWidget(
             selectedPlatforms: _platforms.keys.toList(),
             activePlatform: 'instagram',
-            onPlatformSelected: (platform) {},
-          ),
+            onPlatformSelected: (platform) {}),
           const SizedBox(height: 24),
           EngagementChartWidget(
             dateRange: '${DateTime.now().subtract(const Duration(days: 30)).day}/${DateTime.now().subtract(const Duration(days: 30)).month}/${DateTime.now().subtract(const Duration(days: 30)).year} - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-            selectedPlatforms: _platforms.keys.toList(),
-          ),
+            selectedPlatforms: _platforms.keys.toList()),
           const SizedBox(height: 24),
           AudienceInsightsWidget(
             dateRange: '${DateTime.now().subtract(const Duration(days: 30)).day}/${DateTime.now().subtract(const Duration(days: 30)).month}/${DateTime.now().subtract(const Duration(days: 30)).year} - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-            selectedPlatforms: _platforms.keys.toList(),
-          ),
-        ],
-      ),
-    );
+            selectedPlatforms: _platforms.keys.toList()),
+        ]));
   }
 
   Widget _buildContentTab() {
@@ -536,9 +462,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           _buildContentActions(),
           const SizedBox(height: 32),
           _buildContentCalendar(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildActivityTab() {
@@ -552,9 +476,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           const RecentActivityWidget(),
           const SizedBox(height: 32),
           const InstagramDatabaseWidget(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildConnectedPlatformsSection() {
@@ -565,9 +487,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -576,24 +496,18 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.link,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Connected Platforms',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           const PlatformConnectionWidget(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildAnalyticsCardsSection() {
@@ -604,9 +518,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -615,24 +527,18 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.analytics,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Performance Overview',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           const AnalyticsCardsWidget(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildQuickActionsSection() {
@@ -643,9 +549,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -654,24 +558,18 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.flash_on,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Quick Actions',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           const QuickActionsGridWidget(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildRecentActivityPreview() {
@@ -682,9 +580,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -693,24 +589,18 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.history,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Recent Activity',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           const RecentActivityWidget(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildPlatformStatusSection() {
@@ -721,9 +611,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -732,27 +620,20 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.help_outline,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Platform Status',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           PlatformStatusWidget(
             platformStatus: _platforms,
-            onToggleConnection: _togglePlatformConnection,
-          ),
-        ],
-      ),
-    );
+            onToggleConnection: _togglePlatformConnection),
+        ]));
   }
 
   Widget _buildCalendarSection() {
@@ -763,9 +644,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -774,19 +653,15 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.calendar_today,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Content Calendar',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           CalendarWidget(
             currentMonth: DateTime.now(),
@@ -794,11 +669,8 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
             scheduledPosts: const <String, List<Map<String, dynamic>>>{},
             isWeekView: false,
             onDateSelected: (date) {},
-            onMonthChanged: (month) {},
-          ),
-        ],
-      ),
-    );
+            onMonthChanged: (month) {}),
+        ]));
   }
 
   Widget _buildSchedulerActions() {
@@ -810,9 +682,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
             'Create and schedule a new post',
             Icons.schedule,
             _showAddPostModal,
-            AppTheme.accent,
-          ),
-        ),
+            AppTheme.accent)),
         const SizedBox(width: 16),
         Expanded(
           child: _buildActionCard(
@@ -820,11 +690,8 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
             'Upload multiple posts at once',
             Icons.upload,
             _showBulkUploadModal,
-            AppTheme.success,
-          ),
-        ),
-      ],
-    );
+            AppTheme.success)),
+      ]);
   }
 
   Widget _buildAnalyticsHeader() {
@@ -835,16 +702,13 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Row(
         children: [
           Icon(
             Icons.analytics,
             color: AppTheme.accent,
-            size: 32,
-          ),
+            size: 32),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -855,32 +719,22 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryText,
-                  ),
-                ),
+                    color: AppTheme.primaryText)),
                 const SizedBox(height: 4),
                 Text(
                   'Track your social media performance',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: AppTheme.secondaryText,
-                  ),
-                ),
-              ],
-            ),
-          ),
+                    color: AppTheme.secondaryText)),
+              ])),
           ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.analyticsScreen),
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accent,
               foregroundColor: AppTheme.primaryBackground,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            child: const Text('View All'),
-          ),
-        ],
-      ),
-    );
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+            child: const Text('View All')),
+        ]));
   }
 
   Widget _buildContentHeader() {
@@ -891,16 +745,13 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Row(
         children: [
           Icon(
             Icons.content_paste,
             color: AppTheme.accent,
-            size: 32,
-          ),
+            size: 32),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -911,23 +762,15 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryText,
-                  ),
-                ),
+                    color: AppTheme.primaryText)),
                 const SizedBox(height: 4),
                 Text(
                   'Create, organize, and schedule content',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: AppTheme.secondaryText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+                    color: AppTheme.secondaryText)),
+              ])),
+        ]));
   }
 
   Widget _buildActivityHeader() {
@@ -938,16 +781,13 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Row(
         children: [
           Icon(
             Icons.help_outline,
             color: AppTheme.accent,
-            size: 32,
-          ),
+            size: 32),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -958,23 +798,15 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryText,
-                  ),
-                ),
+                    color: AppTheme.primaryText)),
                 const SizedBox(height: 4),
                 Text(
                   'Monitor your social media activity',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: AppTheme.secondaryText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+                    color: AppTheme.secondaryText)),
+              ])),
+        ]));
   }
 
   Widget _buildContentActions() {
@@ -991,31 +823,26 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           'Browse content templates',
           Icons.help_outline,
           () => Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen),
-          AppTheme.accent,
-        ),
+          AppTheme.accent),
         _buildActionCard(
           'Multi-Platform',
           'Post to multiple platforms',
           Icons.public,
           () => Navigator.pushNamed(context, AppRoutes.multiPlatformPostingScreen),
-          AppTheme.success,
-        ),
+          AppTheme.success),
         _buildActionCard(
           'Calendar',
           'View content calendar',
           Icons.calendar_today,
           () => Navigator.pushNamed(context, AppRoutes.contentCalendarScreen),
-          AppTheme.warning,
-        ),
+          AppTheme.warning),
         _buildActionCard(
           'Hashtags',
           'Research hashtags',
           Icons.tag,
           () => Navigator.pushNamed(context, AppRoutes.hashtagResearchScreen),
-          AppTheme.error,
-        ),
-      ],
-    );
+          AppTheme.error),
+      ]);
   }
 
   Widget _buildContentCalendar() {
@@ -1026,9 +853,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppTheme.border.withAlpha(77),
-          width: 1,
-        ),
-      ),
+          width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1037,24 +862,18 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               Icon(
                 Icons.calendar_view_month,
                 color: AppTheme.accent,
-                size: 24,
-              ),
+                size: 24),
               const SizedBox(width: 12),
               Text(
                 'Content Calendar',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryText,
-                ),
-              ),
-            ],
-          ),
+                  color: AppTheme.primaryText)),
+            ]),
           const SizedBox(height: 24),
           const ContentCalendarWidget(),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildActionCard(
@@ -1062,8 +881,7 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
     String description,
     IconData icon,
     VoidCallback onTap,
-    Color color,
-  ) {
+    Color color) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1073,16 +891,13 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: AppTheme.border.withAlpha(77),
-            width: 1,
-          ),
+            width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(13),
               blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+              offset: const Offset(0, 4)),
+          ]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1090,36 +905,26 @@ class _SocialMediaManagementScreenState extends State<SocialMediaManagementScree
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: color.withAlpha(26),
-                borderRadius: BorderRadius.circular(12),
-              ),
+                borderRadius: BorderRadius.circular(12)),
               child: Icon(
                 icon,
                 color: color,
-                size: 24,
-              ),
-            ),
+                size: 24)),
             const SizedBox(height: 16),
             Text(
               title,
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.primaryText,
-              ),
-            ),
+                color: AppTheme.primaryText)),
             const SizedBox(height: 8),
             Text(
               description,
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: AppTheme.secondaryText,
-              ),
+                color: AppTheme.secondaryText),
               maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
+              overflow: TextOverflow.ellipsis),
+          ])));
   }
 }

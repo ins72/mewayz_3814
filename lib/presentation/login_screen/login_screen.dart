@@ -33,6 +33,18 @@ class _LoginScreenState extends State<LoginScreen> {
     _authService = AuthService();
     _emailFocusNode.addListener(_onEmailFocusChange);
     _passwordFocusNode.addListener(_onPasswordFocusChange);
+    _checkExistingSession();
+  }
+
+  // Check if user is already logged in
+  Future<void> _checkExistingSession() async {
+    try {
+      if (await _authService.isUserLoggedIn()) {
+        Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+      }
+    } catch (e) {
+      debugPrint('Error checking existing session: $e');
+    }
   }
 
   @override
@@ -339,10 +351,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Biometric Authentication
                       BiometricAuthWidget(
-                        onBiometricAuth: () {
-                          HapticFeedback.lightImpact();
-                          Navigator.pushReplacementNamed(
-                              context, AppRoutes.workspaceDashboard);
+                        onBiometricAuth: () async {
+                          try {
+                            setState(() {
+                              _isLoading = true;
+                            });
+
+                            final bool didAuthenticate = await _authService.authenticateWithBiometrics();
+                            
+                            if (didAuthenticate) {
+                              HapticFeedback.lightImpact();
+                              Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+                            } else {
+                              setState(() {
+                                _generalError = 'Biometric authentication failed. Please try again.';
+                              });
+                            }
+                          } catch (e) {
+                            setState(() {
+                              _generalError = 'Biometric authentication error: ${e.toString()}';
+                            });
+                          } finally {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
                         },
                       ),
 

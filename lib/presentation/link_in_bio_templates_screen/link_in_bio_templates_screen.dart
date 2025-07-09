@@ -98,7 +98,7 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
     // Navigate to bio builder with template
     Navigator.pushNamed(
       context,
-      routes.AppRoutes.linkInBioBuilder,
+      routes.AppRoutes.linkInBioRoute,
       arguments: {'templateId': templateId},
     );
   }
@@ -122,7 +122,7 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
     // Apply customizations and navigate to bio builder
     Navigator.pushNamed(
       context,
-      routes.AppRoutes.linkInBioBuilder,
+      routes.AppRoutes.linkInBioRoute,
       arguments: {
         'templateId': templateId,
         'customizations': customizations,

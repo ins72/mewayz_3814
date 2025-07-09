@@ -1,8 +1,7 @@
-import 'package:sizer/sizer.dart';
 import 'dart:math' as math;
 
+
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 
 class VoiceInputWidget extends StatefulWidget {
   final Function(String) onVoiceResult;

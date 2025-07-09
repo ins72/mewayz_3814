@@ -55,7 +55,6 @@ import '../presentation/setup_progress_screen/setup_progress_screen.dart';
 class AppRoutes {
   static const String initial = '/';
   static const String splashScreen = '/splash-screen';
-  static const String userOnboardingScreen = '/user-onboarding-screen';
   static const String goalSelectionScreen = '/goal-selection-screen';
   static const String workspaceCreationScreen = '/workspace-creation-screen';
   static const String workspaceSelectorScreen = '/workspace-selector-screen';
@@ -69,7 +68,7 @@ class AppRoutes {
   static const String emailVerificationScreen = '/email-verification-screen';
   static const String twoFactorAuthenticationScreen = '/two-factor-authentication-screen';
   static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
-  static const String linkInBioBuilder = '/link-in-bio-builder';
+  static const String linkInBioRoute = '/link-in-bio-builder';
   static const String advancedCrmManagementHub = '/advanced-crm-management-hub';
   
   static const String socialMediaManagementScreen = '/social-media-management-screen';
@@ -85,8 +84,6 @@ class AppRoutes {
   static const String notificationSettingsScreen = '/notification-settings-screen';
   static const String securitySettingsScreen = '/security-settings-screen';
   static const String onboardingScreen = '/onboarding-screen';
-  static const String analyticsScreen = '/analytics-screen';
-  static const String analyticsHub = '/analytics-hub';
   static const String analyticsDashboard = '/analytics-dashboard';
   static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
   static const String unifiedSettingsScreen = '/unified-settings-screen';
@@ -114,7 +111,7 @@ class AppRoutes {
   static Map<String, Widget Function(BuildContext)> get routes => {
     initial: (context) => const SplashScreen(),
     splashScreen: (context) => const SplashScreen(),
-    userOnboardingScreen: (context) => const UnifiedOnboardingScreen(),
+    onboardingScreen: (context) => const UnifiedOnboardingScreen(),
     goalSelectionScreen: (context) => const GoalSelectionScreen(),
     workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
     workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
@@ -127,8 +124,7 @@ class AppRoutes {
     resetPasswordScreen: (context) => const ResetPasswordScreen(),
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
-    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
-    advancedCrmManagementHub: (context) => const AdvancedCrmManagementHub(),
+    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),    advancedCrmManagementHub: (context) => const AdvancedCrmManagementHub(),
     socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
     socialMediaManagementHub: (context) => const SocialMediaManagementHub(),
     socialMediaManager: (context) => const SocialMediaManager(),
@@ -141,8 +137,6 @@ class AppRoutes {
     profileSettingsScreen: (context) => const ProfileSettingsScreen(),
     notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
     securitySettingsScreen: (context) => const SecuritySettingsScreen(),
-    onboardingScreen: (context) => const UnifiedOnboardingScreen(),
-    analyticsScreen: (context) => const UnifiedAnalyticsScreen(),
     analyticsDashboard: (context) => const AnalyticsDashboard(),
     linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
     unifiedSettingsScreen: (context) => const UnifiedSettingsScreen(),

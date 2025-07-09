@@ -371,7 +371,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                 _buildQuickCreateItem(
                     "Contact", "person_add", AppRoutes.crmContactManagement),
                 _buildQuickCreateItem(
-                    "Link Page", "link", AppRoutes.linkInBioBuilder),
+                    "Link Page", "link", AppRoutes.linkInBioTemplatesScreen),
                 _buildQuickCreateItem(
                     "QR Code", "qr_code", AppRoutes.qrCodeGeneratorScreen),
                 _buildQuickCreateItem(
@@ -388,11 +388,20 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       buttonId: 'quickCreate_$title',
       onTap: () async {
         Navigator.pop(context);
-        await ButtonService.handleNavigation(
-          context: context,
-          route: route,
-          showFeedback: true,
-          feedbackMessage: 'Opening $title creation...');
+        // Remove reference to linkInBioBuilder route
+        if (route == AppRoutes.linkInBioTemplatesScreen) {
+          await ButtonService.handleNavigation(
+            context: context,
+            route: route,
+            showFeedback: true,
+            feedbackMessage: 'Opening $title creation...');
+        } else {
+          await ButtonService.handleNavigation(
+            context: context,
+            route: route,
+            showFeedback: true,
+            feedbackMessage: 'Opening $title creation...');
+        }
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

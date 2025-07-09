@@ -1,5 +1,6 @@
 import 'package:crypto/crypto.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,6 +10,8 @@ class AuthService {
   static final AuthService _instance = AuthService._internal();
   late final SupabaseClient _client;
   late final GoogleSignIn _googleSignIn;
+  late final LocalAuthentication _localAuth;
+  bool _isInitialized = false;
 
   factory AuthService() {
     return _instance;
@@ -17,6 +20,8 @@ class AuthService {
   AuthService._internal();
 
   Future<void> initialize() async {
+    if (_isInitialized) return;
+    
     try {
       final supabaseService = SupabaseService();
       _client = await supabaseService.client;
@@ -27,10 +32,143 @@ class AuthService {
         scopes: ['email', 'profile'],
       );
       
+      // Initialize Local Authentication
+      _localAuth = LocalAuthentication();
+      
+      _isInitialized = true;
       debugPrint('AuthService initialized successfully');
     } catch (e) {
       ErrorHandler.handleError('Failed to initialize AuthService: $e');
       rethrow;
+    }
+  }
+
+  // Check if biometric authentication is available
+  Future<bool> isBiometricAvailable() async {
+    try {
+      await _ensureInitialized();
+      final bool isAvailable = await _localAuth.canCheckBiometrics;
+      final bool isDeviceSupported = await _localAuth.isDeviceSupported();
+      final List<BiometricType> availableBiometrics = await _localAuth.getAvailableBiometrics();
+      
+      return isAvailable && isDeviceSupported && availableBiometrics.isNotEmpty;
+    } catch (e) {
+      debugPrint('Error checking biometric availability: $e');
+      return false;
+    }
+  }
+
+  // Authenticate with biometrics
+  Future<bool> authenticateWithBiometrics() async {
+    try {
+      await _ensureInitialized();
+      
+      if (!await isBiometricAvailable()) {
+        throw Exception('Biometric authentication not available');
+      }
+
+      final bool didAuthenticate = await _localAuth.authenticate(
+        localizedReason: 'Please authenticate to access your account',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+
+      if (didAuthenticate) {
+        // Check if user has stored session
+        final StorageService storageService = StorageService();
+        final userData = await storageService.getUserData();
+        
+        if (userData != null && userData['biometric_enabled'] == true) {
+          // Log security event
+          await _logSecurityEvent(
+            userData['id'],
+            'biometric_login_success',
+            {'method': 'biometric'},
+          );
+          
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      ErrorHandler.handleError('Biometric authentication failed: $e');
+      return false;
+    }
+  }
+
+  // Enable biometric authentication for user
+  Future<bool> enableBiometricAuthentication() async {
+    try {
+      await _ensureInitialized();
+      
+      if (!await isBiometricAvailable()) {
+        throw Exception('Biometric authentication not available on this device');
+      }
+
+      final bool didAuthenticate = await _localAuth.authenticate(
+        localizedReason: 'Please authenticate to enable biometric login',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+
+      if (didAuthenticate) {
+        // Save biometric preference
+        final StorageService storageService = StorageService();
+        final userData = await storageService.getUserData();
+        
+        if (userData != null) {
+          userData['biometric_enabled'] = true;
+          await storageService.saveUserData(userData);
+          
+          // Log security event
+          await _logSecurityEvent(
+            userData['id'],
+            'biometric_enabled',
+            {'method': 'settings'},
+          );
+          
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to enable biometric authentication: $e');
+      return false;
+    }
+  }
+
+  // Disable biometric authentication
+  Future<bool> disableBiometricAuthentication() async {
+    try {
+      await _ensureInitialized();
+      
+      final StorageService storageService = StorageService();
+      final userData = await storageService.getUserData();
+      
+      if (userData != null) {
+        userData['biometric_enabled'] = false;
+        await storageService.saveUserData(userData);
+        
+        // Log security event
+        await _logSecurityEvent(
+          userData['id'],
+          'biometric_disabled',
+          {'method': 'settings'},
+        );
+        
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to disable biometric authentication: $e');
+      return false;
     }
   }
 
@@ -42,6 +180,8 @@ class AuthService {
     String role = 'creator',
   }) async {
     try {
+      await _ensureInitialized();
+      
       final response = await _client.auth.signUp(
         email: email,
         password: password,
@@ -65,6 +205,7 @@ class AuthService {
           'full_name': fullName,
           'role': role,
           'email_verified': false,
+          'biometric_enabled': false,
         });
 
         // Log security event
@@ -88,6 +229,8 @@ class AuthService {
     required String password,
   }) async {
     try {
+      await _ensureInitialized();
+      
       final response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
@@ -99,7 +242,7 @@ class AuthService {
         // Create session
         await _createUserSession(response.user!.id);
         
-        // Save user data to local storage
+        // Save user data to local storage with persistent session
         final storageService = StorageService();
         await storageService.saveUserData({
           'id': response.user!.id,
@@ -107,6 +250,9 @@ class AuthService {
           'full_name': response.user!.userMetadata?['full_name'] ?? '',
           'role': response.user!.userMetadata?['role'] ?? 'creator',
           'email_verified': response.user!.emailConfirmedAt != null,
+          'biometric_enabled': false,
+          'logged_in': true,
+          'session_token': response.session?.accessToken,
         });
 
         // Log security event
@@ -133,9 +279,33 @@ class AuthService {
     }
   }
 
+  // Check if user is logged in from storage
+  Future<bool> isUserLoggedIn() async {
+    try {
+      await _ensureInitialized();
+      
+      // Check current session
+      final currentSession = _client.auth.currentSession;
+      if (currentSession != null && !currentSession.isExpired) {
+        return true;
+      }
+      
+      // Check stored session
+      final StorageService storageService = StorageService();
+      final userData = await storageService.getUserData();
+      
+      return userData != null && userData['logged_in'] == true;
+    } catch (e) {
+      debugPrint('Error checking login status: $e');
+      return false;
+    }
+  }
+
   // Google Sign In
   Future<AuthResponse?> signInWithGoogle() async {
     try {
+      await _ensureInitialized();
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
@@ -153,7 +323,7 @@ class AuthService {
         // Create session
         await _createUserSession(response.user!.id);
         
-        // Save user data
+        // Save user data with persistent session
         final storageService = StorageService();
         await storageService.saveUserData({
           'id': response.user!.id,
@@ -161,6 +331,9 @@ class AuthService {
           'full_name': response.user!.userMetadata?['full_name'] ?? googleUser.displayName ?? '',
           'role': 'creator',
           'email_verified': true,
+          'biometric_enabled': false,
+          'logged_in': true,
+          'session_token': response.session?.accessToken,
         });
 
         // Log security event
@@ -190,6 +363,8 @@ class AuthService {
   // Apple Sign In
   Future<AuthResponse?> signInWithApple() async {
     try {
+      await _ensureInitialized();
+      
       final credential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -208,7 +383,7 @@ class AuthService {
         // Create session
         await _createUserSession(response.user!.id);
         
-        // Save user data
+        // Save user data with persistent session
         final storageService = StorageService();
         await storageService.saveUserData({
           'id': response.user!.id,
@@ -217,6 +392,9 @@ class AuthService {
                       '${credential.givenName ?? ''} ${credential.familyName ?? ''}',
           'role': 'creator',
           'email_verified': true,
+          'biometric_enabled': false,
+          'logged_in': true,
+          'session_token': response.session?.accessToken,
         });
 
         // Log security event
@@ -246,6 +424,8 @@ class AuthService {
   // Sign out current user
   Future<void> signOut() async {
     try {
+      await _ensureInitialized();
+      
       final userId = currentUser?.id;
       
       await _client.auth.signOut();
@@ -270,6 +450,13 @@ class AuthService {
     } catch (e) {
       ErrorHandler.handleError('Failed to sign out user: $e');
       rethrow;
+    }
+  }
+
+  // Ensure AuthService is initialized
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await initialize();
     }
   }
 
@@ -508,7 +695,7 @@ class AuthService {
   }
 
   // Getters
-  User? get currentUser => _client.auth.currentUser;
+  User? get currentUser => _isInitialized ? _client.auth.currentUser : null;
   bool get isAuthenticated => currentUser != null;
-  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
+  Stream<AuthState> get authStateChanges => _isInitialized ? _client.auth.onAuthStateChange : const Stream.empty();
 }
