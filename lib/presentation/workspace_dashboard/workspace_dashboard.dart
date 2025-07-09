@@ -299,10 +299,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
             
             // Create New Workspace Button
             CustomEnhancedButtonWidget(
-              
               buttonId: 'createWorkspaceButton',
-              child: Text('Create New Workspace'),
-              buttonType: ButtonType.outlined,
               onPressed: () async {
                 Navigator.pop(context);
                 await ButtonService.navigateTo(
@@ -310,7 +307,9 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   route: AppRoutes.workspaceCreationScreen,
                   showFeedback: true,
                   feedbackMessage: 'Opening workspace creation...');
-              }),
+              },
+              buttonType: ButtonType.outlined,
+              child: Text('Create New Workspace')),
           ])));
   }
 
@@ -371,13 +370,22 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                     "Course", "play_circle_filled", AppRoutes.courseCreator),
                 _buildQuickCreateItem(
                     "Contact", "person_add", AppRoutes.crmContactManagement),
+                _buildQuickCreateItem(
+                    "Link Page", "link", AppRoutes.linkInBioBuilder),
+                _buildQuickCreateItem(
+                    "QR Code", "qr_code", AppRoutes.qrCodeGeneratorScreen),
+                _buildQuickCreateItem(
+                    "Email", "email", AppRoutes.emailMarketingCampaign),
+                _buildQuickCreateItem(
+                    "Template", "description", AppRoutes.contentTemplatesScreen),
               ]),
             SizedBox(height: AppTheme.spacingL),
           ])));
   }
 
   Widget _buildQuickCreateItem(String title, String icon, String route) {
-    return GestureDetector(
+    return ButtonService.createEnhancedGestureDetector(
+      buttonId: 'quickCreate_$title',
       onTap: () async {
         Navigator.pop(context);
         await ButtonService.handleNavigation(
@@ -507,7 +515,8 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
             iconName: 'more_horiz',
             label: 'More'),
         ]),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: ButtonService.createEnhancedFloatingActionButton(
+        buttonId: 'quickCreateFAB',
         onPressed: _showQuickCreateMenu,
         backgroundColor: AppTheme.accent,
         child: CustomIconWidget(
@@ -706,7 +715,7 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
                   onTap: () async {
                     await ButtonService.handleNavigation(
                       context: context,
-                      route: AppRoutes.settingsScreen,
+                      route: AppRoutes.unifiedSettingsScreen,
                       showFeedback: true,
                       feedbackMessage: 'Opening settings...');
                   }),
@@ -752,21 +761,24 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
     required String title,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: CustomIconWidget(
-        iconName: icon.toString().split('.').last,
-        color: AppTheme.accent,
-        size: AppTheme.iconSizeL),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontWeight: FontWeight.w500)),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        color: AppTheme.secondaryText,
-        size: AppTheme.iconSizeS),
+    return ButtonService.createEnhancedInkWell(
+      buttonId: 'actionTile_$title',
       onTap: onTap,
-      contentPadding: EdgeInsets.zero);
+      borderRadius: BorderRadius.circular(AppTheme.radiusM),
+      child: ListTile(
+        leading: CustomIconWidget(
+          iconName: icon.toString().split('.').last,
+          color: AppTheme.accent,
+          size: AppTheme.iconSizeL),
+        title: Text(
+          title,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w500)),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: AppTheme.secondaryText,
+          size: AppTheme.iconSizeS),
+        contentPadding: EdgeInsets.zero));
   }
 
   void _showMetricsDetail(Map<String, dynamic> metric) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../presentation/account_settings_screen/account_settings_screen.dart';
+import '../presentation/advanced_crm_management_hub/advanced_crm_management_hub.dart';
 import '../presentation/analytics_dashboard/analytics_dashboard.dart';
 import '../presentation/app_store_optimization_screen/app_store_optimization_screen.dart';
 import '../presentation/contact_us_screen/contact_us_screen.dart';
@@ -10,6 +11,7 @@ import '../presentation/course_creator/course_creator.dart';
 import '../presentation/crm_contact_management/crm_contact_management.dart';
 import '../presentation/email_marketing_campaign/email_marketing_campaign.dart';
 import '../presentation/email_verification_screen/email_verification_screen.dart';
+import '../presentation/enhanced_workspace_dashboard/enhanced_workspace_dashboard.dart';
 import '../presentation/forgot_password_screen/forgot_password_screen.dart';
 import '../presentation/goal_selection_screen/goal_selection_screen.dart';
 import '../presentation/hashtag_research_screen/hashtag_research_screen.dart';
@@ -20,6 +22,7 @@ import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
 import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
 import '../presentation/notification_settings_screen/notification_settings_screen.dart';
+import '../presentation/premium_social_media_hub/premium_social_media_hub.dart';
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
@@ -41,6 +44,7 @@ import '../presentation/team_member_invitation_screen/team_member_invitation_scr
 import '../presentation/two_factor_authentication_screen/two_factor_authentication_screen.dart';
 import '../presentation/unified_analytics_screen/unified_analytics_screen.dart';
 import '../presentation/unified_onboarding_screen/unified_onboarding_screen.dart';
+import '../presentation/unified_settings_screen/unified_settings_screen.dart';
 import '../presentation/users_team_management_screen/users_team_management_screen.dart';
 import '../presentation/workspace_creation_screen/workspace_creation_screen.dart';
 import '../presentation/workspace_dashboard/workspace_dashboard.dart';
@@ -56,6 +60,8 @@ class AppRoutes {
   static const String workspaceCreationScreen = '/workspace-creation-screen';
   static const String workspaceSelectorScreen = '/workspace-selector-screen';
   static const String workspaceDashboard = '/workspace-dashboard';
+  static const String enhancedWorkspaceDashboard = '/enhanced-workspace-dashboard';
+  static const String premiumSocialMediaHub = '/premium-social-media-hub';
   static const String loginScreen = '/login-screen';
   static const String registerScreen = '/register-screen';
   static const String forgotPasswordScreen = '/forgot-password-screen';
@@ -64,6 +70,7 @@ class AppRoutes {
   static const String twoFactorAuthenticationScreen = '/two-factor-authentication-screen';
   static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
   static const String linkInBioBuilder = '/link-in-bio-builder';
+  static const String advancedCrmManagementHub = '/advanced-crm-management-hub';
   
   static const String socialMediaManagementScreen = '/social-media-management-screen';
   static const String socialMediaManagementHub = '/social-media-management-hub';
@@ -82,6 +89,7 @@ class AppRoutes {
   static const String analyticsHub = '/analytics-hub';
   static const String analyticsDashboard = '/analytics-dashboard';
   static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
+  static const String unifiedSettingsScreen = '/unified-settings-screen';
   
   static const String hashtagResearchScreen = '/hashtag-research-screen';
   static const String instagramLeadSearch = '/instagram-lead-search';
@@ -111,6 +119,8 @@ class AppRoutes {
     workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
     workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
     workspaceDashboard: (context) => const WorkspaceDashboard(),
+    enhancedWorkspaceDashboard: (context) => const EnhancedWorkspaceDashboard(),
+    premiumSocialMediaHub: (context) => const PremiumSocialMediaHub(),
     loginScreen: (context) => const LoginScreen(),
     registerScreen: (context) => const RegisterScreen(),
     forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
@@ -118,7 +128,7 @@ class AppRoutes {
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
     linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
-    
+    advancedCrmManagementHub: (context) => const AdvancedCrmManagementHub(),
     socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
     socialMediaManagementHub: (context) => const SocialMediaManagementHub(),
     socialMediaManager: (context) => const SocialMediaManager(),
@@ -135,6 +145,7 @@ class AppRoutes {
     analyticsScreen: (context) => const UnifiedAnalyticsScreen(),
     analyticsDashboard: (context) => const AnalyticsDashboard(),
     linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
+    unifiedSettingsScreen: (context) => const UnifiedSettingsScreen(),
     
     hashtagResearchScreen: (context) => const HashtagResearchScreen(),
     instagramLeadSearch: (context) => const InstagramLeadSearch(),
@@ -166,5 +177,6 @@ class AppRoutes {
     '/security-settings': (context) => const SecuritySettingsScreen(),
     '/setup-progress': (context) => const SetupProgressScreen(),
     '/content-scheduler': (context) => const SocialMediaScheduler(),
+    '/unified-settings': (context) => const UnifiedSettingsScreen(),
   };
 }
