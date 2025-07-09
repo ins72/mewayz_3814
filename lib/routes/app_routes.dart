@@ -22,6 +22,7 @@ import '../presentation/notification_settings_screen/notification_settings_scree
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
+import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
 import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
@@ -117,7 +118,9 @@ class AppRoutes {
     instagramLeadSearch: (context) => const InstagramLeadSearch(),
     multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
     contentTemplatesScreen: (context) => const ContentTemplatesScreen(),
-    contentCalendarScreen: (context) => const ContentCalendarScreen(),    emailMarketingCampaign: (context) => const EmailMarketingCampaign(),
+    contentCalendarScreen: (context) => const ContentCalendarScreen(),
+    qrCodeGeneratorScreen: (context) => const QrCodeGeneratorScreen(),
+    emailMarketingCampaign: (context) => const EmailMarketingCampaign(),
     crmContactManagement: (context) => const CrmContactManagement(),
     marketplaceStore: (context) => const MarketplaceStore(),
     courseCreator: (context) => const CourseCreator(),

@@ -1,10 +1,8 @@
-import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
 
 class ExportOptionsWidget extends StatefulWidget {
   final Map<String, String> documentationSections;
@@ -455,20 +453,21 @@ class _ExportOptionsWidgetState extends State<ExportOptionsWidget> {
     if (kIsWeb) {
       final bytes = content.codeUnits;
       // Use html classes with proper type casting
-      final blob = html.BlobElement([bytes], mimeType);
-      final url = html.UrlElement.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement()
-        ..href = url
+      final blob = html.Blob([bytes], mimeType);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
         ..download = filename;
       anchor.click();
-      html.UrlElement.revokeObjectUrl(url);
+      html.Url.revokeObjectUrl(url);
     } else {
-      // Fallback for other browsers
-      final dataUrl = 'data:$mimeType;charset=utf-8,${Uri.encodeComponent(content)}';
-      final anchor = html.AnchorElement()
-        ..href = dataUrl
-        ..download = filename;
-      anchor.click();
+      // Fallback for other platforms
+      Fluttertoast.showToast(
+        msg: 'File download not supported on this platform',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: AppTheme.warning,
+        textColor: AppTheme.primaryAction,
+      );
     }
   }
 }

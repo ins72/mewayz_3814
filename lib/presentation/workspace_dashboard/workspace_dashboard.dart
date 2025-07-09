@@ -455,25 +455,25 @@ class _WorkspaceDashboardState extends State<WorkspaceDashboard>
       bottomNavigationBar: CustomBottomNavigationWidget(
         currentIndex: _currentBottomNavIndex,
         onTap: _onBottomNavTap,
-        items: const [
-          CustomBottomNavigationItem(
-            icon: 'dashboard',
+        items: [
+          const BottomNavigationItem(
+            iconName: 'dashboard',
             label: 'Dashboard',
           ),
-          CustomBottomNavigationItem(
-            icon: 'favorite',
+          const BottomNavigationItem(
+            iconName: 'favorite',
             label: 'Social',
           ),
-          CustomBottomNavigationItem(
-            icon: 'contacts',
+          const BottomNavigationItem(
+            iconName: 'contacts',
             label: 'CRM',
           ),
-          CustomBottomNavigationItem(
-            icon: 'store',
+          const BottomNavigationItem(
+            iconName: 'store',
             label: 'Store',
           ),
-          CustomBottomNavigationItem(
-            icon: 'more_horiz',
+          const BottomNavigationItem(
+            iconName: 'more_horiz',
             label: 'More',
           ),
         ],
