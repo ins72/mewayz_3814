@@ -12,7 +12,9 @@ import '../presentation/crm_contact_management/crm_contact_management.dart';
 import '../presentation/custom_domain_management_screen/custom_domain_management_screen.dart';
 import '../presentation/email_marketing_campaign/email_marketing_campaign.dart';
 import '../presentation/email_verification_screen/email_verification_screen.dart';
+import '../presentation/enhanced_login_screen/enhanced_login_screen.dart';
 import '../presentation/enhanced_registration_screen/enhanced_registration_screen.dart';
+import '../presentation/enhanced_splash_screen/enhanced_splash_screen.dart';
 import '../presentation/enhanced_workspace_dashboard/enhanced_workspace_dashboard.dart';
 import '../presentation/forgot_password_screen/forgot_password_screen.dart';
 import '../presentation/goal_based_subscription_pricing_screen/goal_based_subscription_pricing_screen.dart';
@@ -27,6 +29,7 @@ import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
 import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
 import '../presentation/notification_settings_screen/notification_settings_screen.dart';
+import '../presentation/page_not_found_screen/page_not_found_screen.dart';
 import '../presentation/post_creation_team_invitation_screen/post_creation_team_invitation_screen.dart';
 import '../presentation/premium_social_media_hub/premium_social_media_hub.dart';
 import '../presentation/privacy_policy_screen/privacy_policy_screen.dart';
@@ -59,13 +62,14 @@ import '../presentation/workspace_creation_screen/workspace_creation_screen.dart
 import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/workspace_selector_screen/workspace_selector_screen.dart';
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
-import '../presentation/page_not_found_screen/page_not_found_screen.dart';
 
 class AppRoutes {
   // Main screens
   static const String splashScreen = '/splash';
+  static const String enhancedSplashScreen = '/enhanced-splash-screen';
   static const String home = '/home';
   static const String loginScreen = '/login';
+  static const String enhancedLoginScreen = '/enhanced-login-screen';
   static const String registerScreen = '/register';
   static const String enhancedRegistrationScreen = '/enhanced-register';
   static const String forgotPasswordScreen = '/forgot-password';
@@ -170,8 +174,10 @@ class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {
     // Main screens
     splashScreen: (context) => const SplashScreen(),
+    enhancedSplashScreen: (context) => const EnhancedSplashScreen(),
     home: (context) => const EnhancedWorkspaceDashboard(),
     loginScreen: (context) => const LoginScreen(),
+    enhancedLoginScreen: (context) => const EnhancedLoginScreen(),
     registerScreen: (context) => const RegisterScreen(),
     enhancedRegistrationScreen: (context) => const EnhancedRegistrationScreen(),
     forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
