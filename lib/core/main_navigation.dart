@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/app_export.dart' hide BottomNavigationItem;
 import '../presentation/advanced_crm_management_hub/advanced_crm_management_hub.dart';
@@ -152,7 +155,7 @@ class MainNavigationWrapper extends StatefulWidget {
 }
 
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> 
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   int _currentIndex = 0;
   UserRole _userRole = UserRole.guest;
   bool _isAuthenticated = false;
@@ -164,17 +167,31 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
   String? _errorMessage;
   int _retryCount = 0;
   static const int _maxRetries = 3;
+  
+  Timer? _authRefreshTimer;
+  Timer? _retryTimer;
+  StreamSubscription<AuthState>? _authStateSubscription;
+  bool _isDisposed = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAuthStateWithRetry();
+    _initializeWithRetry();
+    _setupAuthStateListener();
+    _startPeriodicAuthRefresh();
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
+    _authRefreshTimer?.cancel();
+    _retryTimer?.cancel();
+    _authStateSubscription?.cancel();
     super.dispose();
   }
 
@@ -182,14 +199,99 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     
-    // Refresh auth state when app resumes
-    if (state == AppLifecycleState.resumed && _isAuthenticated) {
-      _refreshAuthState();
+    // Enhanced app state management
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (_isAuthenticated && !_isDisposed) {
+          _refreshAuthStateBackground();
+        }
+        break;
+      case AppLifecycleState.paused:
+        // Optionally clear sensitive data
+        break;
+      case AppLifecycleState.detached:
+        // Cleanup resources
+        break;
+      default:
+        break;
     }
   }
 
-  Future<void> _checkAuthStateWithRetry() async {
-    while (_retryCount < _maxRetries && !_isAuthenticated && mounted) {
+  /// Setup enhanced auth state listener
+  void _setupAuthStateListener() {
+    try {
+      final authService = EnhancedAuthService();
+      final authStream = authService.authStateChanges;
+      
+      if (authStream != null) {
+        _authStateSubscription = authStream.listen((AuthState authState) {
+          if (!_isDisposed && mounted) {
+            final event = authState.event;
+            debugPrint('Auth state changed: $event');
+            
+            switch (event) {
+              case AuthChangeEvent.signedOut:
+                _handleAuthSignOut();
+                break;
+              case AuthChangeEvent.signedIn:
+                _handleAuthSignIn();
+                break;
+              case AuthChangeEvent.tokenRefreshed:
+                // Token refreshed, verify workspace access
+                _refreshWorkspaceData();
+                break;
+              default:
+                break;
+            }
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to setup auth state listener: $e');
+    }
+  }
+
+  /// Handle auth sign out
+  void _handleAuthSignOut() {
+    if (mounted && !_isDisposed) {
+      setState(() {
+        _isAuthenticated = false;
+        _hasWorkspace = false;
+        _userRole = UserRole.guest;
+        _workspaceId = null;
+        _userWorkspaceRole = null;
+      });
+      
+      // Navigate to login
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.enhancedLoginScreen);
+        }
+      });
+    }
+  }
+
+  /// Handle auth sign in
+  void _handleAuthSignIn() {
+    if (mounted && !_isDisposed) {
+      // Refresh auth state to load workspace data
+      _refreshAuthStateBackground();
+    }
+  }
+
+  /// Start periodic auth refresh
+  void _startPeriodicAuthRefresh() {
+    _authRefreshTimer?.cancel();
+    _authRefreshTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      if (_isAuthenticated && !_isDisposed) {
+        _refreshAuthStateBackground();
+      }
+    });
+  }
+
+  /// Initialize with enhanced retry logic
+  Future<void> _initializeWithRetry() async {
+    while (_retryCount < _maxRetries && !_isAuthenticated && mounted && !_isDisposed) {
       try {
         await _checkAuthState();
         break; // Success, exit retry loop
@@ -197,22 +299,33 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
         _retryCount++;
         
         if (_retryCount >= _maxRetries) {
-          setState(() {
-            _hasError = true;
-            _errorMessage = 'Failed to initialize authentication after $_maxRetries attempts';
-            _isLoading = false;
-          });
+          if (mounted && !_isDisposed) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Failed to initialize authentication after $_maxRetries attempts';
+              _isLoading = false;
+            });
+          }
           break;
         }
         
         debugPrint('Auth check attempt $_retryCount failed: $e');
-        await Future.delayed(Duration(seconds: _retryCount * 2)); // Exponential backoff
+        
+        // Wait before retry with exponential backoff
+        final delaySeconds = _retryCount * 2;
+        _retryTimer = Timer(Duration(seconds: delaySeconds), () {
+          if (mounted && !_isDisposed) {
+            _initializeWithRetry();
+          }
+        });
+        break;
       }
     }
   }
 
+  /// Enhanced auth state check with better error handling
   Future<void> _checkAuthState() async {
-    if (!mounted) return;
+    if (!mounted || _isDisposed) return;
     
     setState(() {
       _isLoading = true;
@@ -220,80 +333,27 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
     });
 
     try {
+      // Enhanced authentication service initialization
       final authService = EnhancedAuthService();
-      await authService.initialize();
+      await authService.initialize().timeout(const Duration(seconds: 15));
       
       final isAuth = authService.isAuthenticated;
       
       if (isAuth) {
         final user = authService.currentUser;
         if (user != null) {
-          // Check workspace membership with timeout
-          final workspaceService = WorkspaceService();
-          await workspaceService.initialize();
-          
-          final workspaces = await workspaceService.getUserWorkspaces()
-              .timeout(const Duration(seconds: 10));
-          
-          if (workspaces.isNotEmpty) {
-            final workspace = workspaces.first;
-            final workspaceId = workspace['workspace_id'] ?? workspace['id'];
-            
-            if (workspaceId == null) {
-              throw Exception('Invalid workspace data structure');
-            }
-            
-            final userRole = await workspaceService.getUserRoleInWorkspace(workspaceId)
-                .timeout(const Duration(seconds: 8));
-            
-            if (mounted) {
-              setState(() {
-                _isAuthenticated = true;
-                _hasWorkspace = true;
-                _workspaceId = workspaceId;
-                _userWorkspaceRole = userRole;
-                _userRole = ScreenAccessMatrix.getUserRoleFromString(userRole);
-                _isLoading = false;
-                _retryCount = 0; // Reset retry count on success
-              });
-            }
-          } else {
-            if (mounted) {
-              setState(() {
-                _isAuthenticated = true;
-                _hasWorkspace = false;
-                _userRole = UserRole.authenticated;
-                _isLoading = false;
-                _retryCount = 0;
-              });
-            }
-          }
+          // Enhanced workspace loading with improved error handling
+          await _loadWorkspaceData(user.id);
         } else {
-          if (mounted) {
-            setState(() {
-              _isAuthenticated = false;
-              _hasWorkspace = false;
-              _userRole = UserRole.guest;
-              _isLoading = false;
-              _retryCount = 0;
-            });
-          }
+          _setAuthState(false, false, UserRole.guest);
         }
       } else {
-        if (mounted) {
-          setState(() {
-            _isAuthenticated = false;
-            _hasWorkspace = false;
-            _userRole = UserRole.guest;
-            _isLoading = false;
-            _retryCount = 0;
-          });
-        }
+        _setAuthState(false, false, UserRole.guest);
       }
     } catch (e) {
-      debugPrint('Auth check error: $e');
+      debugPrint('Enhanced auth check error: $e');
       
-      if (mounted) {
+      if (mounted && !_isDisposed) {
         // Don't immediately set error state, let retry logic handle it
         if (_retryCount >= _maxRetries - 1) {
           setState(() {
@@ -311,13 +371,129 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
     }
   }
 
+  /// Enhanced workspace data loading
+  Future<void> _loadWorkspaceData(String userId) async {
+    try {
+      final workspaceService = WorkspaceService();
+      await workspaceService.initialize().timeout(const Duration(seconds: 15));
+      
+      final workspaces = await workspaceService.getUserWorkspaces()
+          .timeout(const Duration(seconds: 20));
+      
+      if (workspaces.isNotEmpty) {
+        final workspace = workspaces.first;
+        final workspaceId = workspace['workspace_id'] ?? workspace['id'];
+        
+        if (workspaceId == null) {
+          throw Exception('Invalid workspace data structure');
+        }
+        
+        final userRole = await workspaceService.getUserRoleInWorkspace(workspaceId)
+            .timeout(const Duration(seconds: 10));
+        
+        if (userRole != null) {
+          _setWorkspaceState(true, true, workspaceId, userRole);
+        } else {
+          throw Exception('Unable to determine user role in workspace');
+        }
+      } else {
+        _setAuthState(true, false, UserRole.authenticated);
+      }
+    } catch (e) {
+      debugPrint('Workspace loading error: $e');
+      throw Exception('Failed to load workspace data: $e');
+    }
+  }
+
+  /// Set authentication state
+  void _setAuthState(bool isAuth, bool hasWorkspace, UserRole role) {
+    if (mounted && !_isDisposed) {
+      setState(() {
+        _isAuthenticated = isAuth;
+        _hasWorkspace = hasWorkspace;
+        _userRole = role;
+        _isLoading = false;
+        _retryCount = 0;
+        _hasError = false;
+      });
+    }
+  }
+
+  /// Set workspace state
+  void _setWorkspaceState(bool isAuth, bool hasWorkspace, String workspaceId, String userRole) {
+    if (mounted && !_isDisposed) {
+      setState(() {
+        _isAuthenticated = isAuth;
+        _hasWorkspace = hasWorkspace;
+        _workspaceId = workspaceId;
+        _userWorkspaceRole = userRole;
+        _userRole = ScreenAccessMatrix.getUserRoleFromString(userRole);
+        _isLoading = false;
+        _retryCount = 0;
+        _hasError = false;
+      });
+    }
+  }
+
+  /// Background auth refresh (doesn't show loading)
+  Future<void> _refreshAuthStateBackground() async {
+    if (_isDisposed) return;
+    
+    try {
+      final authService = EnhancedAuthService();
+      await authService.initialize();
+      
+      final isAuth = authService.isAuthenticated;
+      
+      if (isAuth) {
+        final user = authService.currentUser;
+        if (user != null) {
+          await _refreshWorkspaceData();
+        } else {
+          _handleAuthSignOut();
+        }
+      } else {
+        _handleAuthSignOut();
+      }
+    } catch (e) {
+      debugPrint('Background auth refresh error: $e');
+      // Don't show error for background refresh
+    }
+  }
+
+  /// Refresh workspace data
+  Future<void> _refreshWorkspaceData() async {
+    if (_isDisposed || !_isAuthenticated) return;
+    
+    try {
+      final workspaceService = WorkspaceService();
+      await workspaceService.initialize();
+      
+      final workspaces = await workspaceService.getUserWorkspaces();
+      
+      if (workspaces.isNotEmpty && _workspaceId != null) {
+        final userRole = await workspaceService.getUserRoleInWorkspace(_workspaceId!);
+        
+        if (userRole != null && mounted && !_isDisposed) {
+          setState(() {
+            _userWorkspaceRole = userRole;
+            _userRole = ScreenAccessMatrix.getUserRoleFromString(userRole);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Workspace data refresh error: $e');
+    }
+  }
+
+  /// Manual refresh with loading state
   Future<void> _refreshAuthState() async {
     _retryCount = 0; // Reset retry count for manual refresh
-    await _checkAuthStateWithRetry();
+    await _initializeWithRetry();
   }
 
   void _onTabTapped(int index) {
-    if (mounted) {
+    if (mounted && !_isDisposed) {
       setState(() {
         _currentIndex = index;
       });
@@ -573,6 +749,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    
     // Use AuthGuardWidget for proper auth state management
     return AuthGuardWidget(
       requireAuth: false, // Handle auth manually in this wrapper

@@ -1,7 +1,9 @@
+import 'dart:async';
+
+
 import '../../core/app_export.dart';
 import '../../services/enhanced_auth_service.dart';
 import '../../services/workspace_service.dart';
-import 'dart:async';
 
 class AppLaunchScreen extends StatefulWidget {
   const AppLaunchScreen({Key? key}) : super(key: key);
@@ -21,6 +23,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   String _statusMessage = 'Initializing...';
   int _retryCount = 0;
   static const int _maxRetries = 3;
+  Timer? _timeoutTimer;
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -55,6 +59,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   }
 
   Future<void> _performAppLaunchSequence() async {
+    if (_isNavigating) return;
+
     try {
       // Reset state for retry
       setState(() {
@@ -62,29 +68,40 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
         _hasError = false;
       });
 
-      // Step 1: Initialize core services with timeout
+      // Set overall timeout for the entire launch sequence
+      _timeoutTimer = Timer(const Duration(seconds: 30), () {
+        if (mounted && !_isNavigating) {
+          _handleLaunchError('Launch sequence timed out');
+        }
+      });
+
+      // Step 1: Initialize core services with enhanced timeout handling
       _updateStatus('Initializing core services...');
       await Future.delayed(const Duration(milliseconds: 300));
       
-      // Step 2: Check authentication state with proper error handling
+      // Step 2: Enhanced authentication check with proper error handling
       _updateStatus('Checking authentication...');
       final authService = EnhancedAuthService();
       
-      // Initialize with timeout and retry logic
+      // Initialize with enhanced timeout and retry logic
       await _initializeServiceWithRetry(() async {
         await authService.initialize();
       }, 'Enhanced Auth Service');
       
+      // Enhanced session validation
+      await _validateAuthSession(authService);
+
       final isAuthenticated = authService.isAuthenticated;
       
       if (!isAuthenticated) {
-        // Route to enhanced login screen
+        // Clear any stale session data before navigating
+        await _clearStaleSessionData();
         await Future.delayed(const Duration(milliseconds: 500));
         _navigateToLogin();
         return;
       }
 
-      // Step 3: Validate user session with better error handling
+      // Step 3: Enhanced user session validation
       _updateStatus('Validating session...');
       await Future.delayed(const Duration(milliseconds: 300));
       
@@ -92,11 +109,12 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
       
       if (currentUser == null) {
         debugPrint('No current user found, redirecting to login');
+        await _clearStaleSessionData();
         _navigateToLogin();
         return;
       }
 
-      // Step 4: Check workspace membership with timeout
+      // Step 4: Enhanced workspace membership check with improved error handling
       _updateStatus('Loading workspace data...');
       final workspaceService = WorkspaceService();
       
@@ -106,7 +124,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
 
       final userWorkspaces = await _executeWithTimeout(
         () => workspaceService.getUserWorkspaces(),
-        const Duration(seconds: 10),
+        const Duration(seconds: 15),
         'workspace data loading'
       );
 
@@ -117,7 +135,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
         return;
       }
 
-      // Step 5: Load primary workspace and check role with validation
+      // Step 5: Enhanced workspace configuration with validation
       _updateStatus('Configuring workspace...');
       await Future.delayed(const Duration(milliseconds: 300));
       
@@ -128,15 +146,23 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
         throw Exception('Invalid workspace data structure');
       }
       
+      // Enhanced role verification with caching
       final userRole = await _executeWithTimeout(
         () => workspaceService.getUserRoleInWorkspace(workspaceId),
-        const Duration(seconds: 8),
+        const Duration(seconds: 10),
         'user role verification'
       );
 
-      // Step 6: Navigate to appropriate dashboard based on role and workspace count
+      if (userRole == null) {
+        throw Exception('Unable to determine user role in workspace');
+      }
+
+      // Step 6: Enhanced navigation with proper state management
       _updateStatus('Loading dashboard...');
       await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Cache workspace data for faster subsequent loads
+      await _cacheWorkspaceData(workspaceId);
       
       if (userWorkspaces.length > 1) {
         // User has multiple workspaces, show workspace selector
@@ -149,17 +175,20 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
     } catch (e) {
       debugPrint('App launch error: $e');
       await _handleLaunchError(e.toString());
+    } finally {
+      _timeoutTimer?.cancel();
     }
   }
 
+  /// Enhanced service initialization with improved retry logic
   Future<void> _initializeServiceWithRetry(
     Future<void> Function() serviceInit,
     String serviceName, {
-    int maxRetries = 2,
+    int maxRetries = 3,
   }) async {
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        await serviceInit();
+        await serviceInit().timeout(const Duration(seconds: 15));
         return;
       } catch (e) {
         if (attempt == maxRetries) {
@@ -167,11 +196,12 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
         }
         
         debugPrint('$serviceName initialization attempt ${attempt + 1} failed: $e');
-        await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+        await Future.delayed(Duration(milliseconds: 1000 * (attempt + 1)));
       }
     }
   }
 
+  /// Enhanced operation execution with better timeout handling
   Future<T> _executeWithTimeout<T>(
     Future<T> Function() operation,
     Duration timeout,
@@ -183,6 +213,53 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
       throw Exception('$operationName timed out after ${timeout.inSeconds} seconds');
     } catch (e) {
       throw Exception('$operationName failed: $e');
+    }
+  }
+
+  /// Enhanced authentication session validation
+  Future<void> _validateAuthSession(EnhancedAuthService authService) async {
+    try {
+      // Verify session is still valid and not expired
+      final isValidSession = await authService.isUserLoggedIn();
+      if (!isValidSession && authService.currentUser != null) {
+        // Session expired, clear it
+        await authService.signOut();
+        throw Exception('Session expired');
+      }
+    } catch (e) {
+      debugPrint('Session validation failed: $e');
+      throw Exception('Session validation failed: $e');
+    }
+  }
+
+  /// Clear stale session data
+  Future<void> _clearStaleSessionData() async {
+    try {
+      final storage = StorageService();
+      await storage.remove('cached_workspace_data');
+      await storage.remove('last_workspace_id');
+    } catch (e) {
+      debugPrint('Failed to clear stale session data: $e');
+    }
+  }
+
+  /// Cache workspace data for offline access
+  Future<void> _cacheWorkspaceData(Map<String, dynamic> workspaceData) async {
+    try {
+      final storage = StorageService();
+      await storage.initialize();
+      
+      // Create cache data structure
+      final cacheData = {
+        'workspace_data': workspaceData,
+        'cached_at': DateTime.now().toIso8601String(),
+        'cache_version': '1.0',
+      };
+      
+      await storage.setValue('cached_workspace_data', jsonEncode(cacheData));
+      debugPrint('Workspace data cached successfully');
+    } catch (e) {
+      debugPrint('Failed to cache workspace data: $e');
     }
   }
 
@@ -208,15 +285,18 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
     }
     
     // Max retries reached, show error state
-    setState(() {
-      _hasError = true;
-      _statusMessage = 'Failed to initialize app';
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _hasError = true;
+        _statusMessage = 'Failed to initialize app';
+        _isLoading = false;
+      });
+    }
   }
 
   void _navigateToLogin() {
-    if (mounted) {
+    if (mounted && !_isNavigating) {
+      _isNavigating = true;
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.enhancedLoginScreen,
@@ -225,7 +305,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   }
 
   void _navigateToGoalSelection() {
-    if (mounted) {
+    if (mounted && !_isNavigating) {
+      _isNavigating = true;
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.goalSelectionScreen,
@@ -234,7 +315,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   }
 
   void _navigateToWorkspaceSelection() {
-    if (mounted) {
+    if (mounted && !_isNavigating) {
+      _isNavigating = true;
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.workspaceSelectorScreen,
@@ -243,7 +325,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   }
 
   void _navigateToMainNavigation() {
-    if (mounted) {
+    if (mounted && !_isNavigating) {
+      _isNavigating = true;
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.mainNavigation,
@@ -253,11 +336,13 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
 
   void _retryLaunch() {
     _retryCount = 0; // Reset retry count for manual retry
+    _isNavigating = false; // Reset navigation flag
     _performAppLaunchSequence();
   }
 
   @override
   void dispose() {
+    _timeoutTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }

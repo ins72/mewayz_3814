@@ -11,6 +11,11 @@ class WorkspaceService {
   Timer? _cacheTimer;
   final Map<String, dynamic> _cache = {};
   static const Duration _cacheExpiry = Duration(minutes: 5);
+  
+  // Enhanced retry and timeout configurations
+  static const int _maxRetries = 3;
+  static const Duration _defaultTimeout = Duration(seconds: 20);
+  static const Duration _shortTimeout = Duration(seconds: 10);
 
   factory WorkspaceService() {
     return _instance;
@@ -82,34 +87,54 @@ class WorkspaceService {
     };
   }
 
-  /// Enhanced operation execution with timeout and retry
+  /// Enhanced operation execution with timeout, retry, and circuit breaker
   Future<T> _executeWithRetry<T>(
     String operationName,
     Future<T> Function() operation, {
-    int maxRetries = 2,
-    Duration timeout = const Duration(seconds: 15),
+    int maxRetries = _maxRetries,
+    Duration timeout = _defaultTimeout,
+    bool useCircuitBreaker = true,
   }) async {
     Exception? lastException;
     
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        return await operation().timeout(timeout);
+        // Check Supabase connection if using circuit breaker
+        if (useCircuitBreaker && !SupabaseService.instance.isConnected) {
+          final reconnected = await SupabaseService.instance.forceReconnect();
+          if (!reconnected) {
+            throw Exception('$operationName failed: Database connection unavailable');
+          }
+        }
+
+        final result = await operation().timeout(timeout);
+        
+        // Log successful operation after retries
+        if (attempt > 0) {
+          debugPrint('✅ $operationName succeeded on attempt ${attempt + 1}');
+        }
+        
+        return result;
       } on TimeoutException {
         lastException = Exception('$operationName timed out after ${timeout.inSeconds} seconds');
+        debugPrint('⏱️ $operationName timeout on attempt ${attempt + 1}');
       } catch (e) {
         lastException = e is Exception ? e : Exception(e.toString());
         
         if (attempt < maxRetries) {
-          debugPrint('$operationName attempt ${attempt + 1} failed: $e, retrying...');
-          await Future.delayed(Duration(seconds: attempt + 1));
+          final delaySeconds = (attempt + 1) * 2; // Exponential backoff
+          debugPrint('🔄 $operationName attempt ${attempt + 1} failed: $e, retrying in ${delaySeconds}s...');
+          await Future.delayed(Duration(seconds: delaySeconds));
         }
       }
     }
     
-    throw lastException ?? Exception('$operationName failed after ${maxRetries + 1} attempts');
+    final finalError = '$operationName failed after ${maxRetries + 1} attempts. Last error: ${lastException.toString()}';
+    debugPrint('❌ $finalError');
+    throw Exception(finalError);
   }
 
-  /// Check if user has any workspace
+  /// Check if user has any workspace with enhanced validation
   Future<bool> hasUserWorkspace() async {
     try {
       await _ensureInitialized();
@@ -140,6 +165,7 @@ class WorkspaceService {
 
           return response.isNotEmpty;
         },
+        timeout: _shortTimeout,
       );
 
       _setCachedData(cacheKey, result);
@@ -150,7 +176,7 @@ class WorkspaceService {
     }
   }
 
-  /// Get user's workspaces with enhanced error handling
+  /// Get user's workspaces with enhanced error handling and validation
   Future<List<Map<String, dynamic>>> getUserWorkspaces() async {
     try {
       await _ensureInitialized();
@@ -197,19 +223,35 @@ class WorkspaceService {
               .eq('is_active', true)
               .order('joined_at', ascending: false);
 
-          return response.map((item) => {
-            'workspace_id': item['workspace_id'],
-            'id': item['workspace_id'], // Add id field for compatibility
-            'role': item['role'],
-            'joined_at': item['joined_at'],
-            'workspace': item['workspaces'],
-            // Flatten workspace data for easier access
-            'name': item['workspaces']?['name'],
-            'description': item['workspaces']?['description'],
-            'goal': item['workspaces']?['goal'],
-            'status': item['workspaces']?['status'],
-            'logo_url': item['workspaces']?['logo_url'],
-          }).toList().cast<Map<String, dynamic>>();
+          // Enhanced data validation and processing
+          final processedWorkspaces = <Map<String, dynamic>>[];
+          
+          for (final item in response) {
+            final workspaceData = item['workspaces'];
+            
+            // Validate workspace data integrity
+            if (workspaceData == null || item['workspace_id'] == null) {
+              debugPrint('⚠️ Skipping invalid workspace data: $item');
+              continue;
+            }
+            
+            processedWorkspaces.add({
+              'workspace_id': item['workspace_id'],
+              'id': item['workspace_id'], // Add id field for compatibility
+              'role': item['role'] ?? 'member',
+              'joined_at': item['joined_at'],
+              'workspace': workspaceData,
+              // Flatten workspace data for easier access
+              'name': workspaceData['name'] ?? 'Unnamed Workspace',
+              'description': workspaceData['description'] ?? '',
+              'goal': workspaceData['goal'] ?? '',
+              'status': workspaceData['status'] ?? 'active',
+              'logo_url': workspaceData['logo_url'],
+              'owner_info': workspaceData['user_profiles'],
+            });
+          }
+
+          return processedWorkspaces;
         },
       );
 
@@ -221,7 +263,7 @@ class WorkspaceService {
     }
   }
 
-  /// Create a new workspace
+  /// Create a new workspace with enhanced validation
   Future<Map<String, dynamic>?> createWorkspace({
     required String name,
     required String description,
@@ -238,14 +280,23 @@ class WorkspaceService {
         throw Exception('User not authenticated');
       }
 
+      // Validate input data
+      if (name.trim().isEmpty) {
+        throw Exception('Workspace name cannot be empty');
+      }
+      
+      if (description.trim().isEmpty) {
+        throw Exception('Workspace description cannot be empty');
+      }
+
       final result = await _executeWithRetry(
         'create workspace',
         () async {
           final response = await _client.rpc('create_workspace', params: {
-            'workspace_name': name,
-            'workspace_description': description,
+            'workspace_name': name.trim(),
+            'workspace_description': description.trim(),
             'workspace_goal': goal,
-            'custom_goal_desc': customGoalDescription,
+            'custom_goal_desc': customGoalDescription?.trim(),
             'owner_uuid': userId,
           });
 
@@ -253,7 +304,7 @@ class WorkspaceService {
             // Clear cache
             _cache.removeWhere((key, _) => key.contains('workspace') || key.contains(userId));
             
-            // Get the created workspace details
+            // Get the created workspace details with validation
             final workspaceDetails = await _client
                 .from('workspaces')
                 .select('*')
@@ -274,10 +325,15 @@ class WorkspaceService {
     }
   }
 
-  /// Get workspace by ID
+  /// Get workspace by ID with enhanced validation
   Future<Map<String, dynamic>?> getWorkspaceById(String workspaceId) async {
     try {
       await _ensureInitialized();
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
 
       // Check cache first
       final cacheKey = 'workspace_$workspaceId';
@@ -299,7 +355,7 @@ class WorkspaceService {
                   avatar_url
                 )
               ''')
-              .eq('id', workspaceId)
+              .eq('id', workspaceId.trim())
               .single();
 
           return response;
@@ -314,10 +370,15 @@ class WorkspaceService {
     }
   }
 
-  /// Get workspace members
+  /// Get workspace members with enhanced validation
   Future<List<Map<String, dynamic>>> getWorkspaceMembers(String workspaceId) async {
     try {
       await _ensureInitialized();
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
 
       // Check cache first
       final cacheKey = 'workspace_members_$workspaceId';
@@ -343,7 +404,7 @@ class WorkspaceService {
                   email
                 )
               ''')
-              .eq('workspace_id', workspaceId)
+              .eq('workspace_id', workspaceId.trim())
               .eq('is_active', true)
               .order('joined_at', ascending: false);
 
@@ -359,7 +420,7 @@ class WorkspaceService {
     }
   }
 
-  /// Invite member to workspace
+  /// Invite member to workspace with enhanced validation
   Future<bool> inviteMemberToWorkspace({
     required String workspaceId,
     required String email,
@@ -376,14 +437,27 @@ class WorkspaceService {
         throw Exception('User not authenticated');
       }
 
+      // Enhanced input validation
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
+      
+      if (email.trim().isEmpty || !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+        throw Exception('Invalid email address');
+      }
+      
+      if (!['owner', 'admin', 'member'].contains(role)) {
+        throw Exception('Invalid role: $role');
+      }
+
       final result = await _executeWithRetry(
         'invite workspace member',
         () async {
           final response = await _client.rpc('invite_workspace_member', params: {
-            'workspace_uuid': workspaceId,
-            'member_email': email,
+            'workspace_uuid': workspaceId.trim(),
+            'member_email': email.trim().toLowerCase(),
             'member_role': role,
-            'invitation_message': message,
+            'invitation_message': message?.trim(),
             'inviter_uuid': userId,
           });
 
@@ -401,10 +475,15 @@ class WorkspaceService {
     }
   }
 
-  /// Get workspace analytics/metrics
+  /// Get workspace analytics/metrics with enhanced error handling
   Future<Map<String, dynamic>> getWorkspaceMetrics(String workspaceId) async {
     try {
       await _ensureInitialized();
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
 
       // Check cache first
       final cacheKey = 'workspace_metrics_$workspaceId';
@@ -417,22 +496,44 @@ class WorkspaceService {
         'get workspace metrics',
         () async {
           final response = await _client.rpc('get_workspace_dashboard_metrics', params: {
-            'workspace_uuid': workspaceId,
+            'workspace_uuid': workspaceId.trim(),
           });
 
-          return (response ?? {}) as Map<String, dynamic>;
+          // Ensure we return a valid map even if response is null
+          final metricsData = (response ?? {}) as Map<String, dynamic>;
+          
+          // Add default values for common metrics if missing
+          return {
+            'total_members': metricsData['total_members'] ?? 0,
+            'active_projects': metricsData['active_projects'] ?? 0,
+            'total_tasks': metricsData['total_tasks'] ?? 0,
+            'completed_tasks': metricsData['completed_tasks'] ?? 0,
+            'workspace_age_days': metricsData['workspace_age_days'] ?? 0,
+            'last_activity': metricsData['last_activity'],
+            ...metricsData,
+          };
         },
+        timeout: _shortTimeout,
       );
 
       _setCachedData(cacheKey, result);
       return result;
     } catch (e) {
       ErrorHandler.handleError('Failed to get workspace metrics: $e');
-      return {};
+      // Return default metrics on error
+      return {
+        'total_members': 0,
+        'active_projects': 0,
+        'total_tasks': 0,
+        'completed_tasks': 0,
+        'workspace_age_days': 0,
+        'error': true,
+        'error_message': e.toString(),
+      };
     }
   }
 
-  /// Update workspace
+  /// Update workspace with enhanced validation
   Future<bool> updateWorkspace({
     required String workspaceId,
     String? name,
@@ -444,13 +545,25 @@ class WorkspaceService {
     try {
       await _ensureInitialized();
 
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
+
       final result = await _executeWithRetry(
         'update workspace',
         () async {
           final updateData = <String, dynamic>{};
-          if (name != null) updateData['name'] = name;
-          if (description != null) updateData['description'] = description;
-          if (logoUrl != null) updateData['logo_url'] = logoUrl;
+          
+          if (name != null && name.trim().isNotEmpty) {
+            updateData['name'] = name.trim();
+          }
+          
+          if (description != null) {
+            updateData['description'] = description.trim();
+          }
+          
+          if (logoUrl != null) updateData['logo_url'] = logoUrl.trim();
           if (themeSettings != null) updateData['theme_settings'] = themeSettings;
           if (featuresEnabled != null) updateData['features_enabled'] = featuresEnabled;
           
@@ -459,7 +572,7 @@ class WorkspaceService {
           await _client
               .from('workspaces')
               .update(updateData)
-              .eq('id', workspaceId);
+              .eq('id', workspaceId.trim());
 
           // Clear relevant cache
           _cache.removeWhere((key, _) => key.contains('workspace_$workspaceId'));
@@ -475,10 +588,15 @@ class WorkspaceService {
     }
   }
 
-  /// Delete workspace
+  /// Delete workspace with enhanced validation and cleanup
   Future<bool> deleteWorkspace(String workspaceId) async {
     try {
       await _ensureInitialized();
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
 
       final result = await _executeWithRetry(
         'delete workspace',
@@ -486,7 +604,7 @@ class WorkspaceService {
           await _client
               .from('workspaces')
               .delete()
-              .eq('id', workspaceId);
+              .eq('id', workspaceId.trim());
 
           // Clear all related cache
           _cache.removeWhere((key, _) => key.contains(workspaceId));
@@ -502,7 +620,7 @@ class WorkspaceService {
     }
   }
 
-  /// Leave workspace
+  /// Leave workspace with enhanced validation
   Future<bool> leaveWorkspace(String workspaceId) async {
     try {
       await _ensureInitialized();
@@ -514,13 +632,18 @@ class WorkspaceService {
         throw Exception('User not authenticated');
       }
 
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
+
       final result = await _executeWithRetry(
         'leave workspace',
         () async {
           await _client
               .from('workspace_members')
               .update({'is_active': false})
-              .eq('workspace_id', workspaceId)
+              .eq('workspace_id', workspaceId.trim())
               .eq('user_id', userId);
 
           // Clear user workspace cache
@@ -537,10 +660,15 @@ class WorkspaceService {
     }
   }
 
-  /// Get workspace invitations
+  /// Get workspace invitations with enhanced error handling
   Future<List<Map<String, dynamic>>> getWorkspaceInvitations(String workspaceId) async {
     try {
       await _ensureInitialized();
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
+        throw Exception('Invalid workspace ID');
+      }
 
       final result = await _executeWithRetry(
         'get workspace invitations',
@@ -554,7 +682,7 @@ class WorkspaceService {
                   email
                 )
               ''')
-              .eq('workspace_id', workspaceId)
+              .eq('workspace_id', workspaceId.trim())
               .order('created_at', ascending: false);
 
           return response.cast<Map<String, dynamic>>();
@@ -568,7 +696,7 @@ class WorkspaceService {
     }
   }
 
-  /// Accept workspace invitation
+  /// Accept workspace invitation with enhanced validation
   Future<bool> acceptInvitation(String invitationToken) async {
     try {
       await _ensureInitialized();
@@ -580,11 +708,16 @@ class WorkspaceService {
         throw Exception('User not authenticated');
       }
 
+      // Validate input
+      if (invitationToken.trim().isEmpty) {
+        throw Exception('Invalid invitation token');
+      }
+
       final result = await _executeWithRetry(
         'accept workspace invitation',
         () async {
           final response = await _client.rpc('accept_workspace_invitation', params: {
-            'invitation_token': invitationToken,
+            'invitation_token': invitationToken.trim(),
             'accepting_user_uuid': userId,
           });
 
@@ -602,7 +735,7 @@ class WorkspaceService {
     }
   }
 
-  /// Check if user can manage workspace
+  /// Check if user can manage workspace with enhanced caching
   Future<bool> canManageWorkspace(String workspaceId) async {
     try {
       await _ensureInitialized();
@@ -611,6 +744,11 @@ class WorkspaceService {
       final userId = authService.currentUser?.id;
       
       if (userId == null) {
+        return false;
+      }
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
         return false;
       }
 
@@ -627,7 +765,7 @@ class WorkspaceService {
           final response = await _client
               .from('workspace_members')
               .select('role')
-              .eq('workspace_id', workspaceId)
+              .eq('workspace_id', workspaceId.trim())
               .eq('user_id', userId)
               .eq('is_active', true)
               .single();
@@ -637,16 +775,18 @@ class WorkspaceService {
           
           return canManage;
         },
+        timeout: _shortTimeout,
       );
 
       _setCachedData(cacheKey, result);
       return result;
     } catch (e) {
+      debugPrint('Failed to check workspace management permission: $e');
       return false;
     }
   }
 
-  /// Get user's role in workspace with enhanced error handling
+  /// Get user's role in workspace with enhanced error handling and validation
   Future<String?> getUserRoleInWorkspace(String workspaceId) async {
     try {
       await _ensureInitialized();
@@ -655,6 +795,11 @@ class WorkspaceService {
       final userId = authService.currentUser?.id;
       
       if (userId == null) {
+        return null;
+      }
+
+      // Validate input
+      if (workspaceId.trim().isEmpty) {
         return null;
       }
 
@@ -671,13 +816,22 @@ class WorkspaceService {
           final response = await _client
               .from('workspace_members')
               .select('role')
-              .eq('workspace_id', workspaceId)
+              .eq('workspace_id', workspaceId.trim())
               .eq('user_id', userId)
               .eq('is_active', true)
               .single();
 
-          return response['role'] as String?;
+          final role = response['role'] as String?;
+          
+          // Validate role value
+          if (role != null && !['owner', 'admin', 'member'].contains(role)) {
+            debugPrint('⚠️ Invalid role value from database: $role');
+            return 'member'; // Default to member for invalid roles
+          }
+          
+          return role;
         },
+        timeout: _shortTimeout,
       );
 
       if (result != null) {
@@ -694,11 +848,29 @@ class WorkspaceService {
   /// Clear all cache
   void clearCache() {
     _cache.clear();
+    debugPrint('WorkspaceService cache cleared');
+  }
+
+  /// Clear specific user cache
+  void clearUserCache(String userId) {
+    _cache.removeWhere((key, _) => key.contains(userId));
+    debugPrint('WorkspaceService cache cleared for user: $userId');
+  }
+
+  /// Get cache statistics
+  Map<String, dynamic> getCacheStats() {
+    return {
+      'total_entries': _cache.length,
+      'cache_keys': _cache.keys.toList(),
+      'cache_expiry_minutes': _cacheExpiry.inMinutes,
+      'cleanup_timer_active': _cacheTimer?.isActive ?? false,
+    };
   }
 
   /// Dispose resources
   void dispose() {
     _cacheTimer?.cancel();
     _cache.clear();
+    debugPrint('WorkspaceService disposed');
   }
 }
