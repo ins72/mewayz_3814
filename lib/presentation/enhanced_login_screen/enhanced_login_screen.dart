@@ -89,7 +89,7 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
     });
 
     try {
-      final response = await _authService.signInWithPassword(
+      final response = await _authService.signIn(
         email: email,
         password: password,
       );
@@ -305,6 +305,7 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
             EnhancedBiometricAuthWidget(
               onBiometricAuth: _handleBiometricAuth,
               isLoading: _isLoading,
+              authService: _authService,
             ),
             
             SizedBox(height: 6.h),

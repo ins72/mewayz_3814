@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../core/main_navigation.dart';
 import '../presentation/account_settings_screen/account_settings_screen.dart';
 import '../presentation/advanced_crm_management_hub/advanced_crm_management_hub.dart';
 import '../presentation/analytics_dashboard/analytics_dashboard.dart';
+import '../presentation/app_launch_screen/app_launch_screen.dart';
 import '../presentation/app_store_optimization_screen/app_store_optimization_screen.dart';
 import '../presentation/contact_us_screen/contact_us_screen.dart';
 import '../presentation/content_calendar_screen/content_calendar_screen.dart';
@@ -57,10 +59,14 @@ import '../presentation/workspace_selector_screen/workspace_selector_screen.dart
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
 
 class AppRoutes {
+  // Main app entry point - App Launch with Auth State Check
+  static const String appLaunchScreen = '/app-launch';
+  
   // Main screens - Enhanced versions only
   static const String splashScreen = '/enhanced-splash-screen';
   static const String enhancedSplashScreen = '/enhanced-splash-screen';
-  static const String home = '/enhanced-workspace-dashboard';
+  static const String home = '/main-navigation';
+  static const String mainNavigation = '/main-navigation';
   static const String loginScreen = '/enhanced-login-screen';
   static const String enhancedLoginScreen = '/enhanced-login-screen';
   static const String registerScreen = '/enhanced-registration-screen';
@@ -159,10 +165,16 @@ class AppRoutes {
 
   // Route map - Enhanced versions only
   static Map<String, WidgetBuilder> get routes => {
+    // App launch - Main entry point
+    appLaunchScreen: (context) => const AppLaunchScreen(),
+    
+    // Main navigation wrapper with role-based access
+    home: (context) => const MainNavigationWrapper(),
+    mainNavigation: (context) => const MainNavigationWrapper(),
+    
     // Main screens - Only enhanced versions
     splashScreen: (context) => const EnhancedSplashScreen(),
     enhancedSplashScreen: (context) => const EnhancedSplashScreen(),
-    home: (context) => const EnhancedWorkspaceDashboard(),
     loginScreen: (context) => const EnhancedLoginScreen(),
     enhancedLoginScreen: (context) => const EnhancedLoginScreen(),
     registerScreen: (context) => const EnhancedRegistrationScreen(),

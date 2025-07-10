@@ -7,11 +7,13 @@ import '../../../services/enhanced_auth_service.dart';
 class EnhancedBiometricAuthWidget extends StatefulWidget {
   final VoidCallback onBiometricAuth;
   final bool isLoading;
+  final EnhancedAuthService? authService;
 
   const EnhancedBiometricAuthWidget({
     super.key,
     required this.onBiometricAuth,
     required this.isLoading,
+    this.authService,
   });
 
   @override
@@ -22,18 +24,19 @@ class _EnhancedBiometricAuthWidgetState extends State<EnhancedBiometricAuthWidge
   bool _isBiometricAvailable = false;
   bool _isDeviceRegistered = false;
   bool _isPressed = false;
-  final EnhancedAuthService _authService = EnhancedAuthService();
+  late final EnhancedAuthService _authService;
 
   @override
   void initState() {
     super.initState();
+    _authService = widget.authService ?? EnhancedAuthService();
     _checkBiometricStatus();
   }
 
   void _checkBiometricStatus() async {
     try {
       final isAvailable = await _authService.isBiometricAvailable();
-      final isRegistered = await _authService.isDeviceRegistered();
+      final isRegistered = await _authService.checkDeviceRegistration();
       
       setState(() {
         _isBiometricAvailable = isAvailable;
@@ -57,10 +60,8 @@ class _EnhancedBiometricAuthWidgetState extends State<EnhancedBiometricAuthWidge
       if (_isDeviceRegistered) {
         // Existing user - authenticate with biometrics
         final response = await _authService.authenticateWithBiometrics();
-        if (response != null) {
-          widget.onBiometricAuth();
-        }
-      } else {
+        widget.onBiometricAuth();
+            } else {
         // New device - show registration dialog
         _showBiometricRegistrationDialog();
       }
@@ -251,7 +252,7 @@ class _BiometricRegistrationDialogState extends State<_BiometricRegistrationDial
     });
 
     try {
-      final result = await widget.authService.registerDeviceForBiometric(
+      final result = await widget.authService.registerDevice(
         email: _skipCredentials ? null : _emailController.text.trim(),
         fullName: _skipCredentials ? null : _nameController.text.trim(),
       );

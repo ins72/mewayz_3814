@@ -39,7 +39,8 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
-          initialRoute: AppRoutes.enhancedSplashScreen,
+          // Start with App Launch Screen for auth state check
+          initialRoute: AppRoutes.appLaunchScreen,
           routes: AppRoutes.routes,
           onGenerateRoute: AppRoutes.onGenerateRoute,
           builder: (context, child) {
