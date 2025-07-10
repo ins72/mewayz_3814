@@ -353,7 +353,7 @@ class LinkInBioService {
       return 'https://$customDomain';
     }
     // Use a property that exists in EnvironmentConfig
-    final globalDomain = EnvironmentConfig.apiUrl;
+    final globalDomain = EnvironmentConfig.baseUrl;
     return 'https://$globalDomain/$slug';
   }
 

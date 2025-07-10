@@ -1,7 +1,7 @@
-
 import '../../core/app_export.dart';
 import '../../services/enhanced_auth_service.dart';
 import '../../services/workspace_service.dart';
+import 'dart:async';
 
 class AppLaunchScreen extends StatefulWidget {
   const AppLaunchScreen({Key? key}) : super(key: key);
@@ -19,6 +19,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   bool _isLoading = true;
   bool _hasError = false;
   String _statusMessage = 'Initializing...';
+  int _retryCount = 0;
+  static const int _maxRetries = 3;
 
   @override
   void initState() {
@@ -54,110 +56,203 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
 
   Future<void> _performAppLaunchSequence() async {
     try {
-      // Step 1: Initialize core services
+      // Reset state for retry
+      setState(() {
+        _isLoading = true;
+        _hasError = false;
+      });
+
+      // Step 1: Initialize core services with timeout
       _updateStatus('Initializing core services...');
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 300));
       
-      // Step 2: Check authentication state
+      // Step 2: Check authentication state with proper error handling
       _updateStatus('Checking authentication...');
       final authService = EnhancedAuthService();
-      await authService.initialize();
+      
+      // Initialize with timeout and retry logic
+      await _initializeServiceWithRetry(() async {
+        await authService.initialize();
+      }, 'Enhanced Auth Service');
       
       final isAuthenticated = authService.isAuthenticated;
       
       if (!isAuthenticated) {
         // Route to enhanced login screen
+        await Future.delayed(const Duration(milliseconds: 500));
         _navigateToLogin();
         return;
       }
 
-      // Step 3: Validate user session
+      // Step 3: Validate user session with better error handling
       _updateStatus('Validating session...');
+      await Future.delayed(const Duration(milliseconds: 300));
+      
       final currentUser = authService.currentUser;
       
       if (currentUser == null) {
+        debugPrint('No current user found, redirecting to login');
         _navigateToLogin();
         return;
       }
 
-      // Step 4: Check workspace membership
-      _updateStatus('Loading workspace...');
+      // Step 4: Check workspace membership with timeout
+      _updateStatus('Loading workspace data...');
       final workspaceService = WorkspaceService();
-      final userWorkspaces = await workspaceService.getUserWorkspaces();
+      
+      await _initializeServiceWithRetry(() async {
+        await workspaceService.initialize();
+      }, 'Workspace Service');
+
+      final userWorkspaces = await _executeWithTimeout(
+        () => workspaceService.getUserWorkspaces(),
+        const Duration(seconds: 10),
+        'workspace data loading'
+      );
 
       if (userWorkspaces.isEmpty) {
         // User is authenticated but has no workspace
-        // Route to goal selection for new users
+        await Future.delayed(const Duration(milliseconds: 500));
         _navigateToGoalSelection();
         return;
       }
 
-      // Step 5: Load primary workspace
+      // Step 5: Load primary workspace and check role with validation
+      _updateStatus('Configuring workspace...');
+      await Future.delayed(const Duration(milliseconds: 300));
+      
       final primaryWorkspace = userWorkspaces.first;
-      final userRole = await workspaceService.getUserRoleInWorkspace(
-        primaryWorkspace['id'],
+      final workspaceId = primaryWorkspace['workspace_id'] ?? primaryWorkspace['id'];
+      
+      if (workspaceId == null) {
+        throw Exception('Invalid workspace data structure');
+      }
+      
+      final userRole = await _executeWithTimeout(
+        () => workspaceService.getUserRoleInWorkspace(workspaceId),
+        const Duration(seconds: 8),
+        'user role verification'
       );
 
-      // Step 6: Navigate to appropriate dashboard
+      // Step 6: Navigate to appropriate dashboard based on role and workspace count
       _updateStatus('Loading dashboard...');
       await Future.delayed(const Duration(milliseconds: 500));
       
-      _navigateToWorkspaceDashboard();
+      if (userWorkspaces.length > 1) {
+        // User has multiple workspaces, show workspace selector
+        _navigateToWorkspaceSelection();
+      } else {
+        // Navigate to main navigation with role-based access
+        _navigateToMainNavigation();
+      }
 
     } catch (e) {
       debugPrint('App launch error: $e');
-      _handleLaunchError(e.toString());
+      await _handleLaunchError(e.toString());
+    }
+  }
+
+  Future<void> _initializeServiceWithRetry(
+    Future<void> Function() serviceInit,
+    String serviceName, {
+    int maxRetries = 2,
+  }) async {
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await serviceInit();
+        return;
+      } catch (e) {
+        if (attempt == maxRetries) {
+          throw Exception('Failed to initialize $serviceName after ${maxRetries + 1} attempts: $e');
+        }
+        
+        debugPrint('$serviceName initialization attempt ${attempt + 1} failed: $e');
+        await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
+    }
+  }
+
+  Future<T> _executeWithTimeout<T>(
+    Future<T> Function() operation,
+    Duration timeout,
+    String operationName,
+  ) async {
+    try {
+      return await operation().timeout(timeout);
+    } on TimeoutException {
+      throw Exception('$operationName timed out after ${timeout.inSeconds} seconds');
+    } catch (e) {
+      throw Exception('$operationName failed: $e');
     }
   }
 
   void _updateStatus(String message) {
-    setState(() {
-      _statusMessage = message;
-    });
+    if (mounted) {
+      setState(() {
+        _statusMessage = message;
+      });
+    }
   }
 
-  void _handleLaunchError(String error) {
+  Future<void> _handleLaunchError(String error) async {
+    if (_retryCount < _maxRetries) {
+      _retryCount++;
+      debugPrint('Retrying app launch (attempt $_retryCount/$_maxRetries) due to: $error');
+      
+      // Wait before retry with exponential backoff
+      await Future.delayed(Duration(seconds: _retryCount * 2));
+      
+      // Reset and retry
+      _performAppLaunchSequence();
+      return;
+    }
+    
+    // Max retries reached, show error state
     setState(() {
       _hasError = true;
-      _statusMessage = 'Failed to launch app';
+      _statusMessage = 'Failed to initialize app';
       _isLoading = false;
     });
   }
 
   void _navigateToLogin() {
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.enhancedLoginScreen,
-    );
+    if (mounted) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.enhancedLoginScreen,
+      );
+    }
   }
 
   void _navigateToGoalSelection() {
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.goalSelectionScreen,
-    );
-  }
-
-  void _navigateToWorkspaceDashboard() {
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.enhancedWorkspaceDashboard,
-    );
+    if (mounted) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.goalSelectionScreen,
+      );
+    }
   }
 
   void _navigateToWorkspaceSelection() {
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.workspaceSelectorScreen,
-    );
+    if (mounted) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.workspaceSelectorScreen,
+      );
+    }
+  }
+
+  void _navigateToMainNavigation() {
+    if (mounted) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.mainNavigation,
+      );
+    }
   }
 
   void _retryLaunch() {
-    setState(() {
-      _hasError = false;
-      _isLoading = true;
-      _statusMessage = 'Retrying...';
-    });
+    _retryCount = 0; // Reset retry count for manual retry
     _performAppLaunchSequence();
   }
 
@@ -287,6 +382,16 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
                       color: const Color(0xFF8E8E93),
                     ),
                   ),
+                  if (_retryCount > 0) ...[
+                    SizedBox(height: 1.h),
+                    Text(
+                      'Retry attempt $_retryCount/$_maxRetries',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        color: const Color(0xFF636366),
+                      ),
+                    ),
+                  ],
                 ],
 
                 // Error state
@@ -306,35 +411,53 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
                     ),
                   ),
                   SizedBox(height: 1.h),
-                  Text(
-                    _statusMessage,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF8E8E93),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: Text(
+                      _statusMessage,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        color: const Color(0xFF8E8E93),
+                      ),
                     ),
                   ),
                   SizedBox(height: 4.h),
-                  ElevatedButton(
-                    onPressed: _retryLaunch,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007AFF),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 2.h,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: _navigateToLogin,
+                        child: Text(
+                          'Go to Login',
+                          style: GoogleFonts.inter(
+                            fontSize: 16.sp,
+                            color: const Color(0xFF8E8E93),
+                          ),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      ElevatedButton(
+                        onPressed: _retryLaunch,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF007AFF),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 2.h,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Retry',
+                          style: GoogleFonts.inter(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Retry',
-                      style: GoogleFonts.inter(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
 
