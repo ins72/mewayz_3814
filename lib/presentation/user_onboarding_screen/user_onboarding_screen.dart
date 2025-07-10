@@ -1,3 +1,2 @@
-
-// This file is being removed as it's not accessible within the app
-// The app uses UnifiedOnboardingScreen instead
+// This file has been removed as it's replaced by UnifiedOnboardingScreen
+// The application now uses lib/presentation/unified_onboarding_screen/unified_onboarding_screen.dart

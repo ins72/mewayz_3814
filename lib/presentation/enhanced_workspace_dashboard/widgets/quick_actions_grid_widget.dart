@@ -11,7 +11,7 @@ class QuickActionsGridWidget extends StatelessWidget {
       {
         'title': 'Social Media',
         'icon': Icons.share,
-        'route': AppRoutes.socialMedia,
+        'route': AppRoutes.premiumSocialMediaHubScreen,
         'color': Colors.blue,
       },
       {
@@ -23,7 +23,7 @@ class QuickActionsGridWidget extends StatelessWidget {
       {
         'title': 'Analytics',
         'icon': Icons.analytics,
-        'route': AppRoutes.analyticsDashboard,
+        'route': AppRoutes.unifiedAnalyticsScreen,
         'color': Colors.orange,
       },
       {
@@ -57,27 +57,27 @@ class QuickActionsGridWidget extends StatelessWidget {
         'color': Colors.indigo,
       },
       {
-        'title': 'CRM',
+        'title': 'Advanced CRM',
         'icon': Icons.contacts,
-        'route': AppRoutes.crmContacts,
+        'route': AppRoutes.advancedCrmManagementHubScreen,
         'color': Colors.teal,
       },
       {
         'title': 'Email Marketing',
         'icon': Icons.email,
-        'route': AppRoutes.emailMarketing,
+        'route': AppRoutes.emailMarketingCampaignScreen,
         'color': Colors.amber,
       },
       {
         'title': 'Marketplace',
         'icon': Icons.store,
-        'route': AppRoutes.marketplace,
+        'route': AppRoutes.marketplaceStoreScreen,
         'color': Colors.brown,
       },
       {
         'title': 'Course Creator',
         'icon': Icons.school,
-        'route': AppRoutes.courses,
+        'route': AppRoutes.courseCreatorScreen,
         'color': Colors.deepOrange,
       },
     ];

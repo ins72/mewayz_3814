@@ -3,66 +3,56 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class RecentActivityFeedWidget extends StatelessWidget {
-  const RecentActivityFeedWidget({Key? key}) : super(key: key);
+  final List<Map<String, dynamic>> activities;
+
+  const RecentActivityFeedWidget({
+    Key? key,
+    this.activities = const [],
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final activities = [
-      {
-        'type': 'post',
-        'title': 'New Instagram post scheduled',
-        'description': 'Product launch announcement for 2:00 PM',
-        'time': '2 minutes ago',
-        'avatar': 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face',
-        'icon': Icons.schedule,
-        'color': const Color(0xFF007AFF),
-      },
-      {
-        'type': 'lead',
-        'title': 'New lead generated',
-        'description': 'Sarah Johnson from Instagram campaign',
-        'time': '15 minutes ago',
-        'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        'icon': Icons.person_add,
-        'color': const Color(0xFF34C759),
-      },
-      {
-        'type': 'sale',
-        'title': 'Course purchase completed',
-        'description': 'Digital Marketing Masterclass - \$299',
-        'time': '1 hour ago',
-        'avatar': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face',
-        'icon': Icons.shopping_cart,
-        'color': const Color(0xFFFF9500),
-      },
-      {
-        'type': 'analytics',
-        'title': 'Weekly report ready',
-        'description': 'Social media performance summary',
-        'time': '2 hours ago',
-        'avatar': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        'icon': Icons.bar_chart,
-        'color': const Color(0xFF5856D6),
-      },
-      {
-        'type': 'team',
-        'title': 'Team member joined',
-        'description': 'Alex Rodriguez added to Marketing team',
-        'time': '3 hours ago',
-        'avatar': 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=150&h=150&fit=crop&crop=face',
-        'icon': Icons.group_add,
-        'color': const Color(0xFFFF3B30),
-      },
-      {
-        'type': 'automation',
-        'title': 'Email sequence completed',
-        'description': 'Welcome series sent to 47 new subscribers',
-        'time': '4 hours ago',
-        'avatar': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-        'icon': Icons.auto_awesome,
-        'color': const Color(0xFF32D74B),
-      },
-    ];
+    // If no activities from database, show empty state
+    if (activities.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: const Color(0xFF191919),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF2C2C2E),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.timeline,
+              color: const Color(0xFF8E8E93),
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No Recent Activity',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Activity will appear here as your team works',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFF8E8E93),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -118,6 +108,12 @@ class RecentActivityFeedWidget extends StatelessWidget {
   }
 
   Widget _buildActivityItem(Map<String, dynamic> activity) {
+    // Get icon data based on activity type
+    final iconData = _getIconDataForActivity(activity);
+    
+    // Format time from database timestamp
+    final timeString = _formatActivityTime(activity);
+    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -136,24 +132,32 @@ class RecentActivityFeedWidget extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(22),
-                  child: CachedNetworkImage(
-                    imageUrl: activity['avatar'],
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: const Color(0xFF3A3A3C),
-                      child: const Icon(
-                        Icons.person,
-                        color: Color(0xFF8E8E93),
+                  child: activity['avatar_url'] != null
+                    ? CachedNetworkImage(
+                        imageUrl: activity['avatar_url'],
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: const Color(0xFF3A3A3C),
+                          child: const Icon(
+                            Icons.person,
+                            color: Color(0xFF8E8E93),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: const Color(0xFF3A3A3C),
+                          child: const Icon(
+                            Icons.person,
+                            color: Color(0xFF8E8E93),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: const Color(0xFF3A3A3C),
+                        child: const Icon(
+                          Icons.person,
+                          color: Color(0xFF8E8E93),
+                        ),
                       ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFF3A3A3C),
-                      child: const Icon(
-                        Icons.person,
-                        color: Color(0xFF8E8E93),
-                      ),
-                    ),
-                  ),
                 ),
               ),
               Positioned(
@@ -163,7 +167,7 @@ class RecentActivityFeedWidget extends StatelessWidget {
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: activity['color'],
+                    color: iconData['color'],
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: const Color(0xFF191919),
@@ -171,7 +175,7 @@ class RecentActivityFeedWidget extends StatelessWidget {
                     ),
                   ),
                   child: Icon(
-                    activity['icon'],
+                    iconData['icon'],
                     size: 12,
                     color: Colors.white,
                   ),
@@ -185,7 +189,7 @@ class RecentActivityFeedWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  activity['title'],
+                  activity['title'] ?? 'Unknown Activity',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -194,7 +198,7 @@ class RecentActivityFeedWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  activity['description'],
+                  activity['description'] ?? '',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: const Color(0xFF8E8E93),
@@ -205,7 +209,7 @@ class RecentActivityFeedWidget extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            activity['time'],
+            timeString,
             style: GoogleFonts.inter(
               fontSize: 12,
               color: const Color(0xFF8E8E93),
@@ -214,5 +218,114 @@ class RecentActivityFeedWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Map<String, dynamic> _getIconDataForActivity(Map<String, dynamic> activity) {
+    final activityType = activity['activity_type'] ?? '';
+    
+    // Use icon_name and icon_color from database if available
+    if (activity['icon_name'] != null && activity['icon_color'] != null) {
+      return {
+        'icon': _getIconByName(activity['icon_name']),
+        'color': _parseColor(activity['icon_color']),
+      };
+    }
+    
+    // Fallback to activity type mapping
+    switch (activityType) {
+      case 'post':
+        return {'icon': Icons.schedule, 'color': const Color(0xFF007AFF)};
+      case 'lead':
+        return {'icon': Icons.person_add, 'color': const Color(0xFF34C759)};
+      case 'sale':
+        return {'icon': Icons.shopping_cart, 'color': const Color(0xFFFF9500)};
+      case 'analytics':
+        return {'icon': Icons.bar_chart, 'color': const Color(0xFF5856D6)};
+      case 'team':
+        return {'icon': Icons.group_add, 'color': const Color(0xFFFF3B30)};
+      case 'automation':
+        return {'icon': Icons.auto_awesome, 'color': const Color(0xFF32D74B)};
+      default:
+        return {'icon': Icons.circle, 'color': const Color(0xFF8E8E93)};
+    }
+  }
+
+  IconData _getIconByName(String iconName) {
+    switch (iconName) {
+      case 'schedule':
+        return Icons.schedule;
+      case 'person_add':
+        return Icons.person_add;
+      case 'shopping_cart':
+        return Icons.shopping_cart;
+      case 'bar_chart':
+        return Icons.bar_chart;
+      case 'group_add':
+        return Icons.group_add;
+      case 'auto_awesome':
+        return Icons.auto_awesome;
+      default:
+        return Icons.circle;
+    }
+  }
+
+  Color _parseColor(String colorString) {
+    try {
+      // Remove # if present
+      if (colorString.startsWith('#')) {
+        colorString = colorString.substring(1);
+      }
+      
+      // Parse hex color
+      if (colorString.length == 6) {
+        return Color(int.parse('FF$colorString', radix: 16));
+      } else if (colorString.length == 8) {
+        return Color(int.parse(colorString, radix: 16));
+      }
+    } catch (e) {
+      // Fallback to default color if parsing fails
+    }
+    
+    return const Color(0xFF8E8E93);
+  }
+
+  String _formatActivityTime(Map<String, dynamic> activity) {
+    try {
+      // Handle different time formats from database
+      if (activity['time'] != null) {
+        // If time is already formatted in minutes
+        final timeValue = activity['time'];
+        if (timeValue is num) {
+          final minutes = timeValue.toInt();
+          if (minutes < 60) {
+            return '${minutes}m ago';
+          } else {
+            final hours = (minutes / 60).floor();
+            return '${hours}h ago';
+          }
+        }
+      }
+      
+      // If created_at timestamp is available
+      if (activity['created_at'] != null) {
+        final createdAt = DateTime.tryParse(activity['created_at'].toString());
+        if (createdAt != null) {
+          final now = DateTime.now();
+          final difference = now.difference(createdAt);
+          
+          if (difference.inMinutes < 60) {
+            return '${difference.inMinutes}m ago';
+          } else if (difference.inHours < 24) {
+            return '${difference.inHours}h ago';
+          } else {
+            return '${difference.inDays}d ago';
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback if parsing fails
+    }
+    
+    return 'Just now';
   }
 }

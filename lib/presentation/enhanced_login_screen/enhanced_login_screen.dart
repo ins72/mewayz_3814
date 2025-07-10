@@ -1,5 +1,6 @@
 
 import '../../core/app_export.dart';
+import '../../services/enhanced_auth_service.dart';
 import './widgets/enhanced_biometric_auth_widget.dart';
 import './widgets/enhanced_login_form_widget.dart';
 import './widgets/enhanced_two_factor_modal_widget.dart';
@@ -21,12 +22,14 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
   bool _showTwoFactorModal = false;
   bool _isLoading = false;
   String _errorMessage = '';
+  final EnhancedAuthService _authService = EnhancedAuthService();
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _startEntryAnimation();
+    _initializeAuthService();
   }
 
   void _initializeAnimations() {
@@ -57,6 +60,19 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
     ));
   }
 
+  void _initializeAuthService() async {
+    try {
+      await _authService.initialize();
+      
+      // Check if user is already authenticated
+      if (_authService.isAuthenticated) {
+        _navigateToWorkspace();
+      }
+    } catch (e) {
+      debugPrint('Auth service initialization error: $e');
+    }
+  }
+
   void _startEntryAnimation() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
@@ -73,27 +89,17 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
     });
 
     try {
-      // Simulate login process
-      await Future.delayed(const Duration(milliseconds: 1500));
+      final response = await _authService.signInWithPassword(
+        email: email,
+        password: password,
+      );
       
-      // Simulate 2FA requirement
-      if (email.toLowerCase().contains('2fa')) {
-        setState(() {
-          _showTwoFactorModal = true;
-          _isLoading = false;
-        });
-        return;
-      }
-      
-      // Success - add haptic feedback
-      HapticFeedback.lightImpact();
-      
-      // Navigate to dashboard
-      if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.enhancedWorkspaceDashboard,
-        );
+      if (response != null) {
+        // Success - add haptic feedback
+        HapticFeedback.lightImpact();
+        _navigateToWorkspace();
+      } else {
+        throw Exception('Sign in failed');
       }
     } catch (e) {
       setState(() {
@@ -109,20 +115,13 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
   void _handleBiometricAuth() async {
     setState(() {
       _isLoading = true;
+      _errorMessage = '';
     });
 
     try {
-      await Future.delayed(const Duration(milliseconds: 1000));
-      
       // Success haptic feedback
       HapticFeedback.lightImpact();
-      
-      if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.enhancedWorkspaceDashboard,
-        );
-      }
+      _navigateToWorkspace();
     } catch (e) {
       setState(() {
         _errorMessage = 'Biometric authentication failed.';
@@ -140,11 +139,16 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
     
     // Success haptic feedback
     HapticFeedback.lightImpact();
-    
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.enhancedWorkspaceDashboard,
-    );
+    _navigateToWorkspace();
+  }
+
+  void _navigateToWorkspace() {
+    if (mounted) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.enhancedWorkspaceDashboard,
+      );
+    }
   }
 
   void _handleForgotPassword() {

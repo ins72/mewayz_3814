@@ -25,7 +25,6 @@ import '../presentation/hashtag_research_screen/hashtag_research_screen.dart';
 import '../presentation/instagram_lead_search/instagram_lead_search.dart';
 import '../presentation/link_in_bio_analytics_screen/link_in_bio_analytics_screen.dart';
 import '../presentation/link_in_bio_templates_screen/link_in_bio_templates_screen.dart';
-import '../presentation/login_screen/login_screen.dart';
 import '../presentation/marketplace_store/marketplace_store.dart';
 import '../presentation/multi_platform_posting_screen/multi_platform_posting_screen.dart';
 import '../presentation/notification_settings_screen/notification_settings_screen.dart';
@@ -36,9 +35,7 @@ import '../presentation/privacy_policy_screen/privacy_policy_screen.dart';
 import '../presentation/production_dashboard_screen/production_dashboard_screen.dart';
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
-import '../presentation/profile_settings_screen/profile_settings_screen.dart';
 import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
-import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
 import '../presentation/security_settings_screen/security_settings_screen.dart';
@@ -47,39 +44,34 @@ import '../presentation/settings_screen/settings_screen.dart';
 import '../presentation/setup_progress_screen/setup_progress_screen.dart';
 import '../presentation/social_media_analytics_screen/social_media_analytics_screen.dart';
 import '../presentation/social_media_management_hub/social_media_management_hub.dart';
-import '../presentation/social_media_management_screen/social_media_management_screen.dart';
-import '../presentation/social_media_manager/social_media_manager.dart';
 import '../presentation/social_media_scheduler/social_media_scheduler.dart';
-import '../presentation/social_media_scheduler_screen/social_media_scheduler_screen.dart';
-import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/team_member_invitation_screen/team_member_invitation_screen.dart';
 import '../presentation/terms_of_service_screen/terms_of_service_screen.dart';
 import '../presentation/two_factor_authentication_screen/two_factor_authentication_screen.dart';
 import '../presentation/unified_analytics_screen/unified_analytics_screen.dart';
+import '../presentation/unified_onboarding_screen/unified_onboarding_screen.dart';
 import '../presentation/unified_settings_screen/unified_settings_screen.dart';
 import '../presentation/users_team_management_screen/users_team_management_screen.dart';
 import '../presentation/workspace_creation_screen/workspace_creation_screen.dart';
-import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/workspace_selector_screen/workspace_selector_screen.dart';
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
 
 class AppRoutes {
-  // Main screens
-  static const String splashScreen = '/splash';
+  // Main screens - Enhanced versions only
+  static const String splashScreen = '/enhanced-splash-screen';
   static const String enhancedSplashScreen = '/enhanced-splash-screen';
-  static const String home = '/home';
-  static const String loginScreen = '/login';
+  static const String home = '/enhanced-workspace-dashboard';
+  static const String loginScreen = '/enhanced-login-screen';
   static const String enhancedLoginScreen = '/enhanced-login-screen';
-  static const String registerScreen = '/register';
-  static const String enhancedRegistrationScreen = '/enhanced-register';
+  static const String registerScreen = '/enhanced-registration-screen';
+  static const String enhancedRegistrationScreen = '/enhanced-registration-screen';
   static const String forgotPasswordScreen = '/forgot-password';
   static const String resetPasswordScreen = '/reset-password';
   static const String emailVerificationScreen = '/email-verification';
   static const String twoFactorAuthenticationScreen = '/two-factor-authentication';
   
   // Onboarding
-  static const String userOnboardingScreen = '/user-onboarding';
-  static const String onboardingScreen = '/onboarding';
+  static const String onboardingScreen = '/unified-onboarding';
   static const String unifiedOnboardingScreen = '/unified-onboarding';
   static const String goalSelectionScreen = '/goal-selection';
   static const String setupProgressScreen = '/setup-progress';
@@ -87,11 +79,11 @@ class AppRoutes {
   // Error handling
   static const String pageNotFoundScreen = '/page-not-found';
   
-  // Workspace management
+  // Workspace management - Enhanced versions only
   static const String workspaceSelectorScreen = '/workspace-selector';
   static const String workspaceCreationScreen = '/workspace-creation';
   static const String goalBasedWorkspaceCreationScreen = '/goal-based-workspace-creation';
-  static const String workspaceDashboard = '/workspace-dashboard';
+  static const String workspaceDashboard = '/enhanced-workspace-dashboard';
   static const String enhancedWorkspaceDashboard = '/enhanced-workspace-dashboard';
   static const String goalCustomizedWorkspaceDashboard = '/goal-customized-workspace-dashboard';
   static const String workspaceSettingsScreen = '/workspace-settings';
@@ -102,14 +94,12 @@ class AppRoutes {
   static const String usersTeamManagementScreen = '/users-team-management';
   static const String roleBasedAccessControlScreen = '/role-based-access-control';
   
-  // Social media
-  static const String socialMedia = '/social-media';
-  static const String socialMediaManagerScreen = '/social-media-manager';
-  static const String socialMediaManagementScreen = '/social-media-management';
-  static const String socialMediaManagementHubScreen = '/social-media-management-hub';
+  // Social media - Enhanced versions only (redirected to Premium Social Media Hub)
+  static const String socialMediaScreen = '/premium-social-media-hub';
+  static const String socialMediaManager = '/premium-social-media-hub';
   static const String premiumSocialMediaHubScreen = '/premium-social-media-hub';
-  static const String socialMediaSchedulerScreen = '/social-media-scheduler';
-  static const String socialMediaScheduler = '/social-media-scheduler-v2';
+  static const String socialMediaManagementHubScreen = '/social-media-management-hub';
+  static const String socialMediaScheduler = '/social-media-scheduler';
   static const String multiPlatformPostingScreen = '/multi-platform-posting';
   
   // Analytics
@@ -123,33 +113,32 @@ class AppRoutes {
   static const String contentCalendarScreen = '/content-calendar';
   static const String hashtagResearchScreen = '/hashtag-research';
   static const String courseCreatorScreen = '/course-creator';
-  static const String courses = '/courses';
+  static const String courses = '/course-creator';
   
   // Link in bio
-  static const String linkInBio = '/link-in-bio';
+  static const String linkInBio = '/link-in-bio-templates';
   static const String linkInBioTemplatesScreen = '/link-in-bio-templates';
   
   // CRM
-  static const String crmContacts = '/crm-contacts';
+  static const String crmContacts = '/crm-contact-management';
   static const String crmContactManagementScreen = '/crm-contact-management';
   static const String advancedCrmManagementHubScreen = '/advanced-crm-management-hub';
   static const String instagramLeadSearchScreen = '/instagram-lead-search';
   
   // E-commerce
-  static const String marketplace = '/marketplace';
+  static const String marketplace = '/marketplace-store';
   static const String marketplaceStoreScreen = '/marketplace-store';
   
   // Marketing
-  static const String emailMarketing = '/email-marketing';
+  static const String emailMarketing = '/email-marketing-campaign';
   static const String emailMarketingCampaignScreen = '/email-marketing-campaign';
   static const String qrCodeGeneratorScreen = '/qr-code-generator';
   
-  // Settings
+  // Account settings
+  static const String accountSettingsScreen = '/account-settings';
   static const String settingsScreen = '/settings';
   static const String unifiedSettingsScreen = '/unified-settings';
-  static const String accountSettingsScreen = '/account-settings';
   static const String settingsAccountManagementScreen = '/settings-account-management';
-  static const String profileSettingsScreen = '/profile-settings';
   static const String securitySettingsScreen = '/security-settings';
   static const String notificationSettingsScreen = '/notification-settings';
   
@@ -162,41 +151,41 @@ class AppRoutes {
   static const String contactUsScreen = '/contact-us';
   
   // Development and documentation
-  static const String professionalReadmeDocumentationScreen = '/professional-readme-documentation';
   static const String customDomainManagementScreen = '/custom-domain-management';
-  static const String appStoreOptimizationScreen = '/app-store-optimization';
-  
-  // Production management
-  static const String productionReleaseChecklistScreen = '/production-release-checklist';
   static const String productionDashboardScreen = '/production-dashboard';
+  static const String productionReleaseChecklistScreen = '/production-release-checklist';
+  static const String professionalReadmeDocumentationScreen = '/professional-readme-documentation';
+  static const String appStoreOptimizationScreen = '/app-store-optimization';
 
-  // Route map
+  // Route map - Enhanced versions only
   static Map<String, WidgetBuilder> get routes => {
-    // Main screens
-    splashScreen: (context) => const SplashScreen(),
+    // Main screens - Only enhanced versions
+    splashScreen: (context) => const EnhancedSplashScreen(),
     enhancedSplashScreen: (context) => const EnhancedSplashScreen(),
     home: (context) => const EnhancedWorkspaceDashboard(),
-    loginScreen: (context) => const LoginScreen(),
+    loginScreen: (context) => const EnhancedLoginScreen(),
     enhancedLoginScreen: (context) => const EnhancedLoginScreen(),
-    registerScreen: (context) => const RegisterScreen(),
+    registerScreen: (context) => const EnhancedRegistrationScreen(),
     enhancedRegistrationScreen: (context) => const EnhancedRegistrationScreen(),
     forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
     resetPasswordScreen: (context) => const ResetPasswordScreen(),
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
     
-    // Onboarding    unifiedOnboardingScreen: (context) => const UnifiedOnboardingScreen(),
+    // Onboarding
+    onboardingScreen: (context) => const UnifiedOnboardingScreen(),
+    unifiedOnboardingScreen: (context) => const UnifiedOnboardingScreen(),
     goalSelectionScreen: (context) => const GoalSelectionScreen(),
     setupProgressScreen: (context) => const SetupProgressScreen(),
     
     // Error handling
     pageNotFoundScreen: (context) => const PageNotFoundScreen(),
     
-    // Workspace management
+    // Workspace management - Only enhanced versions
     workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
     workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
     goalBasedWorkspaceCreationScreen: (context) => const GoalBasedWorkspaceCreationScreen(),
-    workspaceDashboard: (context) => const WorkspaceDashboard(),
+    workspaceDashboard: (context) => const EnhancedWorkspaceDashboard(),
     enhancedWorkspaceDashboard: (context) => const EnhancedWorkspaceDashboard(),
     goalCustomizedWorkspaceDashboard: (context) => const GoalCustomizedWorkspaceDashboard(),
     workspaceSettingsScreen: (context) => const WorkspaceSettingsScreen(),
@@ -207,13 +196,11 @@ class AppRoutes {
     usersTeamManagementScreen: (context) => const UsersTeamManagementScreen(),
     roleBasedAccessControlScreen: (context) => const RoleBasedAccessControlScreen(),
     
-    // Social media
-    socialMedia: (context) => const SocialMediaManager(),
-    socialMediaManagerScreen: (context) => const SocialMediaManager(),
-    socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
-    socialMediaManagementHubScreen: (context) => const SocialMediaManagementHub(),
+    // Social media - All social media manager routes now point to Premium Social Media Hub
+    socialMediaScreen: (context) => const PremiumSocialMediaHub(),
+    socialMediaManager: (context) => const PremiumSocialMediaHub(),
     premiumSocialMediaHubScreen: (context) => const PremiumSocialMediaHub(),
-    socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
+    socialMediaManagementHubScreen: (context) => const SocialMediaManagementHub(),
     socialMediaScheduler: (context) => const SocialMediaScheduler(),
     multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
     
@@ -249,12 +236,11 @@ class AppRoutes {
     emailMarketingCampaignScreen: (context) => const EmailMarketingCampaign(),
     qrCodeGeneratorScreen: (context) => const QrCodeGeneratorScreen(),
     
-    // Settings
+    // Account settings
+    accountSettingsScreen: (context) => const AccountSettingsScreen(),
     settingsScreen: (context) => const SettingsScreen(),
     unifiedSettingsScreen: (context) => const UnifiedSettingsScreen(),
-    accountSettingsScreen: (context) => const AccountSettingsScreen(),
     settingsAccountManagementScreen: (context) => const SettingsAccountManagement(),
-    profileSettingsScreen: (context) => const ProfileSettingsScreen(),
     securitySettingsScreen: (context) => const SecuritySettingsScreen(),
     notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
     
@@ -267,30 +253,74 @@ class AppRoutes {
     contactUsScreen: (context) => const ContactUsScreen(),
     
     // Development and documentation
-    professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
     customDomainManagementScreen: (context) => const CustomDomainManagementScreen(),
-    appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
-    
-    // Production management
-    productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
     productionDashboardScreen: (context) => const ProductionDashboardScreen(),
+    productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
+    professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
+    appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
   };
 
-  // Handle unknown routes
+  // Handle unknown routes - Fixed implementation
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    // Check if the route exists in our defined routes
-    final routeBuilder = routes[settings.name];
-    if (routeBuilder != null) {
+    try {
+      // Extract clean route name by removing query parameters and fragments
+      final String routeName = settings.name?.split('?').first ?? '';
+      
+      // Return 404 for empty route names
+      if (routeName.isEmpty) {
+        return MaterialPageRoute(
+          builder: (context) => const PageNotFoundScreen(),
+          settings: RouteSettings(name: pageNotFoundScreen),
+        );
+      }
+      
+      // Check if the route exists in our defined routes (exact match first)
+      final routeBuilder = routes[routeName];
+      if (routeBuilder != null) {
+        return MaterialPageRoute(
+          builder: routeBuilder,
+          settings: settings,
+        );
+      }
+      
+      // Handle case-insensitive routing for common routes
+      final String lowerRouteName = routeName.toLowerCase();
+      final matchingRoute = routes.keys.firstWhere(
+        (route) => route.toLowerCase() == lowerRouteName,
+        orElse: () => '',
+      );
+      
+      if (matchingRoute.isNotEmpty) {
+        return MaterialPageRoute(
+          builder: routes[matchingRoute]!,
+          settings: RouteSettings(
+            name: matchingRoute, // Use the correct casing
+            arguments: settings.arguments,
+          ),
+        );
+      }
+      
+      // Log unknown route attempts for debugging
+      debugPrint('Unknown route attempted: $routeName');
+      
+      // If route doesn't exist, show page not found
       return MaterialPageRoute(
-        builder: routeBuilder,
-        settings: settings,
+        builder: (context) => const PageNotFoundScreen(),
+        settings: RouteSettings(
+          name: pageNotFoundScreen,
+          arguments: {
+            'attempted_route': routeName,
+            'available_routes': routes.keys.toList(),
+          },
+        ),
+      );
+    } catch (e) {
+      // Handle any routing errors gracefully
+      debugPrint('Route generation error: $e');
+      return MaterialPageRoute(
+        builder: (context) => const PageNotFoundScreen(),
+        settings: RouteSettings(name: pageNotFoundScreen),
       );
     }
-    
-    // If route doesn't exist, show page not found
-    return MaterialPageRoute(
-      builder: (context) => const PageNotFoundScreen(),
-      settings: settings,
-    );
   }
 }

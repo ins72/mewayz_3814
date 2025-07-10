@@ -268,7 +268,7 @@ class _GoalBasedSubscriptionPricingScreenState extends State<GoalBasedSubscripti
       Future.delayed(Duration(seconds: 3), () {
         Navigator.pushNamedAndRemoveUntil(
           context,
-          AppRoutes.goalCustomizedWorkspaceDashboard,
+          AppRoutes.workspaceDashboard,
           (route) => false,
           arguments: {
             'workspaceId': workspaceData?['id'],

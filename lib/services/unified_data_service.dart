@@ -68,7 +68,7 @@ class UnifiedDataService {
         return _getEmptyAnalyticsData();
       }
 
-      final response = await _client.rpc('get_analytics_dashboard_data', 
+      final response = await _client.rpc('get_workspace_dashboard_analytics', 
         params: {'workspace_uuid': workspaceId});
       
       return response ?? _getEmptyAnalyticsData();
@@ -171,24 +171,12 @@ class UnifiedDataService {
       
       if (workspaceId == null) return [];
 
-      var query = _client
-          .from('social_media_posts')
-          .select('*, social_media_accounts(platform, account_name)')
-          .eq('workspace_id', workspaceId);
-
-      if (accountId != null) {
-        query = query.eq('account_id', accountId);
-      }
-
-      if (status != null) {
-        query = query.eq('status', status);
-      }
-
-      final response = await query
-          .order('created_at', ascending: false)
-          .limit(limit ?? 50);
-
-      return List<Map<String, dynamic>>.from(response);
+      final response = await _client.rpc('get_social_media_hub_data', 
+        params: {'workspace_uuid': workspaceId});
+      
+      final data = response ?? {};
+      final posts = data['posts'] ?? [];
+      return List<Map<String, dynamic>>.from(posts);
     } catch (e) {
       ErrorHandler.handleError('Failed to get social media posts: $e');
       return [];
@@ -206,7 +194,7 @@ class UnifiedDataService {
       final data = {
         ...postData,
         'workspace_id': workspaceId,
-        'created_by': userId,
+        'author_id': userId,
         'created_at': DateTime.now().toIso8601String(),
       };
 
@@ -259,6 +247,427 @@ class UnifiedDataService {
     } catch (e) {
       ErrorHandler.handleError('Failed to delete social media post: $e');
       return false;
+    }
+  }
+
+  /// CRM DATA OPERATIONS  
+  Future<List<Map<String, dynamic>>> getCrmContacts({
+    String? stage,
+    String? priority,
+    int? limit,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      final response = await _client.rpc('get_crm_data', 
+        params: {'workspace_uuid': workspaceId});
+      
+      final data = response ?? {};
+      final contacts = data['contacts'] ?? [];
+      return List<Map<String, dynamic>>.from(contacts);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get CRM contacts: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createCrmContact(Map<String, dynamic> contactData) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      final userId = _client.auth.currentUser?.id;
+      
+      if (workspaceId == null || userId == null) return false;
+
+      final data = {
+        ...contactData,
+        'workspace_id': workspaceId,
+        'assigned_to': userId,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      await _client.from('crm_contacts').insert(data);
+
+      // Track analytics event
+      await trackAnalyticsEvent('crm_contact_created', {
+        'lead_score': contactData['lead_score'] ?? 0,
+        'stage': contactData['stage'] ?? 'new',
+      });
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create CRM contact: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateCrmContact(String contactId, Map<String, dynamic> updateData) async {
+    try {
+      await _ensureInitialized();
+      
+      final data = {
+        ...updateData,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      await _client
+          .from('crm_contacts')
+          .update(data)
+          .eq('id', contactId);
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to update CRM contact: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteCrmContact(String contactId) async {
+    try {
+      await _ensureInitialized();
+
+      await _client
+          .from('crm_contacts')
+          .delete()
+          .eq('id', contactId);
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to delete CRM contact: $e');
+      return false;
+    }
+  }
+
+  /// CONTENT TEMPLATES DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getContentTemplates({
+    String? category,
+    String? templateType,
+    int? limit,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      final response = await _client.rpc('get_templates_data', 
+        params: {'workspace_uuid': workspaceId});
+      
+      final data = response ?? {};
+      final templates = data['content_templates'] ?? [];
+      return List<Map<String, dynamic>>.from(templates);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get content templates: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createContentTemplate(Map<String, dynamic> templateData) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      final userId = _client.auth.currentUser?.id;
+      
+      if (workspaceId == null || userId == null) return false;
+
+      final data = {
+        ...templateData,
+        'workspace_id': workspaceId,
+        'creator_id': userId,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      await _client.from('content_templates').insert(data);
+
+      // Track analytics event
+      await trackAnalyticsEvent('content_template_created', {
+        'template_type': templateData['template_type'],
+        'category': templateData['category'],
+      });
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create content template: $e');
+      return false;
+    }
+  }
+
+  /// LINK IN BIO TEMPLATES DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getLinkInBioTemplates({
+    String? category,
+    String? styleTheme,
+    int? limit,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      final response = await _client.rpc('get_templates_data', 
+        params: {'workspace_uuid': workspaceId});
+      
+      final data = response ?? {};
+      final templates = data['link_in_bio_templates'] ?? [];
+      return List<Map<String, dynamic>>.from(templates);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get link in bio templates: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createLinkInBioTemplate(Map<String, dynamic> templateData) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      final userId = _client.auth.currentUser?.id;
+      
+      if (workspaceId == null || userId == null) return false;
+
+      final data = {
+        ...templateData,
+        'workspace_id': workspaceId,
+        'creator_id': userId,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      await _client.from('link_in_bio_templates').insert(data);
+
+      // Track analytics event
+      await trackAnalyticsEvent('link_in_bio_template_created', {
+        'category': templateData['category'],
+        'style_theme': templateData['style_theme'],
+      });
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create link in bio template: $e');
+      return false;
+    }
+  }
+
+  /// TRENDING HASHTAGS DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getTrendingHashtags({
+    String? platform,
+    String? category,
+    int? limit,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      var query = _client
+          .from('trending_hashtags')
+          .select('*')
+          .eq('workspace_id', workspaceId);
+
+      if (platform != null) {
+        query = query.eq('platform', platform);
+      }
+
+      if (category != null) {
+        query = query.eq('category', category);
+      }
+
+      final response = await query
+          .order('trend_score', ascending: false)
+          .limit(limit ?? 20);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get trending hashtags: $e');
+      return [];
+    }
+  }
+
+  /// COURSE DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getCourses({
+    String? status,
+    int? limit,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      final response = await _client.rpc('get_course_analytics_data', 
+        params: {'workspace_uuid': workspaceId});
+      
+      final data = response ?? {};
+      final courses = data['courses'] ?? [];
+      return List<Map<String, dynamic>>.from(courses);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get courses: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createCourse(Map<String, dynamic> courseData) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      final userId = _client.auth.currentUser?.id;
+      
+      if (workspaceId == null || userId == null) return false;
+
+      final data = {
+        ...courseData,
+        'workspace_id': workspaceId,
+        'instructor_id': userId,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      await _client.from('courses').insert(data);
+
+      // Track analytics event
+      await trackAnalyticsEvent('course_created', {
+        'price': courseData['price'] ?? 0,
+        'category': courseData['category'],
+      });
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create course: $e');
+      return false;
+    }
+  }
+
+  /// RECENT ACTIVITIES DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getRecentActivities({
+    String? activityType,
+    int? limit,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      var query = _client
+          .from('recent_activities')
+          .select('*')
+          .eq('workspace_id', workspaceId);
+
+      if (activityType != null) {
+        query = query.eq('activity_type', activityType);
+      }
+
+      final response = await query
+          .order('created_at', ascending: false)
+          .limit(limit ?? 10);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get recent activities: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createRecentActivity(Map<String, dynamic> activityData) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      final userId = _client.auth.currentUser?.id;
+      
+      if (workspaceId == null || userId == null) return false;
+
+      final data = {
+        ...activityData,
+        'workspace_id': workspaceId,
+        'user_id': userId,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      await _client.from('recent_activities').insert(data);
+
+      return true;
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create recent activity: $e');
+      return false;
+    }
+  }
+
+  /// WORKSPACE METRICS DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getWorkspaceMetrics({
+    String? metricName,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      var query = _client
+          .from('workspace_metrics')
+          .select('*')
+          .eq('workspace_id', workspaceId);
+
+      if (metricName != null) {
+        query = query.eq('metric_name', metricName);
+      }
+
+      if (startDate != null) {
+        query = query.gte('metric_date', startDate.toIso8601String().substring(0, 10));
+      }
+
+      if (endDate != null) {
+        query = query.lte('metric_date', endDate.toIso8601String().substring(0, 10));
+      }
+
+      final response = await query
+          .order('metric_date', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get workspace metrics: $e');
+      return [];
+    }
+  }
+
+  /// REVENUE ANALYTICS DATA OPERATIONS
+  Future<List<Map<String, dynamic>>> getRevenueAnalytics({
+    String? sourceType,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      await _ensureInitialized();
+      final workspaceId = await _getCurrentWorkspaceId();
+      
+      if (workspaceId == null) return [];
+
+      var query = _client
+          .from('revenue_analytics')
+          .select('*')
+          .eq('workspace_id', workspaceId);
+
+      if (sourceType != null) {
+        query = query.eq('source_type', sourceType);
+      }
+
+      if (startDate != null) {
+        query = query.gte('transaction_date', startDate.toIso8601String().substring(0, 10));
+      }
+
+      if (endDate != null) {
+        query = query.lte('transaction_date', endDate.toIso8601String().substring(0, 10));
+      }
+
+      final response = await query
+          .order('transaction_date', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get revenue analytics: $e');
+      return [];
     }
   }
 

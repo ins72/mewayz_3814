@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 
 import '../../core/app_export.dart';
@@ -46,122 +45,45 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
   Timer? _realTimeTimer;
   Timer? _searchDebounceTimer;
 
-  final List<Map<String, dynamic>> _mockContacts = [
-{ 'id': '1',
-'name': 'Sarah Johnson',
-'company': 'TechCorp Inc.',
-'email': 'sarah.johnson@techcorp.com',
-'phone': '+1 (555) 123-4567',
-'profileImage': 'https://images.unsplash.com/photo-1494790108755-2616b84cc2fa?w=400&h=400&fit=crop&crop=face',
-'leadScore': 94,
-'stage': 'Negotiation',
-'source': 'LinkedIn',
-'value': 125000,
-'priority': 'high',
-'lastActivity': DateTime.now().subtract(const Duration(hours: 2)),
-'tags': ['Enterprise', 'Hot Lead', 'Decision Maker'],
-'notes': 'CEO interested in enterprise solution. Budget approved. Expects proposal by Friday.',
-'activities': [ { 'type': 'meeting',
-'title': 'Contract negotiation call',
-'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
-'outcome': 'Positive - ready to proceed' },
-{ 'type': 'email',
-'title': 'Sent proposal document',
-'timestamp': DateTime.now().subtract(const Duration(hours: 6)),
-'outcome': 'Opened and reviewed' } ],
-'interactions': 47,
-'conversionProbability': 0.92,
-'nextAction': 'Follow up on contract terms',
-'assignedTo': 'John Smith',
-'customFields': { 'industry': 'Technology',
-'employees': '500+',
-'revenue': '50M+' } },
-{ 'id': '2',
-'name': 'Michael Chen',
-'company': 'Innovation Labs',
-'email': 'm.chen@innovationlabs.com',
-'phone': '+1 (555) 987-6543',
-'profileImage': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-'leadScore': 78,
-'stage': 'Qualified',
-'source': 'Website',
-'value': 85000,
-'priority': 'medium',
-'lastActivity': DateTime.now().subtract(const Duration(hours: 8)),
-'tags': ['SMB', 'Warm Lead', 'Technical'],
-'notes': 'CTO evaluating solution. Needs technical deep dive. Scheduled demo for next week.',
-'activities': [ { 'type': 'demo',
-'title': 'Product demo scheduled',
-'timestamp': DateTime.now().subtract(const Duration(hours: 8)),
-'outcome': 'Confirmed attendance' } ],
-'interactions': 23,
-'conversionProbability': 0.65,
-'nextAction': 'Prepare technical demo',
-'assignedTo': 'Emma Davis',
-'customFields': { 'industry': 'Healthcare',
-'employees': '50-200',
-'revenue': '10M+' } },
-{ 'id': '3',
-'name': 'Emily Rodriguez',
-'company': 'Global Solutions',
-'email': 'emily.r@globalsolutions.com',
-'phone': '+1 (555) 456-7890',
-'profileImage': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face',
-'leadScore': 91,
-'stage': 'Proposal',
-'source': 'Referral',
-'value': 175000,
-'priority': 'high',
-'lastActivity': DateTime.now().subtract(const Duration(minutes: 30)),
-'tags': ['Enterprise', 'Referral', 'Hot Lead'],
-'notes': 'Referred by existing client. Very interested. Fast decision maker.',
-'activities': [ { 'type': 'call',
-'title': 'Discovery call completed',
-'timestamp': DateTime.now().subtract(const Duration(minutes: 30)),
-'outcome': 'Excellent fit - moving to proposal' } ],
-'interactions': 18,
-'conversionProbability': 0.88,
-'nextAction': 'Send customized proposal',
-'assignedTo': 'Michael Brown',
-'customFields': { 'industry': 'Finance',
-'employees': '1000+',
-'revenue': '100M+' } }
-];
+  // Remove hard-coded data - now loaded from Supabase
+  List<Map<String, dynamic>> _contacts = [];
+  bool _isLoading = false;
+  final DataService _dataService = DataService();
 
   final List<Map<String, dynamic>> _pipelineStages = [
 { 'id': 'new',
 'name': 'New',
 'color': const Color(0xFF6B7280),
-'count': 12,
-'value': 450000,
+'count': 0,
+'value': 0,
 'conversionRate': 0.15,
 'avgTime': 7 },
 { 'id': 'qualified',
 'name': 'Qualified',
 'color': const Color(0xFF3B82F6),
-'count': 8,
-'value': 780000,
+'count': 0,
+'value': 0,
 'conversionRate': 0.35,
 'avgTime': 14 },
 { 'id': 'proposal',
 'name': 'Proposal',
 'color': const Color(0xFFF59E0B),
-'count': 5,
-'value': 350000,
+'count': 0,
+'value': 0,
 'conversionRate': 0.65,
 'avgTime': 21 },
 { 'id': 'negotiation',
 'name': 'Negotiation',
 'color': const Color(0xFF10B981),
-'count': 3,
-'value': 280000,
+'count': 0,
+'value': 0,
 'conversionRate': 0.85,
 'avgTime': 10 },
 { 'id': 'closed',
 'name': 'Closed Won',
 'color': const Color(0xFF059669),
-'count': 15,
-'value': 1250000,
+'count': 0,
+'value': 0,
 'conversionRate': 1.0,
 'avgTime': 0 }
 ];
@@ -191,9 +113,63 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
       curve: Curves.easeOutCubic,
     ));
     
+    _initializeData();
     _initializeRealTimeUpdates();
-    _contactsStreamController.add(_mockContacts);
     _animationController.forward();
+  }
+
+  // Initialize data from Supabase
+  Future<void> _initializeData() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      await _dataService.initialize();
+      await _loadContactsFromSupabase();
+      _updatePipelineStages();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to initialize CRM data: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Load contacts from Supabase
+  Future<void> _loadContactsFromSupabase() async {
+    try {
+      final contacts = await _dataService.getContacts();
+      setState(() {
+        _contacts = contacts;
+      });
+      _contactsStreamController.add(_contacts);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to load contacts: $e');
+    }
+  }
+
+  // Update pipeline stages with real counts from Supabase data
+  void _updatePipelineStages() {
+    final stageStats = <String, Map<String, dynamic>>{};
+    
+    for (final contact in _contacts) {
+      final stage = contact['stage'] ?? 'new';
+      if (!stageStats.containsKey(stage)) {
+        stageStats[stage] = {'count': 0, 'value': 0.0};
+      }
+      
+      stageStats[stage]!['count'] = (stageStats[stage]!['count'] as int) + 1;
+      stageStats[stage]!['value'] = (stageStats[stage]!['value'] as double) + 
+                                   (contact['deal_value'] as num? ?? 0).toDouble();
+    }
+    
+    // Update pipeline stages with real data
+    for (final stage in _pipelineStages) {
+      final stageId = stage['id'] as String;
+      final stats = stageStats[stageId];
+      if (stats != null) {
+        stage['count'] = stats['count'];
+        stage['value'] = stats['value'];
+      }
+    }
   }
 
   @override
@@ -218,28 +194,8 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
   }
 
   void _updateRealTimeData() {
-    // Simulate real-time updates
-    final updatedContacts = List<Map<String, dynamic>>.from(_mockContacts);
-    for (var contact in updatedContacts) {
-      // Simulate lead score changes
-      final scoreChange = (math.Random().nextDouble() - 0.5) * 5;
-      contact['leadScore'] = math.max(0, math.min(100, (contact['leadScore'] as num).toInt() + scoreChange.toInt()));
-      
-      // Simulate activity updates
-      if (math.Random().nextDouble() < 0.3) {
-        contact['lastActivity'] = DateTime.now().subtract(
-          Duration(minutes: math.Random().nextInt(60))
-        );
-      }
-    }
-    
-    if (mounted) {
-      setState(() {
-        _mockContacts.clear();
-        _mockContacts.addAll(updatedContacts);
-      });
-      _contactsStreamController.add(updatedContacts);
-    }
+    // Refresh data from Supabase
+    _loadContactsFromSupabase();
   }
 
   void _onSearchChanged(String query) {
@@ -251,15 +207,15 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
 
   void _performSearch(String query) {
     if (query.isEmpty) {
-      _contactsStreamController.add(_mockContacts);
+      _contactsStreamController.add(_contacts);
       return;
     }
     
-    final filtered = _mockContacts.where((contact) {
+    final filtered = _contacts.where((contact) {
       return contact['name'].toString().toLowerCase().contains(query.toLowerCase()) ||
              contact['company'].toString().toLowerCase().contains(query.toLowerCase()) ||
              contact['email'].toString().toLowerCase().contains(query.toLowerCase()) ||
-             contact['tags'].any((tag) => tag.toString().toLowerCase().contains(query.toLowerCase()));
+             (contact['tags'] as List?)?.any((tag) => tag.toString().toLowerCase().contains(query.toLowerCase())) == true;
     }).toList();
     
     _contactsStreamController.add(filtered);
@@ -296,14 +252,14 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
       backgroundColor: Colors.transparent,
       builder: (context) => AdvancedContactDetailWidget(
         contact: contact,
-        onUpdate: (updatedContact) {
-          setState(() {
-            final index = _mockContacts.indexWhere((c) => c['id'] == updatedContact['id']);
-            if (index != -1) {
-              _mockContacts[index] = updatedContact;
-            }
-          });
-          _contactsStreamController.add(_mockContacts);
+        onUpdate: (updatedContact) async {
+          try {
+            await _dataService.updateContact(updatedContact['id'], updatedContact);
+            await _loadContactsFromSupabase();
+            _updatePipelineStages();
+          } catch (e) {
+            ErrorHandler.handleError('Failed to update contact: $e');
+          }
         },
       ),
     );
@@ -353,7 +309,7 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CollaborationWidget(
-        contacts: _mockContacts,
+        contacts: _contacts,
         onUpdate: (updates) {
           // Handle collaboration updates
           if (mounted) {
@@ -365,6 +321,14 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
   }
 
   Widget _buildTabContent() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
+        ),
+      );
+    }
+
     return TabBarView(
       controller: _tabController,
       children: [
@@ -383,13 +347,15 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
             opacity: _fadeAnimation,
             child: AdvancedPipelineViewWidget(
               stages: _pipelineStages,
-              contacts: _mockContacts,
-              onContactMove: (contactId, newStage) {
-                setState(() {
-                  final contact = _mockContacts.firstWhere((c) => c['id'] == contactId);
-                  contact['stage'] = newStage;
-                });
-                _contactsStreamController.add(_mockContacts);
+              contacts: _contacts,
+              onContactMove: (contactId, newStage) async {
+                try {
+                  await _dataService.updateContact(contactId, {'stage': newStage});
+                  await _loadContactsFromSupabase();
+                  _updatePipelineStages();
+                } catch (e) {
+                  ErrorHandler.handleError('Failed to move contact: $e');
+                }
               },
               onStageManagement: _showPipelineManagement,
             ),
@@ -401,7 +367,7 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: CrmAnalyticsWidget(
-              contacts: _mockContacts,
+              contacts: _contacts,
               stages: _pipelineStages,
             ),
           ),
@@ -456,6 +422,36 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
               }
               
               final contacts = snapshot.data!;
+              
+              if (contacts.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.people_outline,
+                        size: 64,
+                        color: AppTheme.secondaryText,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'No contacts found',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.secondaryText,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Add your first contact to get started',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.secondaryText,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              
               return AdvancedContactListWidget(
                 contacts: contacts,
                 selectedContacts: _selectedContacts,
@@ -557,7 +553,7 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: AppTheme.primaryText),
             color: AppTheme.surface,
-            onSelected: (value) {
+            onSelected: (value) async {
               switch (value) {
                 case 'export':
                   // Handle export
@@ -640,8 +636,10 @@ class _AdvancedCrmManagementHubState extends State<AdvancedCrmManagementHub>
           ? FloatingActionButton.extended(
               backgroundColor: AppTheme.accent,
               foregroundColor: AppTheme.primaryAction,
-              onPressed: () {
-                // Handle add contact
+              onPressed: () async {
+                // Handle add contact - could show a form modal
+                // For now, just refresh data
+                await _loadContactsFromSupabase();
               },
               icon: const Icon(Icons.person_add),
               label: const Text('Add Contact'),

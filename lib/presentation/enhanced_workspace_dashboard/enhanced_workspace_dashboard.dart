@@ -1,5 +1,5 @@
-
 import '../../core/app_export.dart';
+import '../../services/dynamic_data_service.dart';
 import './widgets/enhanced_floating_action_button_widget.dart';
 import './widgets/hero_metrics_section_widget.dart';
 import './widgets/quick_actions_grid_widget.dart';
@@ -16,15 +16,19 @@ class EnhancedWorkspaceDashboard extends StatefulWidget {
 class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard> with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _refreshController;
+  
+  final DynamicDataService _dataService = DynamicDataService();
+  
   bool _isRefreshing = false;
-  String _selectedWorkspace = 'Marketing Team';
+  bool _isLoading = true;
+  String _selectedWorkspace = '';
+  String _selectedWorkspaceId = '';
   int _selectedTabIndex = 0;
 
-  final List<Map<String, dynamic>> _workspaces = [
-{'name': 'Marketing Team', 'members': 12, 'status': 'Active'},
-{'name': 'Sales Department', 'members': 8, 'status': 'Active'},
-{'name': 'Product Development', 'members': 15, 'status': 'Active'},
-];
+  List<Map<String, dynamic>> _workspaces = [];
+  Map<String, dynamic> _dashboardData = {};
+  Map<String, dynamic> _heroMetrics = {};
+  List<Map<String, dynamic>> _recentActivities = [];
 
   @override
   void initState() {
@@ -39,6 +43,7 @@ class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard>
         _selectedTabIndex = _tabController.index;
       });
     });
+    _loadData();
   }
 
   @override
@@ -48,28 +53,100 @@ class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard>
     super.dispose();
   }
 
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      // Load workspaces from Supabase
+      final workspaces = await _dataService.fetchWorkspaces();
+      
+      if (workspaces.isNotEmpty) {
+        final firstWorkspace = workspaces.first;
+        _selectedWorkspace = firstWorkspace['name'] ?? 'Unknown Workspace';
+        _selectedWorkspaceId = firstWorkspace['id'] ?? '';
+        
+        // Load dashboard data for selected workspace
+        await _loadWorkspaceData(_selectedWorkspaceId);
+      }
+      
+      setState(() {
+        _workspaces = workspaces;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ErrorHandler.handleError('Failed to load workspace data: $e');
+    }
+  }
+
+  Future<void> _loadWorkspaceData(String workspaceId) async {
+    if (workspaceId.isEmpty) return;
+    
+    try {
+      final dashboardData = await _dataService.fetchWorkspaceDashboardAnalytics(workspaceId);
+      
+      setState(() {
+        _dashboardData = dashboardData;
+        _heroMetrics = dashboardData['hero_metrics'] ?? {};
+        _recentActivities = List<Map<String, dynamic>>.from(
+          dashboardData['recent_activities'] ?? []
+        );
+      });
+    } catch (e) {
+      ErrorHandler.handleError('Failed to load workspace analytics: $e');
+    }
+  }
+
   Future<void> _handleRefresh() async {
     if (_isRefreshing) return;
     
-    setState(() {
-      _isRefreshing = true;
-    });
+    setState(() => _isRefreshing = true);
     
     HapticFeedback.mediumImpact();
     _refreshController.forward();
     
-    await Future.delayed(const Duration(seconds: 2));
+    // Reload workspace data
+    if (_selectedWorkspaceId.isNotEmpty) {
+      await _loadWorkspaceData(_selectedWorkspaceId);
+    }
+    
+    await Future.delayed(const Duration(seconds: 1));
     
     _refreshController.reverse();
-    setState(() {
-      _isRefreshing = false;
-    });
+    setState(() => _isRefreshing = false);
     
     HapticFeedback.lightImpact();
   }
 
+  Future<void> _onWorkspaceChanged(String workspaceName) async {
+    final selectedWorkspace = _workspaces.firstWhere(
+      (w) => w['name'] == workspaceName,
+      orElse: () => {},
+    );
+    
+    if (selectedWorkspace.isNotEmpty) {
+      setState(() {
+        _selectedWorkspace = workspaceName;
+        _selectedWorkspaceId = selectedWorkspace['id'] ?? '';
+      });
+      
+      await _loadWorkspaceData(_selectedWorkspaceId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF101010),
+        body: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF101010),
       body: Container(
@@ -86,15 +163,15 @@ class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard>
         child: SafeArea(
           child: Column(
             children: [
-              // Workspace Status Bar
+              // Workspace Status Bar with dynamic data
               WorkspaceStatusBarWidget(
                 selectedWorkspace: _selectedWorkspace,
-                workspaces: _workspaces,
-                onWorkspaceChanged: (workspace) {
-                  setState(() {
-                    _selectedWorkspace = workspace;
-                  });
-                },
+                workspaces: _workspaces.map((w) => {
+                  'name': w['name'] ?? 'Unknown',
+                  'members': 0, // This could be calculated from workspace_members
+                  'status': 'Active',
+                }).toList(),
+                onWorkspaceChanged: _onWorkspaceChanged,
               ),
               
               // Tab Bar Navigation
@@ -139,10 +216,11 @@ class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Hero Metrics Section
+                        // Hero Metrics Section with dynamic data
                         HeroMetricsSectionWidget(
                           isRefreshing: _isRefreshing,
                           refreshController: _refreshController,
+                          heroMetrics: _heroMetrics,
                         ),
                         
                         const SizedBox(height: 24),
@@ -161,7 +239,7 @@ class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard>
                         
                         const SizedBox(height: 24),
                         
-                        // Recent Activity Feed
+                        // Recent Activity Feed with dynamic data
                         Text(
                           'Recent Activity',
                           style: GoogleFonts.inter(
@@ -171,7 +249,9 @@ class _EnhancedWorkspaceDashboardState extends State<EnhancedWorkspaceDashboard>
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const RecentActivityFeedWidget(),
+                        RecentActivityFeedWidget(
+                          activities: _recentActivities,
+                        ),
                         
                         const SizedBox(height: 100), // Space for FAB
                       ],

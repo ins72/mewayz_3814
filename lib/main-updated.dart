@@ -7,7 +7,7 @@ import 'dart:async';
 import 'custom_inspector.dart';
 import 'dart:html' as html;
 import 'dart:convert';
-import './core/app_initialization.dart';
+import './core/enhanced_app_initialization.dart';
 import 'core/app_export.dart';
 
 var backendURL = "https://mewayz2556back.builtwithrocket.new/log-error";
@@ -17,8 +17,11 @@ void main() async {
     _sendOverflowError(details);
   };
   WidgetsFlutterBinding.ensureInitialized();
-  final appInitialization = AppInitialization();
-  await appInitialization.initialize();
+  
+  // Use enhanced initialization for production-ready performance
+  final enhancedAppInitialization = EnhancedAppInitialization();
+  await enhancedAppInitialization.initialize();
+  
   runApp(const MyApp());
 }
 
@@ -36,7 +39,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
-          initialRoute: AppRoutes.splashScreen,
+          initialRoute: AppRoutes.enhancedSplashScreen,
           routes: AppRoutes.routes,
           onGenerateRoute: AppRoutes.onGenerateRoute,
           builder: (context, child) {

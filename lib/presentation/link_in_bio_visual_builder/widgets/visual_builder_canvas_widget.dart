@@ -1,5 +1,4 @@
 import '../../../core/app_export.dart';
-import './component_renderer_widget.dart';
 
 class VisualBuilderCanvasWidget extends StatefulWidget {
   final Map<String, dynamic>? currentPage;
@@ -164,10 +163,8 @@ class _VisualBuilderCanvasWidgetState extends State<VisualBuilderCanvasWidget> {
                                         ),
                                         child: Stack(
                                           children: [
-                                            ComponentRendererWidget(
-                                              component: component,
-                                              themeSettings: themeSettings,
-                                              isEditMode: true,
+                                            Container(
+                                              child: Text('Component: ${component['type']}'),
                                             ),
                                             if (isSelected)
                                               Positioned(

@@ -1,10 +1,13 @@
-import './core/app_initialization.dart';
+import './core/enhanced_app_initialization.dart';
 import 'core/app_export.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final appInitialization = AppInitialization();
-  await appInitialization.initialize();
+  
+  // Use enhanced initialization for production-ready performance
+  final enhancedAppInitialization = EnhancedAppInitialization();
+  await enhancedAppInitialization.initialize();
+  
   runApp(const MyApp());
 }
 
@@ -21,7 +24,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
-          initialRoute: AppRoutes.splashScreen,
+          initialRoute: AppRoutes.enhancedSplashScreen,
           routes: AppRoutes.routes,
           onGenerateRoute: AppRoutes.onGenerateRoute,
           builder: (context, child) {

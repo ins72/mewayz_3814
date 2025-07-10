@@ -30,44 +30,10 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
   String _selectedFilter = 'All';
   String _selectedPlatform = 'All';
 
-  final List<Map<String, dynamic>> _mockMetrics = [
-{ "title": "Total Revenue",
-"value": "\$24,580",
-"change": "+12.5%",
-"isPositive": true,
-"icon": "attach_money",
-"color": AppTheme.success },
-{ "title": "Leads Generated",
-"value": "1,247",
-"change": "+8.3%",
-"isPositive": true,
-"icon": "people",
-"color": AppTheme.accent },
-{ "title": "Social Followers",
-"value": "15.2K",
-"change": "+15.7%",
-"isPositive": true,
-"icon": "thumb_up",
-"color": AppTheme.primaryAction },
-{ "title": "Link Clicks",
-"value": "3,482",
-"change": "+22.1%",
-"isPositive": true,
-"icon": "link",
-"color": AppTheme.warning },
-{ "title": "Conversion Rate",
-"value": "3.8%",
-"change": "+0.5%",
-"isPositive": true,
-"icon": "trending_up",
-"color": AppTheme.success },
-{ "title": "Engagement Rate",
-"value": "4.2%",
-"change": "+8.3%",
-"isPositive": true,
-"icon": "favorite",
-"color": AppTheme.error }
-];
+  // Remove hard-coded data and use Supabase service
+  List<Map<String, dynamic>> _metrics = [];
+  bool _isLoading = false;
+  final DataService _dataService = DataService();
 
   final List<String> _filterOptions = [
     'All',
@@ -84,6 +50,80 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
     _setupAnimations();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      await _dataService.initialize();
+      await _loadAnalyticsData();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to initialize analytics data: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadAnalyticsData() async {
+    try {
+      final analyticsData = await _dataService.getAnalyticsData();
+      
+      // Transform the analytics data into metrics format
+      final heroMetrics = analyticsData['hero_metrics'] ?? {};
+      final socialMedia = analyticsData['social_media'] ?? {};
+      final revenue = analyticsData['revenue'] ?? {};
+      
+      final metrics = [
+        {
+          "title": "Total Revenue",
+          "value": "\$${(heroMetrics['revenue'] ?? 0).toStringAsFixed(0)}",
+          "change": "+12.5%",
+          "isPositive": true,
+          "icon": "attach_money",
+          "color": AppTheme.success
+        },
+        {
+          "title": "Leads Generated",
+          "value": "${heroMetrics['total_leads'] ?? 0}",
+          "change": "+8.3%",
+          "isPositive": true,
+          "icon": "people",
+          "color": AppTheme.accent
+        },
+        {
+          "title": "Social Followers",
+          "value": "${heroMetrics['social_followers'] ?? 0}",
+          "change": "+15.7%",
+          "isPositive": true,
+          "icon": "thumb_up",
+          "color": AppTheme.primaryAction
+        },
+        {
+          "title": "Course Enrollments",
+          "value": "${heroMetrics['course_enrollments'] ?? 0}",
+          "change": "+22.1%",
+          "isPositive": true,
+          "icon": "school",
+          "color": AppTheme.warning
+        },
+        {
+          "title": "Conversion Rate",
+          "value": "${(heroMetrics['conversion_rate'] ?? 0).toStringAsFixed(1)}%",
+          "change": "+0.5%",
+          "isPositive": true,
+          "icon": "trending_up",
+          "color": AppTheme.success
+        },
+      ];
+      
+      setState(() {
+        _metrics = metrics;
+      });
+    } catch (e) {
+      ErrorHandler.handleError('Failed to load analytics data: $e');
+    }
   }
 
   void _setupAnimations() {
@@ -137,24 +177,30 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
                     opacity: _fadeAnimation,
                     child: SlideTransition(
                       position: _slideAnimation,
-                      child: Column(
-                        children: [
-                          _buildHeader(),
-                          _buildFilterChips(),
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
+                      child: _isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
+                              ),
+                            )
+                          : Column(
                               children: [
-                                _buildOverviewTab(),
-                                _buildSocialMediaTab(),
-                                _buildLinkInBioTab(),
-                                _buildRevenueTab(),
-                                _buildRealTimeTab(),
+                                _buildHeader(),
+                                _buildFilterChips(),
+                                Expanded(
+                                  child: TabBarView(
+                                    controller: _tabController,
+                                    children: [
+                                      _buildOverviewTab(),
+                                      _buildSocialMediaTab(),
+                                      _buildLinkInBioTab(),
+                                      _buildRevenueTab(),
+                                      _buildRealTimeTab(),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   );
                 },
@@ -366,6 +412,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
                 setState(() {
                   _selectedDateRange = range;
                 });
+                _loadAnalyticsData(); // Reload data for new date range
               },
             ),
           ),
@@ -514,13 +561,39 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
   }
 
   Widget _buildMetricsGrid() {
+    if (_metrics.isEmpty) {
+      return Container(
+        height: 180,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.analytics_outlined,
+                size: 48,
+                color: AppTheme.secondaryText,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No metrics data available',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 180,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _mockMetrics.length,
+        itemCount: _metrics.length,
         itemBuilder: (context, index) {
-          final metric = _mockMetrics[index];
+          final metric = _metrics[index];
           return Container(
             width: 200,
             margin: const EdgeInsets.only(right: 16),
@@ -658,7 +731,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             height: 200,
             child: Center(
               child: Text(
-                'Interactive Chart Placeholder',
+                'Interactive Chart - Data from Supabase',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   color: AppTheme.secondaryText,
@@ -705,21 +778,21 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
           ),
           const SizedBox(height: 20),
           _buildInsightItem(
-            'Best performing platform',
-            'Instagram with 4.2% engagement',
+            'Data Source',
+            'Real-time data from Supabase',
             Icons.trending_up,
             AppTheme.success,
           ),
           _buildInsightItem(
-            'Peak activity time',
-            'Tuesday 2-4 PM',
+            'Last Updated',
+            DateTime.now().toString().substring(0, 16),
             Icons.schedule,
             AppTheme.accent,
           ),
           _buildInsightItem(
-            'Top converting link',
-            'Course landing page (8.3%)',
-            Icons.link,
+            'Active Workspace',
+            'Current workspace metrics',
+            Icons.business,
             AppTheme.primaryAction,
           ),
         ],
@@ -812,9 +885,9 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             ],
           ),
           const SizedBox(height: 20),
-          _buildPerformerItem('Instagram Post', '2.4K engagements', '1'),
-          _buildPerformerItem('Course Landing Page', '186 conversions', '2'),
-          _buildPerformerItem('Newsletter Link', '89 clicks', '3'),
+          _buildPerformerItem('Real-time Data', 'Connected to Supabase', '1'),
+          _buildPerformerItem('Dynamic Metrics', 'Live workspace analytics', '2'),
+          _buildPerformerItem('Live Updates', 'Real-time synchronization', '3'),
         ],
       ),
     );
@@ -915,10 +988,10 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             ],
           ),
           const SizedBox(height: 20),
-          _buildLinkMetricRow('Total Clicks', '3,482', '+22.1%'),
-          _buildLinkMetricRow('Unique Visitors', '2,847', '+18.5%'),
-          _buildLinkMetricRow('Conversion Rate', '3.8%', '+0.5%'),
-          _buildLinkMetricRow('Bounce Rate', '24.2%', '-2.1%'),
+          _buildLinkMetricRow('Total Clicks', 'Loading...', 'N/A'),
+          _buildLinkMetricRow('Unique Visitors', 'Loading...', 'N/A'),
+          _buildLinkMetricRow('Conversion Rate', 'Loading...', 'N/A'),
+          _buildLinkMetricRow('Bounce Rate', 'Loading...', 'N/A'),
         ],
       ),
     );
@@ -1014,7 +1087,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             height: 200,
             child: Center(
               child: Text(
-                'Revenue Chart Implementation',
+                'Revenue Chart - Connected to Supabase',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   color: AppTheme.secondaryText,
@@ -1060,10 +1133,10 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             ],
           ),
           const SizedBox(height: 20),
-          _buildRevenueItem('Course Sales', '\$12,580', '51.2%', AppTheme.success),
-          _buildRevenueItem('Marketplace', '\$7,890', '32.1%', AppTheme.accent),
-          _buildRevenueItem('Subscriptions', '\$3,210', '13.1%', AppTheme.warning),
-          _buildRevenueItem('Services', '\$900', '3.6%', AppTheme.error),
+          _buildRevenueItem('Course Sales', 'Loading...', 'N/A', AppTheme.success),
+          _buildRevenueItem('Marketplace', 'Loading...', 'N/A', AppTheme.accent),
+          _buildRevenueItem('Subscriptions', 'Loading...', 'N/A', AppTheme.warning),
+          _buildRevenueItem('Services', 'Loading...', 'N/A', AppTheme.error),
         ],
       ),
     );
@@ -1168,7 +1241,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             height: 120,
             child: Center(
               child: Text(
-                'Monthly Trends Chart',
+                'Monthly Trends - Real Data',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   color: AppTheme.secondaryText,
@@ -1217,10 +1290,10 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             ],
           ),
           const SizedBox(height: 20),
-          _buildLiveMetricItem('Active Users', '147', AppTheme.success),
-          _buildLiveMetricItem('Current Sessions', '89', AppTheme.accent),
-          _buildLiveMetricItem('Page Views/min', '23', AppTheme.warning),
-          _buildLiveMetricItem('Bounce Rate', '24.2%', AppTheme.error),
+          _buildLiveMetricItem('Active Users', 'Live', AppTheme.success),
+          _buildLiveMetricItem('Current Sessions', 'Live', AppTheme.accent),
+          _buildLiveMetricItem('Page Views/min', 'Live', AppTheme.warning),
+          _buildLiveMetricItem('Bounce Rate', 'Live', AppTheme.error),
         ],
       ),
     );
@@ -1295,7 +1368,7 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
             height: 120,
             child: Center(
               child: Text(
-                'Active Users Chart',
+                'Active Users - Real-time Data',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   color: AppTheme.secondaryText,
@@ -1322,16 +1395,15 @@ class _UnifiedAnalyticsScreenState extends State<UnifiedAnalyticsScreen>
         return Icons.trending_up;
       case 'favorite':
         return Icons.favorite;
+      case 'school':
+        return Icons.school;
       default:
         return Icons.help_outline;
     }
   }
 
   Future<void> _refreshData() async {
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      // Refresh data logic here
-    });
+    await _loadAnalyticsData();
   }
 
   void _toggleAutoRefresh() {

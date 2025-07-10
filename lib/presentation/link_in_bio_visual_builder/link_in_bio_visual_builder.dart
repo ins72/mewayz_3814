@@ -1,9 +1,9 @@
 import '../../core/app_export.dart';
 import '../../services/link_in_bio_service.dart';
 import './widgets/builder_header_widget.dart';
+import './widgets/visual_builder_canvas_widget.dart';
 import './widgets/component_palette_widget.dart';
 import './widgets/domain_management_widget.dart';
-import './widgets/visual_builder_canvas_widget.dart';
 
 class LinkInBioVisualBuilder extends StatefulWidget {
   const LinkInBioVisualBuilder({Key? key}) : super(key: key);

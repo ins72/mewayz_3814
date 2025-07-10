@@ -1,3 +1,2 @@
-
-// This file is being removed as it's part of the inaccessible UserOnboardingScreen
-// The app uses UnifiedOnboardingScreen instead
+// This file has been removed as it's part of the old onboarding system
+// The application now uses unified onboarding system

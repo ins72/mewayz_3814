@@ -352,7 +352,7 @@ class LinkInBioService {
     if (customDomain != null && customDomain.isNotEmpty) {
       return 'https://$customDomain';
     }
-    // Replace with a property that exists in EnvironmentConfig
+    // Use a property that exists in EnvironmentConfig
     final globalDomain = EnvironmentConfig.baseUrl;
     return 'https://$globalDomain/$slug';
   }

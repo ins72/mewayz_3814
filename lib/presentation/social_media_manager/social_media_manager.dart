@@ -56,6 +56,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
     setState(() => _isLoading = true);
     
     try {
+      await _dataService.initialize();
+      
       // Load social media statistics
       final stats = await _dataService.getSocialMediaStats();
       
@@ -249,11 +251,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
 
   Future<void> _handleCreatePost(Map<String, dynamic> postData) async {
     await ButtonService.handleButtonPress('createPost', () async {
-      // Implementation for creating post
       try {
-        // Use a different approach since createPost doesn't exist
-        // For example, add directly to posts or use a different method
-        await _dataService.getSocialMediaPosts(); // Refresh posts instead
+        await _dataService.createSocialMediaPost(postData);
         await _loadSocialMediaData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post created successfully')));
@@ -265,7 +264,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
 
   Future<void> _handleSchedulePost(Map<String, dynamic> postData) async {
     await ButtonService.handleButtonPress('schedulePost', () async {
-      // Implementation for scheduling post
       try {
         await _dataService.schedulePost(postData);
         await _loadSocialMediaData();
@@ -291,9 +289,8 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
     if (confirmed) {
       await ButtonService.handleButtonPress('deletePost', () async {
         try {
-          // Use a different approach since deletePost doesn't exist
-          // For example, filter posts locally or use a different method
-          await _loadSocialMediaData(); // Refresh data instead
+          await _dataService.deleteSocialMediaPost(postId);
+          await _loadSocialMediaData();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Post deleted successfully')));
         } catch (e) {
@@ -529,7 +526,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   buttonId: 'view_analytics',
                   child: const Text('View All'),
                   onPressed: () async {
-                    // Using Navigator.push instead of pushNamed with undefined route
                     _showAnalyticsModal();
                   }),
               ])),
@@ -602,7 +598,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   buttonId: 'open_scheduler',
                   child: const Text('Schedule Post'),
                   onPressed: () async {
-                    // Using showModalBottomSheet instead of undefined route
                     _showCreatePostModal();
                   }),
               ])),
@@ -654,7 +649,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   buttonId: 'hashtag_research',
                   child: const Text('Research'),
                   onPressed: () async {
-                    // Using local function instead of undefined route
                     _showFilterOptions();
                   }),
               ])),
@@ -668,29 +662,38 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
   }
 
   Widget _buildTopPerformingContent() {
-    final topContent = _posts.isNotEmpty ? _posts.take(3).toList() : [
-      {
-        'title': 'Product Launch Announcement',
-        'engagement': '2.4K',
-        'reach': '15.8K',
-        'platform': 'Instagram',
-        'color': AppTheme.success,
-      },
-      {
-        'title': 'Behind the Scenes Video',
-        'engagement': '1.8K',
-        'reach': '12.3K',
-        'platform': 'TikTok',
-        'color': AppTheme.accent,
-      },
-      {
-        'title': 'Customer Testimonial',
-        'engagement': '1.2K',
-        'reach': '8.7K',
-        'platform': 'LinkedIn',
-        'color': AppTheme.warning,
-      },
-    ];
+    if (_posts.isEmpty) {
+      return Container(
+        padding: EdgeInsets.all(4.w),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.content_copy_outlined,
+                size: 48,
+                color: AppTheme.secondaryText,
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                'No posts available',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+              SizedBox(height: 1.h),
+              Text(
+                'Create your first post to see performance data',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.secondaryText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final topContent = _posts.take(3).toList();
 
     return Column(
       children: topContent.map((content) {
@@ -706,7 +709,7 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
               Container(
                 padding: EdgeInsets.all(2.w),
                 decoration: BoxDecoration(
-                  color: (content['color'] as Color? ?? AppTheme.accent),
+                  color: AppTheme.accent,
                   borderRadius: BorderRadius.circular(8)),
                 child: const Icon(
                   Icons.trending_up,
@@ -718,11 +721,14 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      content['title'] as String,
+                      (content['content']?.toString().substring(0, 
+                        (content['content']?.toString().length ?? 0) > 50 
+                          ? 50 
+                          : content['content']?.toString().length ?? 0) ?? '') + '...',
                       style: Theme.of(context).textTheme.bodyMedium),
                     SizedBox(height: 1.h),
                     Text(
-                      content['platform'] as String,
+                      content['platform'] ?? 'Platform',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.secondaryText)),
                   ])),
@@ -730,13 +736,13 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${content['engagement']} engagements',
+                    '${content['engagement_count'] ?? 0} engagements',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.success,
                       fontWeight: FontWeight.w600)),
                   SizedBox(height: 1.h),
                   Text(
-                    '${content['reach']} reach',
+                    '${content['reach_count'] ?? 0} reach',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.secondaryText)),
                 ]),
@@ -768,7 +774,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             title: const Text('Edit Post'),
             onTap: () async {
               Navigator.pop(context);
-              // Using local function instead of undefined route
               _showCreatePostModal();
             }),
           ListTile(
@@ -777,7 +782,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             onTap: () async {
               Navigator.pop(context);
               await ButtonService.handleButtonPress('sharePost', () async {
-                // Implementation for sharing post
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Post shared successfully')));
               });
@@ -787,7 +791,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
             title: const Text('View Analytics'),
             onTap: () async {
               Navigator.pop(context);
-              // Using local function instead of undefined route
               _showAnalyticsModal();
             }),
           ListTile(
@@ -818,61 +821,69 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                 buttonId: 'open_library',
                 child: const Text('View All'),
                 onPressed: () async {
-                  // Using local function instead of undefined route
                   _showCreatePostModal();
                 }),
             ]),
           SizedBox(height: 4.h),
           SizedBox(
             height: 25.h,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _posts.isNotEmpty ? _posts.length : 5,
-              itemBuilder: (context, index) {
-                final content = _posts.isNotEmpty ? _posts[index] : {
-                  'title': 'Content ${index + 1}',
-                  'status': 'scheduled',
-                };
-                
-                return Container(
-                  width: 40.w,
-                  margin: EdgeInsets.only(right: 4.w),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.border)),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.accent.withAlpha(26),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              topRight: Radius.circular(12))),
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              color: AppTheme.accent,
-                              size: 32)))),
-                      Padding(
-                        padding: EdgeInsets.all(3.w),
+            child: _posts.isEmpty
+                ? Center(
+                    child: Text(
+                      'No content in library',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.secondaryText,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _posts.length,
+                    itemBuilder: (context, index) {
+                      final content = _posts[index];
+                      
+                      return Container(
+                        width: 40.w,
+                        margin: EdgeInsets.only(right: 4.w),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.border)),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              content['title'] ?? 'Content ${index + 1}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
-                            SizedBox(height: 1.h),
-                            Text(
-                              content['status'] ?? 'Scheduled for today',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.secondaryText)),
-                          ])),
-                    ]));
-              })),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accent.withAlpha(26),
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    topRight: Radius.circular(12))),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_outlined,
+                                    color: AppTheme.accent,
+                                    size: 32)))),
+                            Padding(
+                              padding: EdgeInsets.all(3.w),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    (content['content']?.toString().substring(0, 
+                                      (content['content']?.toString().length ?? 0) > 20 
+                                        ? 20 
+                                        : content['content']?.toString().length ?? 0) ?? '') + '...',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                  SizedBox(height: 1.h),
+                                  Text(
+                                    content['status'] ?? 'Draft',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.secondaryText)),
+                                ])),
+                          ]));
+                    })),
         ]));
   }
 
@@ -893,7 +904,6 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                 buttonId: 'audience_insights',
                 child: const Text('View Details'),
                 onPressed: () async {
-                  // Using local function instead of undefined route
                   _showAnalyticsModal();
                 }),
             ]),
@@ -901,19 +911,19 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
           Row(
             children: [
               Expanded(
-                child: _buildInsightCard('Peak Activity', '2-4 PM', Icons.schedule, AppTheme.accent)),
+                child: _buildInsightCard('Peak Activity', 'Loading...', Icons.schedule, AppTheme.accent)),
               SizedBox(width: 4.w),
               Expanded(
-                child: _buildInsightCard('Top Location', 'New York', Icons.location_on, AppTheme.success)),
+                child: _buildInsightCard('Top Location', 'Loading...', Icons.location_on, AppTheme.success)),
             ]),
           SizedBox(height: 4.h),
           Row(
             children: [
               Expanded(
-                child: _buildInsightCard('Age Group', '25-34', Icons.person, AppTheme.warning)),
+                child: _buildInsightCard('Age Group', 'Loading...', Icons.person, AppTheme.warning)),
               SizedBox(width: 4.w),
               Expanded(
-                child: _buildInsightCard('Gender Split', '52% F, 48% M', Icons.people, AppTheme.error)),
+                child: _buildInsightCard('Gender Split', 'Loading...', Icons.people, AppTheme.error)),
             ]),
         ]));
   }

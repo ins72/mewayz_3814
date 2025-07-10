@@ -22,119 +22,37 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
   List<Map<String, dynamic>> _templates = [];
   List<Map<String, dynamic>> _favoriteTemplates = [];
 
+  // Add data service
+  final DataService _dataService = DataService();
+
   @override
   void initState() {
     super.initState();
     _loadTemplates();
   }
 
-  void _loadTemplates() {
+  void _loadTemplates() async {
     setState(() {
       _isLoading = true;
     });
 
-    // Mock data for templates
-    _templates = [
-      {
-        'id': '1',
-        'title': 'Sale Announcement',
-        'category': 'promotional',
-        'platform': ['Instagram', 'Facebook'],
-        'industry': 'E-commerce',
-        'engagementScore': 4.5,
-        'usageCount': 1250,
-        'thumbnail':
-            'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop',
-        'colors': ['#FF6B6B', '#4ECDC4', '#45B7D1'],
-        'isFavorite': false,
-        'description': 'Perfect for announcing sales and promotions',
-        'tags': ['sale', 'promo', 'discount'],
-      },
-      {
-        'id': '2',
-        'title': 'Motivational Quote',
-        'category': 'quotes',
-        'platform': ['Instagram', 'LinkedIn'],
-        'industry': 'Business',
-        'engagementScore': 4.8,
-        'usageCount': 2100,
-        'thumbnail':
-            'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400&h=400&fit=crop',
-        'colors': ['#F39C12', '#E74C3C', '#9B59B6'],
-        'isFavorite': true,
-        'description': 'Inspirational quote template for business content',
-        'tags': ['quote', 'motivation', 'business'],
-      },
-      {
-        'id': '3',
-        'title': 'Product Showcase',
-        'category': 'promotional',
-        'platform': ['Instagram', 'Facebook', 'Twitter'],
-        'industry': 'E-commerce',
-        'engagementScore': 4.2,
-        'usageCount': 890,
-        'thumbnail':
-            'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
-        'colors': ['#2ECC71', '#3498DB', '#E67E22'],
-        'isFavorite': false,
-        'description': 'Showcase your products with style',
-        'tags': ['product', 'showcase', 'ecommerce'],
-      },
-      {
-        'id': '4',
-        'title': 'Event Announcement',
-        'category': 'announcements',
-        'platform': ['Instagram', 'Facebook', 'LinkedIn'],
-        'industry': 'Events',
-        'engagementScore': 4.6,
-        'usageCount': 1450,
-        'thumbnail':
-            'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&h=400&fit=crop',
-        'colors': ['#8E44AD', '#E74C3C', '#F39C12'],
-        'isFavorite': false,
-        'description': 'Perfect for event announcements and invitations',
-        'tags': ['event', 'announcement', 'invitation'],
-      },
-      {
-        'id': '5',
-        'title': 'Instagram Story',
-        'category': 'stories',
-        'platform': ['Instagram'],
-        'industry': 'General',
-        'engagementScore': 4.3,
-        'usageCount': 3200,
-        'thumbnail':
-            'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=400&fit=crop',
-        'colors': ['#FF6B6B', '#4ECDC4', '#45B7D1'],
-        'isFavorite': true,
-        'description': 'Trendy Instagram story template',
-        'tags': ['story', 'instagram', 'trendy'],
-      },
-      {
-        'id': '6',
-        'title': 'Holiday Season',
-        'category': 'seasonal',
-        'platform': ['Instagram', 'Facebook', 'Twitter'],
-        'industry': 'Retail',
-        'engagementScore': 4.7,
-        'usageCount': 1800,
-        'thumbnail':
-            'https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=400&h=400&fit=crop',
-        'colors': ['#C0392B', '#27AE60', '#F39C12'],
-        'isFavorite': false,
-        'description': 'Holiday-themed template for seasonal campaigns',
-        'tags': ['holiday', 'seasonal', 'celebration'],
-      },
-    ];
-
-    _favoriteTemplates =
-        _templates.where((template) => template['isFavorite'] == true).toList();
-
-    Future.delayed(const Duration(milliseconds: 800), () {
+    try {
+      await _dataService.initialize();
+      final templates = await _dataService.getTemplates(_selectedCategory);
+      
+      setState(() {
+        _templates = templates;
+        _favoriteTemplates = _templates
+            .where((template) => template['is_favorite'] == true)
+            .toList();
+      });
+    } catch (e) {
+      ErrorHandler.handleError('Failed to load templates: $e');
+    } finally {
       setState(() {
         _isLoading = false;
       });
-    });
+    }
   }
 
   void _onSearchChanged(String query) {
@@ -147,6 +65,7 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
     setState(() {
       _selectedCategory = category;
     });
+    _loadTemplates(); // Reload templates for new category
   }
 
   void _onPlatformChanged(String platform) {
@@ -161,18 +80,28 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
     });
   }
 
-  void _toggleFavorite(String templateId) {
+  void _toggleFavorite(String templateId) async {
     setState(() {
       final templateIndex =
           _templates.indexWhere((template) => template['id'] == templateId);
       if (templateIndex != -1) {
-        _templates[templateIndex]['isFavorite'] =
-            !_templates[templateIndex]['isFavorite'];
+        _templates[templateIndex]['is_favorite'] =
+            !_templates[templateIndex]['is_favorite'];
         _favoriteTemplates = _templates
-            .where((template) => template['isFavorite'] == true)
+            .where((template) => template['is_favorite'] == true)
             .toList();
       }
     });
+
+    // Update in Supabase (would need to add this method to the service)
+    try {
+      await _dataService.trackEvent('template_favorite_toggled', {
+        'template_id': templateId,
+        'is_favorite': _templates.firstWhere((t) => t['id'] == templateId)['is_favorite'],
+      });
+    } catch (e) {
+      ErrorHandler.handleError('Failed to update favorite status: $e');
+    }
   }
 
   void _showTemplatePreview(Map<String, dynamic> template) {
@@ -182,9 +111,13 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
         backgroundColor: Colors.transparent,
         builder: (context) => TemplatePreviewModalWidget(
             template: template,
-            onUse: () {
+            onUse: () async {
               Navigator.pop(context);
-              // Handle template usage
+              // Track template usage
+              await _dataService.trackEvent('template_used', {
+                'template_id': template['id'],
+                'template_type': template['template_type'],
+              });
             },
             onFavorite: () {
               _toggleFavorite(template['id']);
@@ -204,7 +137,7 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
       final matchesCategory = _selectedCategory == 'All' ||
           template['category'] == _selectedCategory;
       final matchesPlatform = _selectedPlatform == 'All' ||
-          (template['platform'] as List).contains(_selectedPlatform);
+          (template['platform'] as List?)?.contains(_selectedPlatform) == true;
       final matchesIndustry = _selectedIndustry == 'All' ||
           template['industry'] == _selectedIndustry;
 
@@ -327,15 +260,27 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
                           TemplateAnalyticsWidget(templates: _templates),
 
                           // Template Creator
-                          TemplateCreatorWidget(onCreateTemplate: (template) {
+                          TemplateCreatorWidget(onCreateTemplate: (template) async {
                             // Handle template creation
+                            try {
+                              await _dataService.saveTemplate(template);
+                              _loadTemplates(); // Refresh templates
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Template created successfully')),
+                                );
+                              }
+                            } catch (e) {
+                              ErrorHandler.handleError('Failed to create template: $e');
+                            }
                           }),
                         ])),
                       ]))),
         ])),
         floatingActionButton: FloatingActionButton(
-            onPressed: () {
+            onPressed: () async {
               // Quick template creation
+              await _dataService.trackEvent('template_create_button_pressed', {});
             },
             backgroundColor: const Color(0xFFFDFDFD),
             child: const CustomIconWidget(
@@ -360,6 +305,13 @@ class _ContentTemplatesScreenState extends State<ContentTemplatesScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: const Color(0xFF7B7B7B))),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            _loadTemplates();
+          },
+          child: const Text('Refresh Templates'),
+        ),
       ]));
     }
 

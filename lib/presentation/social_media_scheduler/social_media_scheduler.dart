@@ -1,5 +1,6 @@
 
 import '../../core/app_export.dart';
+import '../../services/dynamic_data_service.dart';
 import './widgets/add_post_modal.dart';
 import './widgets/bulk_upload_modal.dart';
 import './widgets/calendar_widget.dart';
@@ -19,78 +20,112 @@ class _SocialMediaSchedulerState extends State<SocialMediaScheduler>
   DateTime _selectedDate = DateTime.now();
   DateTime _currentMonth = DateTime.now();
   bool _isWeekView = false;
-  bool _isLoading = false;
+  bool _isLoading = true;
 
-  // Mock data for scheduled posts
-  final Map<String, List<Map<String, dynamic>>> _scheduledPosts = {
-    '2024-01-15': [
-      {
-        'id': '1',
-        'platform': 'instagram',
-        'content':
-            'Check out our latest product launch! 🚀 #newproduct #launch',
-        'imageUrl':
-            'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400',
-        'scheduledTime': '09:00 AM',
-        'status': 'scheduled',
-        'engagement': {'likes': 0, 'comments': 0, 'shares': 0}
-      },
-      {
-        'id': '2',
-        'platform': 'facebook',
-        'content': 'Join us for our webinar tomorrow at 2 PM EST!',
-        'imageUrl':
-            'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400',
-        'scheduledTime': '02:00 PM',
-        'status': 'scheduled',
-        'engagement': {'likes': 0, 'comments': 0, 'shares': 0}
-      }
-    ],
-    '2024-01-16': [
-      {
-        'id': '3',
-        'platform': 'twitter',
-        'content': 'Exciting news coming soon! Stay tuned 👀 #comingsoon',
-        'imageUrl': null,
-        'scheduledTime': '11:30 AM',
-        'status': 'posted',
-        'engagement': {'likes': 24, 'comments': 5, 'shares': 8}
-      }
-    ],
-    '2024-01-17': [
-      {
-        'id': '4',
-        'platform': 'linkedin',
-        'content': 'Insights from our latest industry report. Download now!',
-        'imageUrl':
-            'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400',
-        'scheduledTime': '10:00 AM',
-        'status': 'failed',
-        'engagement': {'likes': 0, 'comments': 0, 'shares': 0}
-      }
-    ]
-  };
+  // Dynamic data from Supabase
+  Map<String, List<Map<String, dynamic>>> _scheduledPosts = {};
+  Map<String, Map<String, dynamic>> _platformStatus = {};
+  String _workspaceId = 'demo-workspace-id'; // This should come from user context
 
-  // Mock platform connection status
-  final Map<String, Map<String, dynamic>> _platformStatus = {
-    'instagram': {'connected': true, 'account': '@mewayz_official'},
-    'facebook': {'connected': true, 'account': 'Mewayz Business'},
-    'twitter': {'connected': false, 'account': null},
-    'linkedin': {'connected': true, 'account': 'Mewayz Company'},
-    'tiktok': {'connected': false, 'account': null},
-    'youtube': {'connected': true, 'account': 'Mewayz Channel'}
-  };
+  final DynamicDataService _dataService = DynamicDataService();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadSchedulerData();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSchedulerData() async {
+    try {
+      setState(() => _isLoading = true);
+      
+      final data = await _dataService.getSocialMediaSchedulerData(_workspaceId);
+      
+      final posts = data['posts'] as List? ?? [];
+      final platforms = data['platforms'] as List? ?? [];
+      
+      // Group posts by date
+      final groupedPosts = <String, List<Map<String, dynamic>>>{};
+      for (var post in posts) {
+        final scheduledFor = post['scheduled_for'] ?? post['created_at'];
+        if (scheduledFor != null) {
+          final date = DateTime.parse(scheduledFor);
+          final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+          
+          groupedPosts[dateKey] ??= [];
+          groupedPosts[dateKey]!.add({
+            'id': post['id'],
+            'platform': post['platform'],
+            'content': post['content'],
+            'imageUrl': post['media_urls']?.isNotEmpty == true ? post['media_urls'][0] : null,
+            'scheduledTime': _formatTime(date),
+            'status': post['status'] ?? 'scheduled',
+            'engagement': {
+              'likes': post['likes_count'] ?? 0,
+              'comments': post['comments_count'] ?? 0,
+              'shares': post['shares_count'] ?? 0,
+            }
+          });
+        }
+      }
+      
+      // Process platform status
+      final platformStatusData = <String, Map<String, dynamic>>{};
+      for (var platform in platforms) {
+        platformStatusData[platform['platform_name']] = {
+          'connected': platform['is_active'] ?? false,
+          'account': platform['account_name'],
+        };
+      }
+      
+      // Add default platforms if not present
+      final defaultPlatforms = ['instagram', 'facebook', 'twitter', 'linkedin', 'tiktok', 'youtube'];
+      for (var platform in defaultPlatforms) {
+        platformStatusData[platform] ??= {
+          'connected': false,
+          'account': null,
+        };
+      }
+      
+      setState(() {
+        _scheduledPosts = groupedPosts;
+        _platformStatus = platformStatusData;
+        _isLoading = false;
+      });
+    } catch (error) {
+      print('Error loading scheduler data: $error');
+      setState(() {
+        _isLoading = false;
+        _scheduledPosts = {};
+        _platformStatus = _getDefaultPlatformStatus();
+      });
+    }
+  }
+
+  Map<String, Map<String, dynamic>> _getDefaultPlatformStatus() {
+    return {
+      'instagram': {'connected': false, 'account': null},
+      'facebook': {'connected': false, 'account': null},
+      'twitter': {'connected': false, 'account': null},
+      'linkedin': {'connected': false, 'account': null},
+      'tiktok': {'connected': false, 'account': null},
+      'youtube': {'connected': false, 'account': null},
+    };
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    return '$displayHour:$minute $period';
   }
 
   void _onDateSelected(DateTime date) {
@@ -200,16 +235,7 @@ class _SocialMediaSchedulerState extends State<SocialMediaScheduler>
   }
 
   Future<void> _refreshData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      _isLoading = false;
-    });
+    await _loadSchedulerData();
   }
 
   void _goToToday() {
@@ -267,18 +293,24 @@ class _SocialMediaSchedulerState extends State<SocialMediaScheduler>
           ],
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        color: AppTheme.accent,
-        backgroundColor: AppTheme.surface,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildCalendarView(),
-            _buildPostsView(),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.accent,
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _refreshData,
+              color: AppTheme.accent,
+              backgroundColor: AppTheme.surface,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildCalendarView(),
+                  _buildPostsView(),
+                ],
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPostModal,
         backgroundColor: AppTheme.primaryAction,
@@ -450,22 +482,16 @@ class _SocialMediaSchedulerState extends State<SocialMediaScheduler>
       return aDate.compareTo(bDate);
     });
 
-    return _isLoading
-        ? Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.accent,
-            ),
-          )
-        : allPosts.isEmpty
-            ? _buildEmptyState()
-            : ListView.builder(
-                padding: EdgeInsets.all(4.w),
-                itemCount: allPosts.length,
-                itemBuilder: (context, index) {
-                  final post = allPosts[index];
-                  return _buildPostCard(post);
-                },
-              );
+    return allPosts.isEmpty
+        ? _buildEmptyState()
+        : ListView.builder(
+            padding: EdgeInsets.all(4.w),
+            itemCount: allPosts.length,
+            itemBuilder: (context, index) {
+              final post = allPosts[index];
+              return _buildPostCard(post);
+            },
+          );
   }
 
   Widget _buildPostCard(Map<String, dynamic> post) {

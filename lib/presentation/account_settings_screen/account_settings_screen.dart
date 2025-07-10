@@ -1,411 +1,334 @@
+
 import '../../core/app_export.dart';
+import '../../services/dynamic_data_service.dart';
 import './widgets/account_actions_widget.dart';
+import './widgets/enhanced_security_settings_widget.dart';
 import './widgets/personal_info_widget.dart';
 import './widgets/privacy_controls_widget.dart';
 import './widgets/security_settings_widget.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
-  const AccountSettingsScreen({Key? key}) : super(key: key);
+  const AccountSettingsScreen({super.key});
 
   @override
   State<AccountSettingsScreen> createState() => _AccountSettingsScreenState();
 }
 
-class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-  final _formKey = GlobalKey<FormState>();
-  bool _hasChanges = false;
-
-  // Personal Information
-  final _fullNameController = TextEditingController(text: 'John Doe');
-  final _emailController = TextEditingController(text: 'john@example.com');
-  final _phoneController = TextEditingController(text: '+1 (555) 123-4567');
+class _AccountSettingsScreenState extends State<AccountSettingsScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  
+  // Controllers for personal info
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  
+  // State variables
   String? _profileImagePath;
-
-  // Security Settings
+  bool _emailVerified = false;
   bool _twoFactorEnabled = false;
-  String _selectedLanguage = 'English';
-  String _selectedTimezone = 'UTC-5 (Eastern Time)';
-  bool _emailVerified = true;
-
-  // Privacy Controls
-  bool _dataSharing = false;
+  bool _dataSharing = true;
   bool _marketingCommunications = false;
   String _accountVisibility = 'public';
+  String _selectedLanguage = 'English';
+  String _selectedTimezone = 'UTC-5 (Eastern Time)';
+  
+  // Dynamic data from Supabase
+  List<Map<String, dynamic>> _activeSessions = [];
+  bool _isLoading = true;
+  String _userId = 'demo-user-id'; // This should come from auth context
 
-  // Active Sessions
-  List<Map<String, dynamic>> _activeSessions = [
-    {
-      'device': 'MacBook Pro',
-      'location': 'New York, NY',
-      'lastActive': '2 minutes ago',
-      'current': true,
-    },
-    {
-      'device': 'iPhone 15',
-      'location': 'New York, NY',
-      'lastActive': '1 hour ago',
-      'current': false,
-    },
-    {
-      'device': 'Windows PC',
-      'location': 'Boston, MA',
-      'lastActive': '3 days ago',
-      'current': false,
-    },
-  ];
-
-  void _onFieldChanged() {
-    if (!_hasChanges) {
-      setState(() {
-        _hasChanges = true;
-      });
-    }
-  }
-
-  void _saveChanges() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement save logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Account settings updated successfully'),
-          backgroundColor: AppTheme.success,
-        ),
-      );
-      setState(() {
-        _hasChanges = false;
-      });
-    }
-  }
-
-  void _changePassword() {
-    // TODO: Navigate to change password screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Password change functionality coming soon'),
-        backgroundColor: AppTheme.warning,
-      ),
-    );
-  }
-
-  void _logoutDevice(int index) {
-    setState(() {
-      _activeSessions.removeAt(index);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Device logged out successfully'),
-        backgroundColor: AppTheme.success,
-      ),
-    );
-  }
-
-  void _exportData() {
-    // TODO: Implement data export
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text('Data export started. You will receive an email when ready.'),
-        backgroundColor: AppTheme.success,
-      ),
-    );
-  }
-
-  void _deactivateAccount() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(
-          'Deactivate Account',
-          style: GoogleFonts.inter(
-            color: AppTheme.primaryText,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to deactivate your account? This action can be reversed within 30 days.',
-          style: GoogleFonts.inter(
-            color: AppTheme.secondaryText,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.inter(
-                color: AppTheme.secondaryText,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement deactivation logic
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Account deactivated successfully'),
-                  backgroundColor: AppTheme.warning,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.warning,
-              foregroundColor: AppTheme.primaryBackground,
-            ),
-            child: Text('Deactivate'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteAccount() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(
-          'Delete Account',
-          style: GoogleFonts.inter(
-            color: AppTheme.error,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to permanently delete your account? This action cannot be undone.',
-          style: GoogleFonts.inter(
-            color: AppTheme.secondaryText,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.inter(
-                color: AppTheme.secondaryText,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement deletion logic
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Account deletion process started'),
-                  backgroundColor: AppTheme.error,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
-              foregroundColor: AppTheme.primaryText,
-            ),
-            child: Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
+  final DynamicDataService _dataService = DynamicDataService();
 
   @override
   void initState() {
     super.initState();
-    _fullNameController.addListener(_onFieldChanged);
-    _emailController.addListener(_onFieldChanged);
-    _phoneController.addListener(_onFieldChanged);
+    _tabController = TabController(length: 4, vsync: this);
+    _loadAccountData();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _fullNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
 
+  Future<void> _loadAccountData() async {
+    try {
+      setState(() => _isLoading = true);
+      
+      final data = await _dataService.getAccountSettingsData(_userId);
+      
+      final userProfile = data['user_profile'] as Map<String, dynamic>? ?? {};
+      final sessions = data['active_sessions'] as List? ?? [];
+      
+      setState(() {
+        // Load user profile data
+        _fullNameController.text = userProfile['full_name'] ?? 'Demo User';
+        _emailController.text = userProfile['email'] ?? 'demo@example.com';
+        _phoneController.text = userProfile['phone'] ?? '+1 (555) 123-4567';
+        _profileImagePath = userProfile['avatar_url'];
+        _emailVerified = userProfile['email_verified'] ?? false;
+        _twoFactorEnabled = userProfile['two_factor_enabled'] ?? false;
+        _dataSharing = userProfile['data_sharing'] ?? true;
+        _marketingCommunications = userProfile['marketing_communications'] ?? false;
+        _accountVisibility = userProfile['account_visibility'] ?? 'public';
+        _selectedLanguage = userProfile['language'] ?? 'English';
+        _selectedTimezone = userProfile['timezone'] ?? 'UTC-5 (Eastern Time)';
+        
+        // Load active sessions or use defaults
+        _activeSessions = sessions.isNotEmpty 
+          ? List<Map<String, dynamic>>.from(sessions)
+          : _getDefaultSessions();
+        
+        _isLoading = false;
+      });
+    } catch (error) {
+      print('Error loading account data: $error');
+      setState(() {
+        _isLoading = false;
+        // Initialize with default data
+        _fullNameController.text = 'Demo User';
+        _emailController.text = 'demo@example.com';
+        _phoneController.text = '+1 (555) 123-4567';
+        _activeSessions = _getDefaultSessions();
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> _getDefaultSessions() {
+    return [
+      {
+        'device': 'Current Device',
+        'location': 'Unknown Location',
+        'lastActive': 'Active now',
+        'current': true,
+      },
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
-      body: Stack(
-        children: [
-          // Main content
-          SingleChildScrollView(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 60,
-              bottom: 24,
-            ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Personal Information
-                  PersonalInfoWidget(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.primaryText),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Account Settings',
+          style: GoogleFonts.inter(
+            color: AppTheme.primaryText,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppTheme.accent,
+          unselectedLabelColor: AppTheme.secondaryText,
+          indicatorColor: AppTheme.accent,
+          labelStyle: GoogleFonts.inter(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: GoogleFonts.inter(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w400,
+          ),
+          tabs: const [
+            Tab(text: 'Personal'),
+            Tab(text: 'Security'),
+            Tab(text: 'Privacy'),
+            Tab(text: 'Account'),
+          ],
+        ),
+      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.accent,
+              ),
+            )
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                // Personal Info Tab
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: PersonalInfoWidget(
                     fullNameController: _fullNameController,
                     emailController: _emailController,
                     phoneController: _phoneController,
                     profileImagePath: _profileImagePath,
                     emailVerified: _emailVerified,
-                    onImageChanged: (path) {
+                    onImageChanged: (String? imagePath) {
                       setState(() {
-                        _profileImagePath = path;
+                        _profileImagePath = imagePath;
                       });
-                      _onFieldChanged();
                     },
                     onEmailVerify: () {
                       setState(() {
                         _emailVerified = true;
                       });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Email verification sent!')),
+                      );
                     },
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Security Settings
-                  SecuritySettingsWidget(
-                    twoFactorEnabled: _twoFactorEnabled,
-                    activeSessions: _activeSessions,
-                    onTwoFactorChanged: (value) {
-                      setState(() {
-                        _twoFactorEnabled = value;
-                      });
-                      _onFieldChanged();
-                    },
-                    onChangePassword: _changePassword,
-                    onLogoutDevice: _logoutDevice,
+                ),
+                
+                // Security Tab - Updated to use enhanced security widget
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const EnhancedSecuritySettingsWidget(),
+                      const SizedBox(height: 16),
+                      SecuritySettingsWidget(
+                        twoFactorEnabled: _twoFactorEnabled,
+                        activeSessions: _activeSessions,
+                        onTwoFactorChanged: (bool value) {
+                          setState(() {
+                            _twoFactorEnabled = value;
+                          });
+                        },
+                        onChangePassword: () {
+                          // Navigate to password change screen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Navigate to password change')),
+                          );
+                        },
+                        onLogoutDevice: (int index) {
+                          setState(() {
+                            _activeSessions.removeAt(index);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Device logged out')),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Privacy Controls
-                  PrivacyControlsWidget(
+                ),
+                
+                // Privacy Tab
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: PrivacyControlsWidget(
                     dataSharing: _dataSharing,
                     marketingCommunications: _marketingCommunications,
                     accountVisibility: _accountVisibility,
                     selectedLanguage: _selectedLanguage,
                     selectedTimezone: _selectedTimezone,
-                    onDataSharingChanged: (value) {
+                    onDataSharingChanged: (bool value) {
                       setState(() {
                         _dataSharing = value;
                       });
-                      _onFieldChanged();
                     },
-                    onMarketingChanged: (value) {
+                    onMarketingChanged: (bool value) {
                       setState(() {
                         _marketingCommunications = value;
                       });
-                      _onFieldChanged();
                     },
-                    onVisibilityChanged: (value) {
+                    onVisibilityChanged: (String value) {
                       setState(() {
                         _accountVisibility = value;
                       });
-                      _onFieldChanged();
                     },
-                    onLanguageChanged: (value) {
+                    onLanguageChanged: (String value) {
                       setState(() {
                         _selectedLanguage = value;
                       });
-                      _onFieldChanged();
                     },
-                    onTimezoneChanged: (value) {
+                    onTimezoneChanged: (String value) {
                       setState(() {
                         _selectedTimezone = value;
                       });
-                      _onFieldChanged();
                     },
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Account Actions
-                  AccountActionsWidget(
-                    onExportData: _exportData,
-                    onDeactivateAccount: _deactivateAccount,
-                    onDeleteAccount: _deleteAccount,
-                  ),
-
-                  const SizedBox(height: 100),
-                ],
-              ),
-            ),
-          ),
-
-          // Header with save button
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: MediaQuery.of(context).padding.top + 60,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryBackground,
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppTheme.border,
-                    width: 1,
+                ),
+                
+                // Account Actions Tab
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: AccountActionsWidget(
+                    onExportData: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Data export initiated')),
+                      );
+                    },
+                    onDeactivateAccount: () {
+                      _showDeactivateDialog(context);
+                    },
+                    onDeleteAccount: () {
+                      _showDeleteDialog(context);
+                    },
                   ),
                 ),
-              ),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.arrow_back_ios,
-                        color: AppTheme.primaryText,
-                        size: 20,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Account Settings',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryText,
-                        ),
-                      ),
-                    ),
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      child: ElevatedButton(
-                        onPressed: _hasChanges ? _saveChanges : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _hasChanges
-                              ? AppTheme.primaryAction
-                              : AppTheme.border,
-                          foregroundColor: _hasChanges
-                              ? AppTheme.primaryBackground
-                              : AppTheme.secondaryText,
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'Save',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                  ],
-                ),
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
+    );
+  }
+
+  void _showDeactivateDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Deactivate Account'),
+          content: const Text('Are you sure you want to temporarily deactivate your account? You can reactivate it later.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Account deactivated')),
+                );
+              },
+              child: const Text('Deactivate'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Account'),
+          content: const Text('Are you sure you want to permanently delete your account? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Account deletion process started')),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

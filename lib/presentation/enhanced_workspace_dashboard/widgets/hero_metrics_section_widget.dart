@@ -5,11 +5,13 @@ import 'package:fl_chart/fl_chart.dart';
 class HeroMetricsSectionWidget extends StatelessWidget {
   final bool isRefreshing;
   final AnimationController refreshController;
+  final Map<String, dynamic> heroMetrics;
 
   const HeroMetricsSectionWidget({
     Key? key,
     required this.isRefreshing,
     required this.refreshController,
+    this.heroMetrics = const {},
   }) : super(key: key);
 
   @override
@@ -69,7 +71,7 @@ class HeroMetricsSectionWidget extends StatelessWidget {
             children: [
               _buildMetricCard(
                 title: 'Total Leads',
-                value: '2,847',
+                value: _formatMetricValue(heroMetrics['total_leads']),
                 change: '+12.5%',
                 isPositive: true,
                 icon: Icons.people,
@@ -78,7 +80,7 @@ class HeroMetricsSectionWidget extends StatelessWidget {
               ),
               _buildMetricCard(
                 title: 'Revenue',
-                value: '\$45,320',
+                value: _formatCurrency(heroMetrics['revenue']),
                 change: '+8.2%',
                 isPositive: true,
                 icon: Icons.attach_money,
@@ -87,7 +89,7 @@ class HeroMetricsSectionWidget extends StatelessWidget {
               ),
               _buildMetricCard(
                 title: 'Social Followers',
-                value: '12.4K',
+                value: _formatFollowers(heroMetrics['social_followers']),
                 change: '+15.3%',
                 isPositive: true,
                 icon: Icons.favorite,
@@ -96,7 +98,7 @@ class HeroMetricsSectionWidget extends StatelessWidget {
               ),
               _buildMetricCard(
                 title: 'Course Enrollments',
-                value: '384',
+                value: _formatMetricValue(heroMetrics['course_enrollments']),
                 change: '+22.1%',
                 isPositive: true,
                 icon: Icons.school,
@@ -104,28 +106,46 @@ class HeroMetricsSectionWidget extends StatelessWidget {
                 sparklineData: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
               ),
               _buildMetricCard(
-                title: 'App Downloads',
-                value: '1,523',
+                title: 'Conversion Rate',
+                value: '${(heroMetrics['conversion_rate'] ?? 0).toStringAsFixed(1)}%',
                 change: '+5.7%',
                 isPositive: true,
-                icon: Icons.download,
+                icon: Icons.trending_up,
                 color: const Color(0xFF5856D6),
                 sparklineData: [5, 4, 6, 5, 7, 6, 8, 7, 9, 8],
-              ),
-              _buildMetricCard(
-                title: 'Production Status',
-                value: '98.5%',
-                change: '+1.2%',
-                isPositive: true,
-                icon: Icons.speed,
-                color: const Color(0xFF32D74B),
-                sparklineData: [8, 9, 8, 9, 10, 9, 10, 9, 10, 10],
               ),
             ],
           ),
         ),
       ],
     );
+  }
+
+  String _formatMetricValue(dynamic value) {
+    if (value == null) return '0';
+    final num numValue = value is num ? value : 0;
+    if (numValue >= 1000) {
+      return '${(numValue / 1000).toStringAsFixed(1)}K';
+    }
+    return numValue.toString();
+  }
+
+  String _formatCurrency(dynamic value) {
+    if (value == null) return '\$0';
+    final num numValue = value is num ? value : 0;
+    if (numValue >= 1000) {
+      return '\$${(numValue / 1000).toStringAsFixed(1)}K';
+    }
+    return '\$${numValue.toStringAsFixed(0)}';
+  }
+
+  String _formatFollowers(dynamic value) {
+    if (value == null) return '0';
+    final num numValue = value is num ? value : 0;
+    if (numValue >= 1000) {
+      return '${(numValue / 1000).toStringAsFixed(1)}K';
+    }
+    return numValue.toString();
   }
 
   Widget _buildMetricCard({

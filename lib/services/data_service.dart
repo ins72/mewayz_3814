@@ -75,12 +75,10 @@ class DataService {
     }
   }
 
-  /// CRM Data Operations - Using Supabase (placeholder for future CRM tables)
+  /// CRM Data Operations - Using Supabase
   Future<List<Map<String, dynamic>>> getContacts() async {
     try {
-      // For now, return empty list until CRM tables are added to migration
-      // In the future, this will query the contacts table
-      return [];
+      return await _unifiedDataService.getCrmContacts();
     } catch (e) {
       ErrorHandler.handleError('Failed to get contacts: $e');
       return [];
@@ -89,9 +87,7 @@ class DataService {
 
   Future<bool> createContact(Map<String, dynamic> contactData) async {
     try {
-      // Track as analytics event for now
-      await _unifiedDataService.trackAnalyticsEvent('contact_created', contactData);
-      return true;
+      return await _unifiedDataService.createCrmContact(contactData);
     } catch (e) {
       ErrorHandler.handleError('Failed to create contact: $e');
       return false;
@@ -100,12 +96,7 @@ class DataService {
 
   Future<bool> updateContact(String contactId, Map<String, dynamic> contactData) async {
     try {
-      // Track as analytics event for now
-      await _unifiedDataService.trackAnalyticsEvent('contact_updated', {
-        'contact_id': contactId,
-        ...contactData,
-      });
-      return true;
+      return await _unifiedDataService.updateCrmContact(contactId, contactData);
     } catch (e) {
       ErrorHandler.handleError('Failed to update contact: $e');
       return false;
@@ -114,11 +105,7 @@ class DataService {
 
   Future<bool> deleteContact(String contactId) async {
     try {
-      // Track as analytics event for now
-      await _unifiedDataService.trackAnalyticsEvent('contact_deleted', {
-        'contact_id': contactId,
-      });
-      return true;
+      return await _unifiedDataService.deleteCrmContact(contactId);
     } catch (e) {
       ErrorHandler.handleError('Failed to delete contact: $e');
       return false;
@@ -127,8 +114,17 @@ class DataService {
 
   Future<List<Map<String, dynamic>>> searchContacts(String query) async {
     try {
-      // For now, return empty list until CRM tables are added
-      return [];
+      final contacts = await _unifiedDataService.getCrmContacts();
+      return contacts.where((contact) {
+        final name = contact['name']?.toString().toLowerCase() ?? '';
+        final company = contact['company']?.toString().toLowerCase() ?? '';
+        final email = contact['email']?.toString().toLowerCase() ?? '';
+        final searchQuery = query.toLowerCase();
+        
+        return name.contains(searchQuery) || 
+               company.contains(searchQuery) || 
+               email.contains(searchQuery);
+      }).toList();
     } catch (e) {
       ErrorHandler.handleError('Failed to search contacts: $e');
       return [];
@@ -213,11 +209,10 @@ class DataService {
     }
   }
 
-  /// Course Data Operations - Using analytics tracking for now
+  /// Course Data Operations - Using Supabase
   Future<List<Map<String, dynamic>>> getCourses() async {
     try {
-      // For now, return empty list until course tables are added
-      return [];
+      return await _unifiedDataService.getCourses();
     } catch (e) {
       ErrorHandler.handleError('Failed to get courses: $e');
       return [];
@@ -226,9 +221,7 @@ class DataService {
 
   Future<bool> createCourse(Map<String, dynamic> courseData) async {
     try {
-      // Track as analytics event for now
-      await _unifiedDataService.trackAnalyticsEvent('course_created', courseData);
-      return true;
+      return await _unifiedDataService.createCourse(courseData);
     } catch (e) {
       ErrorHandler.handleError('Failed to create course: $e');
       return false;
@@ -262,7 +255,7 @@ class DataService {
     }
   }
 
-  /// Hashtag Research Operations - Using analytics tracking
+  /// Hashtag Research Operations - Using Supabase
   Future<List<Map<String, dynamic>>> getHashtagSuggestions(String query) async {
     try {
       // Track search query for analytics
@@ -270,8 +263,12 @@ class DataService {
         'query': query,
       });
       
-      // Return empty list for now - this would connect to social media APIs
-      return [];
+      // Get hashtags from Supabase
+      final hashtags = await _unifiedDataService.getTrendingHashtags();
+      return hashtags.where((hashtag) {
+        final tag = hashtag['hashtag']?.toString().toLowerCase() ?? '';
+        return tag.contains(query.toLowerCase());
+      }).toList();
     } catch (e) {
       ErrorHandler.handleError('Failed to get hashtag suggestions: $e');
       return [];
@@ -280,27 +277,17 @@ class DataService {
 
   Future<List<Map<String, dynamic>>> getTrendingHashtags() async {
     try {
-      // Track trending hashtags request
-      await _unifiedDataService.trackAnalyticsEvent('trending_hashtags_viewed', {});
-      
-      // Return empty list for now - this would connect to social media APIs
-      return [];
+      return await _unifiedDataService.getTrendingHashtags();
     } catch (e) {
       ErrorHandler.handleError('Failed to get trending hashtags: $e');
       return [];
     }
   }
 
-  /// Template Operations - Using analytics tracking
+  /// Template Operations - Using Supabase
   Future<List<Map<String, dynamic>>> getTemplates(String category) async {
     try {
-      // Track template category view
-      await _unifiedDataService.trackAnalyticsEvent('templates_viewed', {
-        'category': category,
-      });
-      
-      // Return empty list for now - this would connect to template database
-      return [];
+      return await _unifiedDataService.getContentTemplates(category: category);
     } catch (e) {
       ErrorHandler.handleError('Failed to get templates: $e');
       return [];
@@ -309,11 +296,28 @@ class DataService {
 
   Future<bool> saveTemplate(Map<String, dynamic> templateData) async {
     try {
-      // Track template save
-      await _unifiedDataService.trackAnalyticsEvent('template_saved', templateData);
-      return true;
+      return await _unifiedDataService.createContentTemplate(templateData);
     } catch (e) {
       ErrorHandler.handleError('Failed to save template: $e');
+      return false;
+    }
+  }
+
+  /// Link in Bio Template Operations - Using Supabase
+  Future<List<Map<String, dynamic>>> getLinkInBioTemplates({String? category}) async {
+    try {
+      return await _unifiedDataService.getLinkInBioTemplates(category: category);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get link in bio templates: $e');
+      return [];
+    }
+  }
+
+  Future<bool> saveLinkInBioTemplate(Map<String, dynamic> templateData) async {
+    try {
+      return await _unifiedDataService.createLinkInBioTemplate(templateData);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to save link in bio template: $e');
       return false;
     }
   }
@@ -339,6 +343,35 @@ class DataService {
       return [];
     } catch (e) {
       ErrorHandler.handleError('Failed to get email campaigns: $e');
+      return [];
+    }
+  }
+
+  /// Recent Activities Operations - Using Supabase
+  Future<List<Map<String, dynamic>>> getRecentActivities() async {
+    try {
+      return await _unifiedDataService.getRecentActivities();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get recent activities: $e');
+      return [];
+    }
+  }
+
+  Future<bool> createRecentActivity(Map<String, dynamic> activityData) async {
+    try {
+      return await _unifiedDataService.createRecentActivity(activityData);
+    } catch (e) {
+      ErrorHandler.handleError('Failed to create recent activity: $e');
+      return false;
+    }
+  }
+
+  /// Workspace Metrics Operations - Using Supabase
+  Future<List<Map<String, dynamic>>> getWorkspaceMetrics() async {
+    try {
+      return await _unifiedDataService.getWorkspaceMetrics();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to get workspace metrics: $e');
       return [];
     }
   }

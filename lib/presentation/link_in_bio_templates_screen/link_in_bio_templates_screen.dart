@@ -25,6 +25,12 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
   List<String> _selectedFilters = [];
   bool _showFavorites = false;
   String _selectedTemplate = '';
+  bool _isLoading = false;
+
+  // Remove hard-coded data and use Supabase service
+  List<Map<String, dynamic>> _templates = [];
+  List<Map<String, dynamic>> _favoriteTemplates = [];
+  final DataService _dataService = DataService();
   
   final List<String> _categories = [
     'All',
@@ -66,6 +72,34 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
     _tabController = TabController(length: 3, vsync: this);
     _scrollController = ScrollController();
     _selectedCategories = ['All'];
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      await _dataService.initialize();
+      await _loadTemplatesFromSupabase();
+    } catch (e) {
+      ErrorHandler.handleError('Failed to initialize link in bio templates: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadTemplatesFromSupabase() async {
+    try {
+      final templates = await _dataService.getLinkInBioTemplates();
+      setState(() {
+        _templates = templates;
+        _favoriteTemplates = _templates
+            .where((template) => template['is_favorite'] == true)
+            .toList();
+      });
+    } catch (e) {
+      ErrorHandler.handleError('Failed to load link in bio templates: $e');
+    }
   }
 
   @override
@@ -76,31 +110,36 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
   }
 
   void _showTemplatePreview(String templateId) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => TemplatePreviewModalWidget(
-        templateId: templateId,
-        onUseTemplate: (id) {
-          Navigator.pop(context);
-          _useTemplate(id);
-        },
-        onCustomize: (id) {
-          Navigator.pop(context);
-          _customizeTemplate(id);
-        },
-      ),
-    );
+    final template = _templates.firstWhere((t) => t['id'] == templateId, orElse: () => {});
+    if (template.isNotEmpty) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => TemplatePreviewModalWidget(
+          templateId: templateId,
+          onUseTemplate: (id) {
+            Navigator.pop(context);
+            _useTemplate(id);
+          },
+          onCustomize: (id) {
+            Navigator.pop(context);
+            _customizeTemplate(id);
+          }));
+    }
   }
 
-  void _useTemplate(String templateId) {
+  void _useTemplate(String templateId) async {
+    // Track template usage
+    await _dataService.trackEvent('link_in_bio_template_used', {
+      'template_id': templateId,
+    });
+    
     // Navigate to bio builder with template
     Navigator.pushNamed(
       context,
       routes.AppRoutes.linkInBio,
-      arguments: {'templateId': templateId},
-    );
+      arguments: {'templateId': templateId});
   }
 
   void _customizeTemplate(String templateId) {
@@ -113,12 +152,16 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
         onApplyChanges: (id, customizations) {
           Navigator.pop(context);
           _applyCustomizations(id, customizations);
-        },
-      ),
-    );
+        }));
   }
 
-  void _applyCustomizations(String templateId, Map<String, dynamic> customizations) {
+  void _applyCustomizations(String templateId, Map<String, dynamic> customizations) async {
+    // Track customization
+    await _dataService.trackEvent('link_in_bio_template_customized', {
+      'template_id': templateId,
+      'customizations': customizations,
+    });
+    
     // Apply customizations and navigate to bio builder
     Navigator.pushNamed(
       context,
@@ -126,8 +169,7 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
       arguments: {
         'templateId': templateId,
         'customizations': customizations,
-      },
-    );
+      });
   }
 
   void _showTemplateAnalytics(String templateId) {
@@ -136,9 +178,34 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => TemplateAnalyticsWidget(
-        templateId: templateId,
-      ),
-    );
+        templateId: templateId));
+  }
+
+  List<Map<String, dynamic>> get filteredTemplates {
+    return _templates.where((template) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          template['title']?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
+          template['description']?.toLowerCase().contains(_searchQuery.toLowerCase()) == true;
+
+      final matchesCategory = _selectedCategories.contains('All') ||
+          _selectedCategories.contains(template['category']);
+
+      final matchesFilters = _selectedFilters.isEmpty ||
+          _selectedFilters.any((filter) {
+            switch (filter) {
+              case 'Free':
+                return template['is_premium'] == false;
+              case 'Premium':
+                return template['is_premium'] == true;
+              case 'Most Popular':
+                return (template['usage_count'] ?? 0) > 50;
+              default:
+                return template['style_theme']?.toLowerCase().contains(filter.toLowerCase()) == true;
+            }
+          });
+
+      return matchesSearch && matchesCategory && matchesFilters;
+    }).toList();
   }
 
   @override
@@ -156,10 +223,7 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
                 border: Border(
                   bottom: BorderSide(
                     color: AppTheme.border,
-                    width: 1,
-                  ),
-                ),
-              ),
+                    width: 1))),
               child: Column(
                 children: [
                   Row(
@@ -170,23 +234,17 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: AppTheme.surface,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                            borderRadius: BorderRadius.circular(10)),
                           child: const Icon(
                             Icons.arrow_back_ios,
                             color: AppTheme.primaryText,
-                            size: 18,
-                          ),
-                        ),
-                      ),
+                            size: 18))),
                       const SizedBox(width: 16),
                       Text(
                         'Link in Bio Templates',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: AppTheme.primaryText,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                          fontWeight: FontWeight.w600)),
                       const Spacer(),
                       GestureDetector(
                         onTap: () => setState(() => _showFavorites = !_showFavorites),
@@ -194,28 +252,20 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: _showFavorites ? AppTheme.accent : AppTheme.surface,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                            borderRadius: BorderRadius.circular(10)),
                           child: Icon(
                             Icons.favorite,
                             color: _showFavorites ? AppTheme.primaryText : AppTheme.secondaryText,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                            size: 18))),
+                    ]),
                   const SizedBox(height: 16),
                   // Search bar
                   TemplateSearchWidget(
                     searchQuery: _searchQuery,
                     onSearchChanged: (query) {
                       setState(() => _searchQuery = query);
-                    },
-                  ),
-                ],
-              ),
-            ),
+                    }),
+                ])),
             
             // Tab bar for browsing modes
             Container(
@@ -227,86 +277,79 @@ class _LinkInBioTemplatesScreenState extends State<LinkInBioTemplatesScreen> wit
                 unselectedLabelColor: AppTheme.secondaryText,
                 indicatorSize: TabBarIndicatorSize.label,
                 labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                  fontWeight: FontWeight.w500),
                 tabs: const [
                   Tab(text: 'Browse'),
                   Tab(text: 'Categories'),
                   Tab(text: 'Favorites'),
-                ],
-              ),
-            ),
+                ])),
             
             // Content area
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Browse tab
-                  Column(
-                    children: [
-                      // Filters
-                      TemplateFilterWidget(
-                        selectedFilters: _selectedFilters,
-                        filterOptions: _filterOptions,
-                        onFiltersChanged: (filters) {
-                          setState(() => _selectedFilters = filters);
-                        },
-                      ),
-                      
-                      // Template gallery
-                      Expanded(
-                        child: TemplateGalleryWidget(
-                          searchQuery: _searchQuery,
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent)))
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Browse tab
+                        Column(
+                          children: [
+                            // Filters
+                            TemplateFilterWidget(
+                              selectedFilters: _selectedFilters,
+                              filterOptions: _filterOptions,
+                              onFiltersChanged: (filters) {
+                                setState(() => _selectedFilters = filters);
+                              }),
+                            
+                            // Template gallery
+                            Expanded(
+                              child: TemplateGalleryWidget(
+                                searchQuery: _searchQuery,
+                                selectedCategories: _selectedCategories,
+                                selectedFilters: _selectedFilters,
+                                
+                                onTemplatePreview: _showTemplatePreview,
+                                onTemplateUse: _useTemplate,
+                                onTemplateCustomize: _customizeTemplate,
+                                onTemplateAnalytics: _showTemplateAnalytics)),
+                          ]),
+                        
+                        // Categories tab
+                        TemplateCategoriesWidget(
+                          categories: _categories,
                           selectedCategories: _selectedCategories,
-                          selectedFilters: _selectedFilters,
+                          
+                          onCategorySelected: (category) {
+                            setState(() {
+                              if (category == 'All') {
+                                _selectedCategories = ['All'];
+                              } else {
+                                _selectedCategories.remove('All');
+                                if (_selectedCategories.contains(category)) {
+                                  _selectedCategories.remove(category);
+                                } else {
+                                  _selectedCategories.add(category);
+                                }
+                                if (_selectedCategories.isEmpty) {
+                                  _selectedCategories = ['All'];
+                                }
+                              }
+                            });
+                          },
+                          onTemplatePreview: _showTemplatePreview,
+                          onTemplateUse: _useTemplate),
+                        
+                        // Favorites tab
+                        FavoritesTemplatesWidget(
+                          searchQuery: _searchQuery,
+                          
                           onTemplatePreview: _showTemplatePreview,
                           onTemplateUse: _useTemplate,
-                          onTemplateCustomize: _customizeTemplate,
-                          onTemplateAnalytics: _showTemplateAnalytics,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  // Categories tab
-                  TemplateCategoriesWidget(
-                    categories: _categories,
-                    selectedCategories: _selectedCategories,
-                    onCategorySelected: (category) {
-                      setState(() {
-                        if (category == 'All') {
-                          _selectedCategories = ['All'];
-                        } else {
-                          _selectedCategories.remove('All');
-                          if (_selectedCategories.contains(category)) {
-                            _selectedCategories.remove(category);
-                          } else {
-                            _selectedCategories.add(category);
-                          }
-                          if (_selectedCategories.isEmpty) {
-                            _selectedCategories = ['All'];
-                          }
-                        }
-                      });
-                    },
-                    onTemplatePreview: _showTemplatePreview,
-                    onTemplateUse: _useTemplate,
-                  ),
-                  
-                  // Favorites tab
-                  FavoritesTemplatesWidget(
-                    searchQuery: _searchQuery,
-                    onTemplatePreview: _showTemplatePreview,
-                    onTemplateUse: _useTemplate,
-                    onTemplateCustomize: _customizeTemplate,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                          onTemplateCustomize: _customizeTemplate),
+                      ])),
+          ])));
   }
 }
