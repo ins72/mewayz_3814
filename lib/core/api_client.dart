@@ -114,7 +114,9 @@ class ApiClient {
       
       return true;
     } catch (e) {
-      await _storageService.clearAuthData();
+      // Remove the undefined method and use available methods to clear tokens
+      await _storageService.saveAuthToken('');
+      await _storageService.saveRefreshToken('');
       return false;
     }
   }

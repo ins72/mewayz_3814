@@ -1,4 +1,3 @@
-
 import '../../../core/app_export.dart';
 
 class RegistrationFormWidget extends StatelessWidget {
@@ -181,7 +180,7 @@ class RegistrationFormWidget extends StatelessWidget {
             isLoading: isLoading,
             isEnabled: isFormValid && !isLoading,
             onPressed: isFormValid && !isLoading ? () => onRegister() : () {},
-            buttonType: ButtonType.Primary),
+            buttonType: ButtonType.primary),
         ]));
   }
 }

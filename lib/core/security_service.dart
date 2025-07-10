@@ -583,7 +583,7 @@ class SecurityService {
       };
 
       // Store security event using available methods
-      await _storageService.save('security_event_${DateTime.now().millisecondsSinceEpoch}', jsonEncode(logData));
+      await _storageService.saveData('security_event_${DateTime.now().millisecondsSinceEpoch}', jsonEncode(logData));
       
       if (kDebugMode) {
         debugPrint('Security event logged: $event');

@@ -78,7 +78,7 @@ class AuthService {
       if (didAuthenticate) {
         // Check if user has stored session
         final StorageService storageService = StorageService();
-        final userData = await storageService.getUserData();
+        final userData = await storageService.getUser();
         
         if (userData != null && userData['biometric_enabled'] == true) {
           // Log security event
@@ -119,11 +119,11 @@ class AuthService {
       if (didAuthenticate) {
         // Save biometric preference
         final StorageService storageService = StorageService();
-        final userData = await storageService.getUserData();
+        final userData = await storageService.getUser();
         
         if (userData != null) {
           userData['biometric_enabled'] = true;
-          await storageService.saveUserData(userData);
+          await storageService.saveUser(userData);
           
           // Log security event
           await _logSecurityEvent(
@@ -149,11 +149,11 @@ class AuthService {
       await _ensureInitialized();
       
       final StorageService storageService = StorageService();
-      final userData = await storageService.getUserData();
+      final userData = await storageService.getUser();
       
       if (userData != null) {
         userData['biometric_enabled'] = false;
-        await storageService.saveUserData(userData);
+        await storageService.saveUser(userData);
         
         // Log security event
         await _logSecurityEvent(
@@ -210,12 +210,9 @@ class AuthService {
       if (response.user != null) {
         debugPrint('User signed up successfully: ${response.user!.email}');
         
-        // Send email verification
-        await _sendEmailVerification(response.user!.id);
-        
         // Save user data to local storage
         final storageService = StorageService();
-        await storageService.saveUserData({
+        await storageService.saveUser({
           'id': response.user!.id,
           'email': response.user!.email,
           'full_name': fullName,
@@ -320,7 +317,7 @@ class AuthService {
         
         // Save user data to local storage with persistent session
         final storageService = StorageService();
-        await storageService.saveUserData({
+        await storageService.saveUser({
           'id': response.user!.id,
           'email': response.user!.email,
           'full_name': response.user!.userMetadata?['full_name'] ?? '',
@@ -411,7 +408,7 @@ class AuthService {
       
       // Check stored session
       final StorageService storageService = StorageService();
-      final userData = await storageService.getUserData();
+      final userData = await storageService.getUser();
       
       return userData != null && userData['logged_in'] == true;
     } catch (e) {
@@ -450,7 +447,7 @@ class AuthService {
         
         // Save user data with persistent session
         final storageService = StorageService();
-        await storageService.saveUserData({
+        await storageService.saveUser({
           'id': response.user!.id,
           'email': response.user!.email,
           'full_name': response.user!.userMetadata?['full_name'] ?? googleUser.displayName ?? '',
@@ -522,7 +519,7 @@ class AuthService {
         
         // Save user data with persistent session
         final storageService = StorageService();
-        await storageService.saveUserData({
+        await storageService.saveUser({
           'id': response.user!.id,
           'email': response.user!.email,
           'full_name': response.user!.userMetadata?['full_name'] ?? 
@@ -577,7 +574,7 @@ class AuthService {
       
       // Clear user data from local storage
       final storageService = StorageService();
-      await storageService.clearAuthData();
+      await storageService.clearUser();
       
       // Sign out from Google
       await _googleSignIn.signOut();
@@ -638,10 +635,10 @@ class AuthService {
       if (result == true) {
         // Update local storage
         final storageService = StorageService();
-        final userData = await storageService.getUserData();
+        final userData = await storageService.getUser();
         if (userData != null) {
           userData['email_verified'] = true;
-          await storageService.saveUserData(userData);
+          await storageService.saveUser(userData);
         }
         
         // Log security event

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-enum MemberRole { owner, admin, manager, member, viewer }
+import '../../../theme/app_theme.dart';
+import '../../../core/app_constants.dart';
 
 class RoleAssignmentWidget extends StatelessWidget {
   final MemberRole selectedRole;
@@ -16,178 +16,61 @@ class RoleAssignmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Role Assignment',
-          style: GoogleFonts.inter(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFF1F1F1))),
-        SizedBox(height: 1.h),
-        Text(
-          'Select the role for invited team members',
-          style: GoogleFonts.inter(
-            fontSize: 12.sp,
-            color: const Color(0xFFF1F1F1).withAlpha(179))),
-        SizedBox(height: 2.h),
-        
-        Container(
-          padding: EdgeInsets.all(3.w),
-          decoration: BoxDecoration(
-            color: const Color(0xFF191919),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF282828),
-              width: 1)),
-          child: Column(
-            children: [
-              _buildRoleOption(
-                MemberRole.admin,
-                'Admin',
-                'Full access to manage workspace and team members',
-                Icons.admin_panel_settings),
-              SizedBox(height: 2.h),
-              _buildRoleOption(
-                MemberRole.manager,
-                'Manager',
-                'Can manage content and invite team members',
-                Icons.supervisor_account),
-              SizedBox(height: 2.h),
-              _buildRoleOption(
-                MemberRole.member,
-                'Member',
-                'Can view and edit workspace content',
-                Icons.person),
-              SizedBox(height: 2.h),
-              _buildRoleOption(
-                MemberRole.viewer,
-                'Viewer',
-                'Can only view workspace content',
-                Icons.visibility),
-            ])),
-        SizedBox(height: 2.h),
-        
-        // Role preview
-        _buildRolePreview(),
-      ]);
-  }
-
-  Widget _buildRoleOption(MemberRole role, String title, String description, IconData icon) {
-    final isSelected = selectedRole == role;
-    
-    return GestureDetector(
-      onTap: () => onRoleChanged(role),
-      child: Container(
-        padding: EdgeInsets.all(3.w),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF282828) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: isSelected 
-              ? Border.all(color: const Color(0xFFFDFDFD), width: 1)
-              : null),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? const Color(0xFFFDFDFD) : const Color(0xFFF1F1F1).withAlpha(179),
-              size: 5.w),
-            SizedBox(width: 3.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFFF1F1F1))),
-                  SizedBox(height: 0.5.h),
-                  Text(
-                    description,
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      color: const Color(0xFFF1F1F1).withAlpha(179))),
-                ])),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: const Color(0xFFFDFDFD),
-                size: 5.w),
-          ])));
-  }
-
-  Widget _buildRolePreview() {
     return Container(
-      padding: EdgeInsets.all(3.w),
+      padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF191919),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF282828),
-          width: 1)),
+        borderRadius: BorderRadius.circular(2.w),
+        border: Border.all(),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Invitation Preview',
-            style: GoogleFonts.inter(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFFF1F1F1))),
-          SizedBox(height: 1.h),
-          Text(
-            'Invitees will receive an email with:',
-            style: GoogleFonts.inter(
-              fontSize: 12.sp,
-              color: const Color(0xFFF1F1F1).withAlpha(179))),
-          SizedBox(height: 1.h),
-          Row(
-            children: [
-              Icon(
-                Icons.star,
-                color: const Color(0xFFFDFDFD),
-                size: 4.w),
-              SizedBox(width: 2.w),
-              Text(
-                'Role: ${selectedRole.toString().split('.').last}',
-                style: GoogleFonts.inter(
-                  fontSize: 12.sp,
-                  color: const Color(0xFFF1F1F1))),
-            ]),
-          SizedBox(height: 0.5.h),
-          Row(
-            children: [
-              Icon(
-                Icons.security,
-                color: const Color(0xFFFDFDFD),
-                size: 4.w),
-              SizedBox(width: 2.w),
-              Text(
-                'Permissions: ${_getRolePermissions(selectedRole)}',
-                style: GoogleFonts.inter(
-                  fontSize: 12.sp,
-                  color: const Color(0xFFF1F1F1))),
-            ]),
-        ]));
+            'Role Assignment',
+            style: AppTheme.darkTheme.textTheme.titleMedium?.copyWith(
+              color: AppTheme.primaryText,
+              fontWeight: FontWeight.w600)),
+          SizedBox(height: 3.w),
+          ...MemberRole.values.map((role) => _buildRoleOption(role)),
+        ],
+      ),
+    );
   }
 
-  String _getRolePermissions(MemberRole role) {
+  Widget _buildRoleOption(MemberRole role) {
+    return RadioListTile<MemberRole>(
+      title: Text(
+        role.displayName.toUpperCase(),
+        style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+          color: AppTheme.primaryText)),
+      subtitle: Text(
+        _getRoleDescription(role),
+        style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+          color: AppTheme.secondaryText)),
+      value: role,
+      groupValue: selectedRole,
+      onChanged: (MemberRole? value) {
+        if (value != null) {
+          onRoleChanged(value);
+        }
+      },
+      activeColor: AppTheme.accent);
+  }
+
+  String _getRoleDescription(MemberRole role) {
     switch (role) {
       case MemberRole.owner:
-        return 'Full control';
+        return 'Full access to all workspace features and settings';
       case MemberRole.admin:
-        return 'Manage all';
+        return 'Manage workspace settings and team members';
       case MemberRole.manager:
-        return 'Edit & invite';
+        return 'Manage team content and moderate permissions';
       case MemberRole.member:
-        return 'View & edit';
+        return 'Create and manage content, limited settings access';
       case MemberRole.viewer:
-        return 'View only';
-      default:
-        return 'No permissions';
+        return 'View-only access to workspace content';
     }
   }
 }
+
+// Remove duplicate enum definition - using the one from app_constants.dart

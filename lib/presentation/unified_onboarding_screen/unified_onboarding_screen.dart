@@ -146,7 +146,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
   Future<void> _checkOnboardingCompletion() async {
     final storageService = StorageService();
-    final isCompleted = await storageService.get('onboarding_completed') == 'true';
+    final isCompleted = await storageService.getValue('onboarding_completed') == 'true';
     
     if (isCompleted) {
       Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
@@ -258,7 +258,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
 
     try {
       final storageService = StorageService();
-      await storageService.save('onboarding_completed', 'true');
+      await storageService.setValue('onboarding_completed', 'true');
       await _onboardingService.completeOnboarding();
       
       HapticFeedback.heavyImpact();

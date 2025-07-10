@@ -85,7 +85,6 @@ Future<void> _initializeAuthService() async {
 Future<void> _initializeStorage() async {
   try {
     final storageService = StorageService();
-    await storageService.initialize();
     if (ProductionConfig.enableLogging) {
       debugPrint('✅ Storage service initialized');
     }

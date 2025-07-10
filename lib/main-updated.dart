@@ -1,12 +1,14 @@
-import 'dart:async';
-import 'dart:html' as html;
-import 'dart:js_interop';
-
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'dart:js_interop';
 import 'package:web/web.dart' as web;
+import 'dart:async';
+import 'custom_inspector.dart';
+import 'dart:html' as html;
+import 'dart:convert';
 
 import '../core/app_export.dart';
-import './custom_inspector.dart';
 import './routes/app_routes.dart' as app_routes;
 import './services/production_data_sync_service.dart';
 import './services/unified_data_service.dart';
@@ -97,7 +99,6 @@ Future<void> _initializeAuthService() async {
 Future<void> _initializeStorage() async {
   try {
     final storageService = StorageService();
-    await storageService.initialize();
     if (ProductionConfig.enableLogging) {
       debugPrint('✅ Storage service initialized');
     }
@@ -748,3 +749,4 @@ class _TrackingWidgetState extends State<TrackingWidget> {
     );
   }
 }
+

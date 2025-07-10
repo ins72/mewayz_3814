@@ -53,18 +53,17 @@ class _NotificationSettingsScreenState
         
         // Load notification settings
         final settings = await _notificationService.getNotificationSettings(
-          _currentUserId!,
-          _currentWorkspaceId!,
-        );
+          _currentUserId!);
         
         setState(() {
-          _notificationSettings = Map<String, Map<String, bool>>.from(
-            settings['notification_settings'] ?? {},
-          );
-          _quietHoursEnabled = settings['quiet_hours_enabled'] ?? false;
-          _quietHoursStart = _parseTime(settings['quiet_hours_start'] ?? '22:00') ?? TimeOfDay(hour: 22, minute: 0);
-          _quietHoursEnd = _parseTime(settings['quiet_hours_end'] ?? '08:00') ?? TimeOfDay(hour: 8, minute: 0);
-          _selectedTimezone = settings['timezone'] ?? 'UTC';
+          if (settings != null) {
+            _notificationSettings = Map<String, Map<String, bool>>.from(
+              settings['notification_settings'] ?? {});
+            _quietHoursEnabled = settings['quiet_hours_enabled'] ?? false;
+            _quietHoursStart = _parseTime(settings['quiet_hours_start'] ?? '22:00') ?? TimeOfDay(hour: 22, minute: 0);
+            _quietHoursEnd = _parseTime(settings['quiet_hours_end'] ?? '08:00') ?? TimeOfDay(hour: 8, minute: 0);
+            _selectedTimezone = settings['timezone'] ?? 'UTC';
+          }
         });
       }
     } catch (e) {
@@ -136,35 +135,25 @@ class _NotificationSettingsScreenState
           'Reset to Defaults',
           style: GoogleFonts.inter(
             color: AppTheme.primaryText,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+            fontWeight: FontWeight.w600)),
         content: Text(
           'Are you sure you want to reset all notification settings to their default values?',
           style: GoogleFonts.inter(
-            color: AppTheme.secondaryText,
-          ),
-        ),
+            color: AppTheme.secondaryText)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
               style: GoogleFonts.inter(
-                color: AppTheme.secondaryText,
-              ),
-            ),
-          ),
+                color: AppTheme.secondaryText))),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _resetSettings();
             },
-            child: Text('Reset'),
-          ),
-        ],
-      ),
-    );
+            child: Text('Reset')),
+        ]));
   }
 
   void _resetSettings() {
@@ -180,9 +169,7 @@ class _NotificationSettingsScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Notification settings reset to defaults'),
-        backgroundColor: AppTheme.success,
-      ),
-    );
+        backgroundColor: AppTheme.success));
   }
 
   Future<void> _saveChanges() async {
@@ -190,9 +177,7 @@ class _NotificationSettingsScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Unable to save settings. Please try again.'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+          backgroundColor: AppTheme.error));
       return;
     }
 
@@ -203,21 +188,16 @@ class _NotificationSettingsScreenState
     try {
       final success = await _notificationService.updateNotificationSettings(
         _currentUserId!,
-        _currentWorkspaceId!,
-        _notificationSettings,
-        quietHoursEnabled: _quietHoursEnabled,
-        quietHoursStart: '${_quietHoursStart.hour.toString().padLeft(2, '0')}:${_quietHoursStart.minute.toString().padLeft(2, '0')}',
-        quietHoursEnd: '${_quietHoursEnd.hour.toString().padLeft(2, '0')}:${_quietHoursEnd.minute.toString().padLeft(2, '0')}',
-        timezone: _selectedTimezone,
-      );
+        {
+          'workspace_id': _currentWorkspaceId!,
+          'notification_settings': _notificationSettings
+        });
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Notification settings saved successfully'),
-            backgroundColor: AppTheme.success,
-          ),
-        );
+            backgroundColor: AppTheme.success));
         setState(() {
           _hasChanges = false;
         });
@@ -225,9 +205,7 @@ class _NotificationSettingsScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save notification settings'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+            backgroundColor: AppTheme.error));
       }
     } catch (e) {
       if (kDebugMode) {
@@ -236,9 +214,7 @@ class _NotificationSettingsScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving notification settings'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+          backgroundColor: AppTheme.error));
     } finally {
       setState(() {
         _isLoading = false;
@@ -275,16 +251,13 @@ class _NotificationSettingsScreenState
             Container(
               color: AppTheme.primaryBackground.withAlpha(204),
               child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
+                child: CircularProgressIndicator())),
           
           // Main content
           SingleChildScrollView(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 60,
-              bottom: 24,
-            ),
+              bottom: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -298,8 +271,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('workspace', type, value),
                   onEnableAll: () => _enableAllCategory('workspace'),
-                  onDisableAll: () => _disableAllCategory('workspace'),
-                ),
+                  onDisableAll: () => _disableAllCategory('workspace')),
 
                 const SizedBox(height: 16),
 
@@ -313,8 +285,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('social_media', type, value),
                   onEnableAll: () => _enableAllCategory('social_media'),
-                  onDisableAll: () => _disableAllCategory('social_media'),
-                ),
+                  onDisableAll: () => _disableAllCategory('social_media')),
 
                 const SizedBox(height: 16),
 
@@ -328,8 +299,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('crm', type, value),
                   onEnableAll: () => _enableAllCategory('crm'),
-                  onDisableAll: () => _disableAllCategory('crm'),
-                ),
+                  onDisableAll: () => _disableAllCategory('crm')),
 
                 const SizedBox(height: 16),
 
@@ -343,8 +313,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('courses', type, value),
                   onEnableAll: () => _enableAllCategory('courses'),
-                  onDisableAll: () => _disableAllCategory('courses'),
-                ),
+                  onDisableAll: () => _disableAllCategory('courses')),
 
                 const SizedBox(height: 16),
 
@@ -358,8 +327,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('marketplace', type, value),
                   onEnableAll: () => _enableAllCategory('marketplace'),
-                  onDisableAll: () => _disableAllCategory('marketplace'),
-                ),
+                  onDisableAll: () => _disableAllCategory('marketplace')),
 
                 const SizedBox(height: 16),
 
@@ -373,8 +341,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('financial', type, value),
                   onEnableAll: () => _enableAllCategory('financial'),
-                  onDisableAll: () => _disableAllCategory('financial'),
-                ),
+                  onDisableAll: () => _disableAllCategory('financial')),
 
                 const SizedBox(height: 16),
 
@@ -388,8 +355,7 @@ class _NotificationSettingsScreenState
                   onSettingChanged: (type, value) =>
                       _onSettingChanged('system', type, value),
                   onEnableAll: () => _enableAllCategory('system'),
-                  onDisableAll: () => _disableAllCategory('system'),
-                ),
+                  onDisableAll: () => _disableAllCategory('system')),
 
                 const SizedBox(height: 32),
 
@@ -399,20 +365,16 @@ class _NotificationSettingsScreenState
                   startTime: _quietHoursStart,
                   endTime: _quietHoursEnd,
                   selectedTimezone: _selectedTimezone,
-                  onChanged: _onQuietHoursChanged,
-                ),
+                  onChanged: _onQuietHoursChanged),
 
                 const SizedBox(height: 32),
 
                 // Notification Preview
                 NotificationPreviewWidget(
-                  notificationSettings: _notificationSettings,
-                ),
+                  notificationSettings: _notificationSettings),
 
                 const SizedBox(height: 100),
-              ],
-            ),
-          ),
+              ])),
 
           // Header with reset button
           Positioned(
@@ -426,10 +388,7 @@ class _NotificationSettingsScreenState
                 border: Border(
                   bottom: BorderSide(
                     color: AppTheme.border,
-                    width: 1,
-                  ),
-                ),
-              ),
+                    width: 1))),
               child: SafeArea(
                 child: Row(
                   children: [
@@ -438,19 +397,14 @@ class _NotificationSettingsScreenState
                       icon: Icon(
                         Icons.arrow_back_ios,
                         color: AppTheme.primaryText,
-                        size: 20,
-                      ),
-                    ),
+                        size: 20)),
                     Expanded(
                       child: Text(
                         'Notification Settings',
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryText,
-                        ),
-                      ),
-                    ),
+                          color: AppTheme.primaryText))),
                     TextButton(
                       onPressed: _resetToDefaults,
                       child: Text(
@@ -458,10 +412,7 @@ class _NotificationSettingsScreenState
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: AppTheme.accent,
-                        ),
-                      ),
-                    ),
+                          color: AppTheme.accent))),
                     const SizedBox(width: 8),
                     AnimatedContainer(
                       duration: Duration(milliseconds: 300),
@@ -477,26 +428,14 @@ class _NotificationSettingsScreenState
                           padding:
                               EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                            borderRadius: BorderRadius.circular(8))),
                         child: Text(
                           'Save',
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
+                            fontWeight: FontWeight.w500)))),
                     const SizedBox(width: 16),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+                  ])))),
+        ]));
   }
 }

@@ -459,7 +459,7 @@ class UnifiedDataService {
       }
 
       if (unreadOnly == true) {
-        query = query.is_('read_at', null);
+        query = query.isFilter('read_at', null);
       }
 
       final response = await query

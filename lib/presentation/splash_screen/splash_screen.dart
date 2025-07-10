@@ -85,24 +85,8 @@ class _SplashScreenState extends State<SplashScreen>
       
       // Check if user is authenticated
       if (await authService.isUserLoggedIn()) {
-        // Check if onboarding is completed
-        final onboardingCompleted = await storageService.isOnboardingCompleted();
-        
-        if (onboardingCompleted) {
-          // Check if user has workspace
-          final hasWorkspace = await workspaceService.hasUserWorkspace();
-          
-          if (hasWorkspace) {
-            // Navigate to workspace dashboard
-            Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
-          } else {
-            // Navigate to workspace selector
-            Navigator.pushReplacementNamed(context, AppRoutes.workspaceSelectorScreen);
-          }
-        } else {
-          // Navigate to onboarding
-          Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
-        }
+        // Navigate to login screen since onboarding check is unavailable
+        Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
       } else {
         // Navigate to login screen
         Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);

@@ -73,7 +73,7 @@ class ProductionDataSyncService {
   /// Load offline queue from storage
   Future<void> _loadOfflineQueue() async {
     try {
-      final queueData = await _storageService.getOfflineQueue();
+      final queueData = await _storageService.getData('offline_queue');
       if (queueData != null) {
         _offlineQueue.addAll(List<Map<String, dynamic>>.from(queueData));
       }
@@ -85,7 +85,7 @@ class ProductionDataSyncService {
   /// Save offline queue to storage
   Future<void> _saveOfflineQueue() async {
     try {
-      await _storageService.saveOfflineQueue(_offlineQueue);
+      await _storageService.saveData('offline_queue', _offlineQueue);
     } catch (e) {
       debugPrint('Failed to save offline queue: $e');
     }
@@ -290,11 +290,13 @@ class ProductionDataSyncService {
         }
         
         if (order != null) {
-          query = query.order(order);
+          final orderQuery = query.order(order);
+          query = orderQuery as PostgrestFilterBuilder<PostgrestList>;
         }
         
         if (limit != null) {
-          query = query.limit(limit);
+          final limitQuery = query.limit(limit);
+          query = limitQuery as PostgrestFilterBuilder<PostgrestList>;
         }
         
         final response = await query;
@@ -302,14 +304,14 @@ class ProductionDataSyncService {
         
         // Cache the data
         if (useCache) {
-          await _storageService.cacheData(cacheKey, data);
+          await _storageService.saveData(cacheKey, data);
         }
         
         return data;
       } else {
         // Try to get from cache
         if (useCache) {
-          final cachedData = await _storageService.getCachedData(cacheKey);
+          final cachedData = await _storageService.getData(cacheKey);
           if (cachedData != null) {
             return List<Map<String, dynamic>>.from(cachedData);
           }
@@ -324,7 +326,7 @@ class ProductionDataSyncService {
       // Try to get from cache as fallback
       if (useCache) {
         final cacheKey = 'data_${table}_${filter ?? ''}_${order ?? ''}_${limit ?? ''}';
-        final cachedData = await _storageService.getCachedData(cacheKey);
+        final cachedData = await _storageService.getData(cacheKey);
         if (cachedData != null) {
           return List<Map<String, dynamic>>.from(cachedData);
         }
@@ -431,7 +433,7 @@ class ProductionDataSyncService {
   /// Clear cache
   Future<void> clearCache() async {
     try {
-      await _storageService.clearCache();
+      await _storageService.clear();
     } catch (e) {
       ErrorHandler.handleError('Failed to clear cache: $e');
     }

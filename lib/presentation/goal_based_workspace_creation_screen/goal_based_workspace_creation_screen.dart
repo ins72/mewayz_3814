@@ -7,15 +7,6 @@ import './widgets/privacy_settings_widget.dart';
 import './widgets/progress_step_widget.dart';
 import './widgets/workspace_settings_widget.dart';
 
-// Define the WorkspaceGoal enum
-enum WorkspaceGoal {
-  socialMediaManagement,
-  ecommerceBusiness,
-  courseCreation,
-  leadGeneration,
-  allInOneBusiness,
-}
-
 class GoalBasedWorkspaceCreationScreen extends StatefulWidget {
   const GoalBasedWorkspaceCreationScreen({Key? key}) : super(key: key);
 
