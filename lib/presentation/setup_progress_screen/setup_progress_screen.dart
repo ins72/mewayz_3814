@@ -17,7 +17,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
   late AnimationController _fadeAnimationController;
   late Animation<double> _fadeAnimation;
   
-  final OnboardingService _onboardingService = OnboardingService();
+  final OnboardingService _onboardingService = OnboardingService.instance;
   
   List<Map<String, dynamic>> _setupSteps = [];
   Map<String, dynamic>? _onboardingProgress;

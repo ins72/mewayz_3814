@@ -19,9 +19,7 @@ class ButtonService {
   }) async {
     // Check if button is already being processed
     if (_isProcessing[buttonId] == true) {
-      if (ProductionConfig.enableLogging) {
-        debugPrint('ButtonService: Button $buttonId is already being processed');
-      }
+      debugPrint('ButtonService: Button $buttonId is already being processed');
       return;
     }
 
@@ -32,9 +30,7 @@ class ButtonService {
       
       if (lastPressed != null && 
           DateTime.now().difference(lastPressed) < debounceDelay) {
-        if (ProductionConfig.enableLogging) {
-          debugPrint('ButtonService: Button $buttonId is being debounced');
-        }
+        debugPrint('ButtonService: Button $buttonId is being debounced');
         return;
       }
     }
@@ -52,9 +48,7 @@ class ButtonService {
       // Execute button action
       onPressed();
 
-      if (ProductionConfig.enableLogging) {
-        debugPrint('ButtonService: Button $buttonId pressed successfully');
-      }
+      debugPrint('ButtonService: Button $buttonId pressed successfully');
     } catch (error) {
       ErrorHandler.handleError(
         'Button press failed for $buttonId: $error');
@@ -128,9 +122,7 @@ class ButtonService {
           break;
       }
     } catch (error) {
-      if (ProductionConfig.enableLogging) {
-        debugPrint('ButtonService: Haptic feedback failed: $error');
-      }
+      debugPrint('ButtonService: Haptic feedback failed: $error');
     }
   }
 

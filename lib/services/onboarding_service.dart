@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/app_export.dart';
@@ -26,22 +28,27 @@ enum SetupStepStatus {
 }
 
 class OnboardingService {
-  static final OnboardingService _instance = OnboardingService._internal();
-  late final SupabaseClient _client;
+  static OnboardingService? _instance;
+  static OnboardingService get instance => _instance ??= OnboardingService._();
+  
+  OnboardingService._();
 
-  factory OnboardingService() {
-    return _instance;
-  }
-
-  OnboardingService._internal();
+  late SupabaseClient _client;
+  bool _isInitialized = false;
 
   Future<void> initialize() async {
     try {
-      final supabaseService = SupabaseService();
+      developer.log('Initializing Onboarding Service...', name: 'OnboardingService');
+      
+      // Get Supabase client from the service
+      final supabaseService = SupabaseService.instance;
       _client = await supabaseService.client;
-      debugPrint('OnboardingService initialized successfully');
+      
+      _isInitialized = true;
+      developer.log('Onboarding Service initialized successfully', name: 'OnboardingService');
+      
     } catch (e) {
-      ErrorHandler.handleError('Failed to initialize OnboardingService: $e');
+      developer.log('Onboarding Service initialization failed: $e', name: 'OnboardingService');
       rethrow;
     }
   }

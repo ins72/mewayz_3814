@@ -19,7 +19,7 @@ class _PostCreationTeamInvitationScreenState extends State<PostCreationTeamInvit
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
   
-  MemberRole _selectedRole = MemberRole.member;
+  MemberRole _selectedRole = MemberRole.contributor;
   
   final List<String> _invitedEmails = [];
   final List<String> _sentInvitations = [];
@@ -56,7 +56,10 @@ class _PostCreationTeamInvitationScreenState extends State<PostCreationTeamInvit
             children: [
               // Workspace Context Header
               WorkspaceContextHeaderWidget(
-                workspace: {'name': 'Default Workspace', 'id': '1'},
+                workspaceName: 'Workspace Name',
+                workspaceDescription: 'Description',
+                teamSize: '5',
+                onEditWorkspace: () {},
                 goal: WorkspaceGoal.socialMediaManagement),
               
               SizedBox(height: 6.w),
@@ -92,7 +95,7 @@ class _PostCreationTeamInvitationScreenState extends State<PostCreationTeamInvit
               // Goal-Based Role Suggestions
               GoalBasedRoleSuggestionsWidget(
                 goal: WorkspaceGoal.socialMediaManagement,
-                onRoleSelected: (MemberRole role) {
+                onRoleSelected: (role) {
                   setState(() {
                     _selectedRole = role;
                   });

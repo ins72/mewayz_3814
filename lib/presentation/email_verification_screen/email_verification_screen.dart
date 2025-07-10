@@ -76,7 +76,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         // Navigate to onboarding or dashboard
         Navigator.pushNamedAndRemoveUntil(
           context,
-          AppRoutes.onboarding,
+          AppRoutes.onboardingScreen,
           (route) => false);
       } else {
         setState(() {

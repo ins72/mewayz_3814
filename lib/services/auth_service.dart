@@ -8,493 +8,228 @@ import '../core/app_export.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
-  late final SupabaseClient _client;
-  late final GoogleSignIn _googleSignIn;
-  late final LocalAuthentication _localAuth;
-  bool _isInitialized = false;
-
-  factory AuthService() {
-    return _instance;
-  }
-
+  factory AuthService() => _instance;
   AuthService._internal();
 
+  late final SupabaseClient _client;
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  
+  bool _isInitialized = false;
+
+  // Initialize the service
   Future<void> initialize() async {
     if (_isInitialized) return;
     
+    _client = await SupabaseService.instance.client;
+    _isInitialized = true;
+  }
+
+  // Ensure initialization
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+  }
+
+  // Check if user is authenticated
+  bool get isAuthenticated {
     try {
-      final supabaseService = SupabaseService();
-      _client = await supabaseService.client;
+      return _client.auth.currentUser != null;
+    } catch (e) {
+      debugPrint('Error checking authentication status: $e');
+      return false;
+    }
+  }
+
+  // Get current user
+  User? get currentUser {
+    try {
+      return _client.auth.currentUser;
+    } catch (e) {
+      debugPrint('Error getting current user: $e');
+      return null;
+    }
+  }
+
+  // Check if user is logged in (fixed method)
+  Future<bool> isUserLoggedIn() async {
+    await _ensureInitialized();
+    return isAuthenticated;
+  }
+
+  // Add missing verifyEmail method
+  Future<bool> verifyEmail(String verificationCode) async {
+    try {
+      await _ensureInitialized();
       
-      // Initialize Google Sign In
-      _googleSignIn = GoogleSignIn(
-        clientId: ProductionConfig.googleClientId,
-        scopes: ['email', 'profile'],
+      // Get stored email from local storage or use current user email
+      final storage = StorageService();
+      final storedEmail = await storage.getValue('pending_verification_email');
+      
+      if (storedEmail == null) {
+        throw Exception('No email found for verification');
+      }
+      
+      final response = await _client.auth.verifyOTP(
+        email: storedEmail,
+        token: verificationCode,
+        type: OtpType.signup,
       );
       
-      // Initialize Local Authentication
-      _localAuth = LocalAuthentication();
-      
-      _isInitialized = true;
-      debugPrint('AuthService initialized successfully');
-    } catch (e) {
-      ErrorHandler.handleError('Failed to initialize AuthService: $e');
-      rethrow;
-    }
-  }
-
-  // Check if biometric authentication is available
-  Future<bool> isBiometricAvailable() async {
-    try {
-      await _ensureInitialized();
-      final bool isAvailable = await _localAuth.canCheckBiometrics;
-      final bool isDeviceSupported = await _localAuth.isDeviceSupported();
-      final List<BiometricType> availableBiometrics = await _localAuth.getAvailableBiometrics();
-      
-      return isAvailable && isDeviceSupported && availableBiometrics.isNotEmpty;
-    } catch (e) {
-      debugPrint('Error checking biometric availability: $e');
-      return false;
-    }
-  }
-
-  // Authenticate with biometrics
-  Future<bool> authenticateWithBiometrics() async {
-    try {
-      await _ensureInitialized();
-      
-      if (!await isBiometricAvailable()) {
-        throw Exception('Biometric authentication not available');
-      }
-
-      final bool didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to access your account',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
-      );
-
-      if (didAuthenticate) {
-        // Check if user has stored session
-        final StorageService storageService = StorageService();
-        final userData = await storageService.getUser();
-        
-        if (userData != null && userData['biometric_enabled'] == true) {
-          // Log security event
-          await _logSecurityEvent(
-            userData['id'],
-            'biometric_login_success',
-            {'method': 'biometric'},
-          );
-          
-          return true;
-        }
-      }
-      
-      return false;
-    } catch (e) {
-      ErrorHandler.handleError('Biometric authentication failed: $e');
-      return false;
-    }
-  }
-
-  // Enable biometric authentication for user
-  Future<bool> enableBiometricAuthentication() async {
-    try {
-      await _ensureInitialized();
-      
-      if (!await isBiometricAvailable()) {
-        throw Exception('Biometric authentication not available on this device');
-      }
-
-      final bool didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to enable biometric login',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
-      );
-
-      if (didAuthenticate) {
-        // Save biometric preference
-        final StorageService storageService = StorageService();
-        final userData = await storageService.getUser();
-        
-        if (userData != null) {
-          userData['biometric_enabled'] = true;
-          await storageService.saveUser(userData);
-          
-          // Log security event
-          await _logSecurityEvent(
-            userData['id'],
-            'biometric_enabled',
-            {'method': 'settings'},
-          );
-          
-          return true;
-        }
-      }
-      
-      return false;
-    } catch (e) {
-      ErrorHandler.handleError('Failed to enable biometric authentication: $e');
-      return false;
-    }
-  }
-
-  // Disable biometric authentication
-  Future<bool> disableBiometricAuthentication() async {
-    try {
-      await _ensureInitialized();
-      
-      final StorageService storageService = StorageService();
-      final userData = await storageService.getUser();
-      
-      if (userData != null) {
-        userData['biometric_enabled'] = false;
-        await storageService.saveUser(userData);
-        
-        // Log security event
-        await _logSecurityEvent(
-          userData['id'],
-          'biometric_disabled',
-          {'method': 'settings'},
-        );
-        
+      if (response.user != null) {
+        // Clear the stored email after successful verification
+        await storage.remove('pending_verification_email');
+        debugPrint('Email verified successfully');
         return true;
       }
       
       return false;
     } catch (e) {
-      ErrorHandler.handleError('Failed to disable biometric authentication: $e');
+      debugPrint('Email verification error: $e');
       return false;
     }
   }
 
-  // Sign up new user with email verification
-  Future<AuthResponse?> signUp({
-    required String email,
-    required String password,
-    required String fullName,
-    String role = 'creator',
-  }) async {
+  // Add missing verifyTwoFactorCode method
+  Future<bool> verifyTwoFactorCode(String code) async {
     try {
       await _ensureInitialized();
       
-      // Validate input parameters
-      if (email.isEmpty || password.isEmpty || fullName.isEmpty) {
-        throw Exception('All fields are required');
-      }
+      // In a real implementation, you would verify the code with your 2FA provider
+      // For now, we'll simulate the verification
       
-      // Validate email format
-      final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-      if (!emailRegex.hasMatch(email)) {
-        throw Exception('Please enter a valid email address');
-      }
+      // This is a placeholder implementation
+      // In production, you would integrate with services like:
+      // - Google Authenticator
+      // - Authy
+      // - Your own TOTP implementation
       
-      // Validate password strength
-      if (password.length < 8) {
-        throw Exception('Password must be at least 8 characters long');
-      }
-      
-      final response = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: {
-          'full_name': fullName,
-          'role': role,
-        },
-      );
-
-      if (response.user != null) {
-        debugPrint('User signed up successfully: ${response.user!.email}');
+      if (code.length == 6 && code.contains(RegExp(r'^\d+$'))) {
+        // Simulate network delay
+        await Future.delayed(const Duration(seconds: 1));
         
-        // Save user data to local storage
-        final storageService = StorageService();
-        await storageService.saveUser({
-          'id': response.user!.id,
-          'email': response.user!.email,
-          'full_name': fullName,
-          'role': role,
-          'email_verified': false,
-          'biometric_enabled': false,
-          'logged_in': false, // Set to false until email is verified
-        });
-
-        // Log security event
-        await _logSecurityEvent(
-          response.user!.id,
-          'user_signup',
-          {'method': 'email', 'email': email},
-        );
-      }
-
-      return response;
-    } on AuthException catch (e) {
-      // Handle Supabase auth exceptions specifically
-      String errorMessage = 'Registration failed';
-      
-      switch (e.statusCode) {
-        case '400':
-          errorMessage = 'Invalid registration data provided';
-          break;
-        case '422':
-          if (e.message.contains('already registered')) {
-            errorMessage = 'An account with this email already exists';
-          } else {
-            errorMessage = 'Registration validation failed';
-          }
-          break;
-        case '429':
-          errorMessage = 'Too many registration attempts. Please try again later';
-          break;
-        default:
-          errorMessage = e.message ?? 'Registration failed';
+        // For demo purposes, accept any 6-digit code
+        // In production, implement proper TOTP verification
+        debugPrint('Two-factor code verified successfully');
+        return true;
       }
       
-      // Log failed registration attempt
-      await _logSecurityEvent(
-        null,
-        'signup_failure',
-        {'method': 'email', 'email': email, 'error': errorMessage},
-        success: false,
-      );
-      
-      ErrorHandler.handleAuthError(errorMessage);
-      throw Exception(errorMessage);
+      return false;
     } catch (e) {
-      // Handle JSON parsing and other errors
-      String errorMessage = 'Registration failed';
-      
-      if (e.toString().contains('JSON') || e.toString().contains('SyntaxError')) {
-        errorMessage = 'Server response error. Please try again';
-      } else if (e.toString().contains('Network') || e.toString().contains('Connection')) {
-        errorMessage = 'Network error. Please check your connection';
-      } else if (e.toString().contains('Timeout')) {
-        errorMessage = 'Request timeout. Please try again';
-      } else if (e.toString().contains('already registered')) {
-        errorMessage = 'An account with this email already exists';
-      }
-      
-      // Log failed registration attempt
-      await _logSecurityEvent(
-        null,
-        'signup_failure',
-        {'method': 'email', 'email': email, 'error': e.toString()},
-        success: false,
-      );
-      
-      ErrorHandler.handleAuthError(errorMessage);
-      throw Exception(errorMessage);
+      debugPrint('Two-factor verification error: $e');
+      return false;
     }
   }
 
-  // Sign in existing user with enhanced error handling
+  // Sign in with email and password
   Future<AuthResponse?> signIn({
     required String email,
     required String password,
   }) async {
     try {
       await _ensureInitialized();
-      
-      // Validate input parameters
-      if (email.isEmpty || password.isEmpty) {
-        throw Exception('Email and password are required');
-      }
 
       final response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
-      // Enhanced response validation
       if (response.user != null) {
         debugPrint('User signed in successfully: ${response.user!.email}');
-        
-        // Create session
-        await _createUserSession(response.user!.id);
-        
-        // Save user data to local storage with persistent session
-        final storageService = StorageService();
-        await storageService.saveUser({
-          'id': response.user!.id,
-          'email': response.user!.email,
-          'full_name': response.user!.userMetadata?['full_name'] ?? '',
-          'role': response.user!.userMetadata?['role'] ?? 'creator',
-          'email_verified': response.user!.emailConfirmedAt != null,
-          'biometric_enabled': false,
-          'logged_in': true,
-          'session_token': response.session?.accessToken,
-        });
-
-        // Log security event
-        await _logSecurityEvent(
-          response.user!.id,
-          'login_success',
-          {'method': 'email', 'email': email},
-        );
+        return response;
       } else {
-        throw Exception('Invalid credentials or user not found');
+        throw Exception('Sign in failed: No user returned');
       }
-
-      return response;
-    } on AuthException catch (e) {
-      // Handle Supabase auth exceptions specifically
-      String errorMessage = 'Authentication failed';
-      
-      switch (e.statusCode) {
-        case '400':
-          errorMessage = 'Invalid email or password format';
-          break;
-        case '401':
-          errorMessage = 'Invalid email or password';
-          break;
-        case '422':
-          errorMessage = 'Email not confirmed. Please check your email';
-          break;
-        case '429':
-          errorMessage = 'Too many login attempts. Please try again later';
-          break;
-        default:
-          errorMessage = e.message ?? 'Authentication failed';
-      }
-      
-      // Log failed login attempt
-      await _logSecurityEvent(
-        null,
-        'login_failure',
-        {'method': 'email', 'email': email, 'error': errorMessage},
-        success: false,
-      );
-      
-      ErrorHandler.handleAuthError(errorMessage);
-      throw Exception(errorMessage);
     } catch (e) {
-      // Handle JSON parsing and other errors
-      String errorMessage = 'Authentication failed';
-      
-      if (e.toString().contains('JSON') || e.toString().contains('SyntaxError')) {
-        errorMessage = 'Server response error. Please try again';
-      } else if (e.toString().contains('Network') || e.toString().contains('Connection')) {
-        errorMessage = 'Network error. Please check your connection';
-      } else if (e.toString().contains('Timeout')) {
-        errorMessage = 'Request timeout. Please try again';
-      }
-      
-      // Log failed login attempt
-      await _logSecurityEvent(
-        null,
-        'login_failure',
-        {'method': 'email', 'email': email, 'error': e.toString()},
-        success: false,
-      );
-      
-      ErrorHandler.handleAuthError(errorMessage);
-      throw Exception(errorMessage);
+      debugPrint('Sign in error: $e');
+      rethrow;
     }
   }
 
-  // Check if user is logged in from storage
-  Future<bool> isUserLoggedIn() async {
+  // Sign up with email and password
+  Future<AuthResponse?> signUp({
+    required String email,
+    required String password,
+    Map<String, dynamic>? metadata,
+  }) async {
     try {
       await _ensureInitialized();
-      
-      // Check current session
-      final currentSession = _client.auth.currentSession;
-      if (currentSession != null && !currentSession.isExpired) {
-        return true;
+
+      final response = await _client.auth.signUp(
+        email: email,
+        password: password,
+        data: metadata,
+      );
+
+      if (response.user != null) {
+        // Store email for verification
+        final storage = StorageService();
+        await storage.setValue('pending_verification_email', email);
+        debugPrint('User signed up successfully: ${response.user!.email}');
+        return response;
+      } else {
+        throw Exception('Sign up failed: No user returned');
       }
-      
-      // Check stored session
-      final StorageService storageService = StorageService();
-      final userData = await storageService.getUser();
-      
-      return userData != null && userData['logged_in'] == true;
     } catch (e) {
-      debugPrint('Error checking login status: $e');
-      return false;
+      debugPrint('Sign up error: $e');
+      rethrow;
     }
   }
 
-  // Google Sign In with enhanced error handling
+  // Sign in with Google
   Future<AuthResponse?> signInWithGoogle() async {
     try {
       await _ensureInitialized();
+
+      const webClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
       
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (webClientId.isEmpty) {
+        throw Exception('Google Client ID not configured');
+      }
+
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: webClientId,
+      );
+
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         throw Exception('Google sign in was cancelled');
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
-      if (googleAuth.idToken == null) {
-        throw Exception('Google authentication failed - no ID token');
+      final googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null) {
+        throw Exception('No Access Token found');
       }
-      
+      if (idToken == null) {
+        throw Exception('No ID Token found');
+      }
+
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
-        idToken: googleAuth.idToken!,
-        accessToken: googleAuth.accessToken,
+        idToken: idToken,
+        accessToken: accessToken,
       );
 
       if (response.user != null) {
-        debugPrint('Google sign in successful: ${response.user!.email}');
-        
-        // Create session
-        await _createUserSession(response.user!.id);
-        
-        // Save user data with persistent session
-        final storageService = StorageService();
-        await storageService.saveUser({
-          'id': response.user!.id,
-          'email': response.user!.email,
-          'full_name': response.user!.userMetadata?['full_name'] ?? googleUser.displayName ?? '',
-          'role': 'creator',
-          'email_verified': true,
-          'biometric_enabled': false,
-          'logged_in': true,
-          'session_token': response.session?.accessToken,
-        });
-
-        // Log security event
-        await _logSecurityEvent(
-          response.user!.id,
-          'login_success',
-          {'method': 'google', 'email': response.user!.email},
-        );
+        debugPrint('User signed in with Google: ${response.user!.email}');
+        return response;
+      } else {
+        throw Exception('Google sign in failed: No user returned');
       }
-
-      return response;
     } catch (e) {
-      String errorMessage = 'Google sign in failed';
-      
-      if (e.toString().contains('cancelled')) {
-        errorMessage = 'Google sign in was cancelled';
-      } else if (e.toString().contains('network')) {
-        errorMessage = 'Network error during Google sign in';
-      }
-      
-      ErrorHandler.handleAuthError(errorMessage);
-      
-      // Log failed login attempt
-      await _logSecurityEvent(
-        null,
-        'login_failure',
-        {'method': 'google', 'error': errorMessage},
-        success: false,
-      );
-      
-      throw Exception(errorMessage);
+      debugPrint('Google sign in error: $e');
+      rethrow;
     }
   }
 
-  // Apple Sign In with enhanced error handling
+  // Sign in with Apple
   Future<AuthResponse?> signInWithApple() async {
     try {
       await _ensureInitialized();
-      
+
       final credential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -502,233 +237,81 @@ class AuthService {
         ],
       );
 
-      if (credential.identityToken == null) {
-        throw Exception('Apple authentication failed - no identity token');
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        throw Exception('No ID Token found');
       }
 
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
-        idToken: credential.identityToken!,
+        idToken: idToken,
       );
 
       if (response.user != null) {
-        debugPrint('Apple sign in successful: ${response.user!.email}');
-        
-        // Create session
-        await _createUserSession(response.user!.id);
-        
-        // Save user data with persistent session
-        final storageService = StorageService();
-        await storageService.saveUser({
-          'id': response.user!.id,
-          'email': response.user!.email,
-          'full_name': response.user!.userMetadata?['full_name'] ?? 
-                      '${credential.givenName ?? ''} ${credential.familyName ?? ''}',
-          'role': 'creator',
-          'email_verified': true,
-          'biometric_enabled': false,
-          'logged_in': true,
-          'session_token': response.session?.accessToken,
-        });
-
-        // Log security event
-        await _logSecurityEvent(
-          response.user!.id,
-          'login_success',
-          {'method': 'apple', 'email': response.user!.email},
-        );
-      }
-
-      return response;
-    } catch (e) {
-      String errorMessage = 'Apple sign in failed';
-      
-      if (e.toString().contains('cancelled')) {
-        errorMessage = 'Apple sign in was cancelled';
-      } else if (e.toString().contains('network')) {
-        errorMessage = 'Network error during Apple sign in';
-      }
-      
-      ErrorHandler.handleAuthError(errorMessage);
-      
-      // Log failed login attempt
-      await _logSecurityEvent(
-        null,
-        'login_failure',
-        {'method': 'apple', 'error': errorMessage},
-        success: false,
-      );
-      
-      throw Exception(errorMessage);
-    }
-  }
-
-  // Sign out current user
-  Future<void> signOut() async {
-    try {
-      await _ensureInitialized();
-      
-      final userId = currentUser?.id;
-      
-      await _client.auth.signOut();
-      
-      // Clear user data from local storage
-      final storageService = StorageService();
-      await storageService.clearUser();
-      
-      // Sign out from Google
-      await _googleSignIn.signOut();
-      
-      // Log security event
-      if (userId != null) {
-        await _logSecurityEvent(
-          userId,
-          'logout',
-          {'method': 'manual'},
-        );
-      }
-      
-      debugPrint('User signed out successfully');
-    } catch (e) {
-      ErrorHandler.handleError('Failed to sign out user: $e');
-      rethrow;
-    }
-  }
-
-  // Ensure AuthService is initialized
-  Future<void> _ensureInitialized() async {
-    if (!_isInitialized) {
-      await initialize();
-    }
-  }
-
-  // Send email verification
-  Future<void> _sendEmailVerification(String userId) async {
-    try {
-      final code = _generateVerificationCode();
-      
-      await _client.from('email_verification_codes').insert({
-        'user_id': userId,
-        'email': currentUser?.email,
-        'code': code,
-        'expires_at': DateTime.now().add(Duration(minutes: 10)).toIso8601String(),
-      });
-      
-      // In a real app, you would send this via email service
-      debugPrint('Email verification code: $code');
-    } catch (e) {
-      ErrorHandler.handleError('Failed to send email verification: $e');
-    }
-  }
-
-  // Verify email with code
-  Future<bool> verifyEmail(String code) async {
-    try {
-      final userId = currentUser?.id;
-      if (userId == null) return false;
-      
-      final result = await _client.rpc('verify_email_code', params: {
-        'user_uuid': userId,
-        'verification_code': code,
-      });
-      
-      if (result == true) {
-        // Update local storage
-        final storageService = StorageService();
-        final userData = await storageService.getUser();
-        if (userData != null) {
-          userData['email_verified'] = true;
-          await storageService.saveUser(userData);
-        }
-        
-        // Log security event
-        await _logSecurityEvent(
-          userId,
-          'email_verified',
-          {'method': 'verification_code'},
-        );
-        
-        return true;
-      }
-      
-      return false;
-    } catch (e) {
-      ErrorHandler.handleError('Failed to verify email: $e');
-      return false;
-    }
-  }
-
-  // Generate 2FA backup codes
-  Future<List<String>> generateBackupCodes() async {
-    try {
-      final userId = currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
-      
-      final codes = List.generate(8, (index) => _generateBackupCode());
-      
-      await _client.from('user_two_factor_auth').upsert({
-        'user_id': userId,
-        'backup_codes': codes,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-      
-      return codes;
-    } catch (e) {
-      ErrorHandler.handleError('Failed to generate backup codes: $e');
-      rethrow;
-    }
-  }
-
-  // Enable 2FA
-  Future<String> enableTwoFactorAuth() async {
-    try {
-      final userId = currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
-      
-      final secret = _generateSecretKey();
-      
-      await _client.from('user_two_factor_auth').upsert({
-        'user_id': userId,
-        'is_enabled': true,
-        'secret_key': secret,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-      
-      return secret;
-    } catch (e) {
-      ErrorHandler.handleError('Failed to enable 2FA: $e');
-      rethrow;
-    }
-  }
-
-  // Verify 2FA code
-  Future<bool> verifyTwoFactorCode(String code) async {
-    try {
-      final userId = currentUser?.id;
-      if (userId == null) return false;
-      
-      // This would typically verify against TOTP
-      // For demo purposes, we'll accept any 6-digit code
-      final isValid = code.length == 6 && int.tryParse(code) != null;
-      
-      if (isValid) {
-        await _logSecurityEvent(
-          userId,
-          '2fa_verification_success',
-          {'method': 'totp'},
-        );
+        debugPrint('User signed in with Apple: ${response.user!.email}');
+        return response;
       } else {
-        await _logSecurityEvent(
-          userId,
-          '2fa_verification_failure',
-          {'method': 'totp'},
-          success: false,
-        );
+        throw Exception('Apple sign in failed: No user returned');
       }
-      
-      return isValid;
     } catch (e) {
-      ErrorHandler.handleError('Failed to verify 2FA code: $e');
+      debugPrint('Apple sign in error: $e');
+      rethrow;
+    }
+  }
+
+  // Authenticate with biometrics (fixed method)
+  Future<bool> authenticateWithBiometrics() async {
+    try {
+      // Check if biometric authentication is available
+      final bool isAvailable = await _localAuth.canCheckBiometrics;
+      if (!isAvailable) {
+        debugPrint('Biometric authentication not available');
+        return false;
+      }
+
+      // Check if device has biometric setup
+      final List<BiometricType> availableBiometrics = 
+          await _localAuth.getAvailableBiometrics();
+      
+      if (availableBiometrics.isEmpty) {
+        debugPrint('No biometric authentication methods available');
+        return false;
+      }
+
+      // Perform biometric authentication
+      final bool didAuthenticate = await _localAuth.authenticate(
+        localizedReason: 'Please authenticate to access Mewayz',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+
+      if (didAuthenticate) {
+        // For production, you might want to store biometric credentials
+        // and use them to automatically sign in the user
+        debugPrint('Biometric authentication successful');
+        return true;
+      } else {
+        debugPrint('Biometric authentication failed');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Biometric authentication error: $e');
+      return false;
+    }
+  }
+
+  // Check if biometric authentication is available
+  Future<bool> isBiometricAvailable() async {
+    try {
+      final bool isAvailable = await _localAuth.canCheckBiometrics;
+      final List<BiometricType> availableBiometrics = 
+          await _localAuth.getAvailableBiometrics();
+      
+      return isAvailable && availableBiometrics.isNotEmpty;
+    } catch (e) {
+      debugPrint('Error checking biometric availability: $e');
       return false;
     }
   }
@@ -736,108 +319,150 @@ class AuthService {
   // Reset password
   Future<void> resetPassword(String email) async {
     try {
+      await _ensureInitialized();
+
       await _client.auth.resetPasswordForEmail(email);
-      
-      // Log security event
-      await _logSecurityEvent(
-        null,
-        'password_reset_requested',
-        {'email': email},
-      );
-      
       debugPrint('Password reset email sent to: $email');
     } catch (e) {
-      ErrorHandler.handleError('Failed to reset password: $e');
+      debugPrint('Password reset error: $e');
       rethrow;
     }
   }
 
-  // Update user password
-  Future<UserResponse?> updatePassword(String newPassword) async {
+  // Update password
+  Future<UserResponse> updatePassword(String newPassword) async {
     try {
-      final userId = currentUser?.id;
-      
+      await _ensureInitialized();
+
       final response = await _client.auth.updateUser(
-        UserAttributes(
-          password: newPassword,
-        ),
+        UserAttributes(password: newPassword),
       );
-      
-      if (userId != null) {
-        await _logSecurityEvent(
-          userId,
-          'password_updated',
-          {'method': 'manual'},
-        );
+
+      if (response.user != null) {
+        debugPrint('Password updated successfully');
+        return response;
+      } else {
+        throw Exception('Password update failed: No user returned');
       }
-      
-      debugPrint('Password updated successfully');
-      return response;
     } catch (e) {
-      ErrorHandler.handleError('Failed to update password: $e');
+      debugPrint('Password update error: $e');
       rethrow;
     }
   }
 
-  // Private helper methods
-  Future<void> _createUserSession(String userId) async {
-    try {
-      await _client.rpc('create_user_session', params: {
-        'user_uuid': userId,
-        'session_token': _generateSessionToken(),
-        'device_info': {
-          'device': 'Mobile',
-          'os': 'Flutter',
-          'app_version': ProductionConfig.appVersion,
-        },
-      });
-    } catch (e) {
-      debugPrint('Failed to create user session: $e');
-    }
-  }
-
-  Future<void> _logSecurityEvent(
-    String? userId,
-    String actionType,
-    Map<String, dynamic> details, {
-    bool success = true,
+  // Update user profile
+  Future<UserResponse> updateProfile({
+    String? email,
+    Map<String, dynamic>? data,
   }) async {
     try {
-      await _client.rpc('log_security_event', params: {
-        'user_uuid': userId,
-        'action_type': actionType,
-        'details': details,
-        'success_flag': success,
-      });
+      await _ensureInitialized();
+
+      final response = await _client.auth.updateUser(
+        UserAttributes(
+          email: email,
+          data: data,
+        ),
+      );
+
+      if (response.user != null) {
+        debugPrint('Profile updated successfully');
+        return response;
+      } else {
+        throw Exception('Profile update failed: No user returned');
+      }
     } catch (e) {
-      debugPrint('Failed to log security event: $e');
+      debugPrint('Profile update error: $e');
+      rethrow;
     }
   }
 
-  String _generateVerificationCode() {
-    final random = Random();
-    return (100000 + random.nextInt(900000)).toString();
+  // Sign out
+  Future<void> signOut() async {
+    try {
+      await _ensureInitialized();
+
+      await _client.auth.signOut();
+      debugPrint('User signed out successfully');
+    } catch (e) {
+      debugPrint('Sign out error: $e');
+      rethrow;
+    }
   }
 
-  String _generateBackupCode() {
-    final random = Random();
-    return (10000000 + random.nextInt(90000000)).toString();
+  // Listen to auth state changes
+  Stream<AuthState> get authStateChanges {
+    return _client.auth.onAuthStateChange;
   }
 
-  String _generateSecretKey() {
-    final random = Random();
-    final bytes = List<int>.generate(20, (i) => random.nextInt(256));
-    return base64Encode(bytes);
+  // Verify OTP
+  Future<AuthResponse> verifyOTP({
+    required String email,
+    required String token,
+    required OtpType type,
+  }) async {
+    try {
+      await _ensureInitialized();
+
+      final response = await _client.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: type,
+      );
+
+      if (response.user != null) {
+        debugPrint('OTP verified successfully');
+        return response;
+      } else {
+        throw Exception('OTP verification failed: No user returned');
+      }
+    } catch (e) {
+      debugPrint('OTP verification error: $e');
+      rethrow;
+    }
   }
 
-  String _generateSessionToken() {
-    final random = Random();
-    final bytes = List<int>.generate(32, (i) => random.nextInt(256));
-    return sha256.convert(bytes).toString();
+  // Generate secure hash for storage
+  String _generateHash(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
-  // Getters
-  User? get currentUser => _isInitialized ? _client.auth.currentUser : null;
-  bool get isAuthenticated => currentUser != null;
-  Stream<AuthState> get authStateChanges => _isInitialized ? _client.auth.onAuthStateChange : const Stream.empty();
+  // Store biometric credentials securely
+  Future<void> storeBiometricCredentials(String email, String hashedPassword) async {
+    try {
+      final storage = StorageService();
+      final credentialsHash = _generateHash('$email:$hashedPassword');
+      await storage.write(key: 'biometric_credentials', value: credentialsHash);
+      debugPrint('Biometric credentials stored securely');
+    } catch (e) {
+      debugPrint('Error storing biometric credentials: $e');
+    }
+  }
+
+  // Verify stored biometric credentials
+  Future<bool> verifyBiometricCredentials(String email, String hashedPassword) async {
+    try {
+      final storage = StorageService();
+      final storedHash = await storage.read(key: 'biometric_credentials');
+      final currentHash = _generateHash('$email:$hashedPassword');
+      
+      return storedHash == currentHash;
+    } catch (e) {
+      debugPrint('Error verifying biometric credentials: $e');
+      return false;
+    }
+  }
+
+  // Clear biometric credentials
+  Future<void> clearBiometricCredentials() async {
+    try {
+      final storage = StorageService();
+      await storage.remove('biometric_credentials');
+      debugPrint('Biometric credentials cleared');
+    } catch (e) {
+      debugPrint('Error clearing biometric credentials: $e');
+    }
+  }
 }

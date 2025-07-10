@@ -1,29 +1,32 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService {
-  static final SupabaseService _instance = SupabaseService._internal();
+  static SupabaseService? _instance;
   late final SupabaseClient _client;
   bool _isInitialized = false;
-  final Future<void> _initFuture;
 
-  // Singleton pattern
-  factory SupabaseService() {
-    return _instance;
+  // Private constructor
+  SupabaseService._internal();
+
+  // Singleton instance getter
+  static SupabaseService get instance {
+    _instance ??= SupabaseService._internal();
+    return _instance!;
   }
 
-  SupabaseService._internal() : _initFuture = _initializeSupabase();
-
+  // Environment variables
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL', 
       defaultValue: '');
   static const String supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY',
       defaultValue: '');
 
-  // Internal initialization logic
-  static Future<void> _initializeSupabase() async {
-    
+  // Initialize Supabase
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
     if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
       throw Exception(
-          'SUPABASE_URL and SUPABASE_ANON_KEY must be defined using --dart-define.');
+          'SUPABASE_URL and SUPABASE_ANON_KEY must be defined using --dart-define or env.json.');
     }
 
     await Supabase.initialize(
@@ -31,60 +34,41 @@ class SupabaseService {
       anonKey: supabaseAnonKey,
     );
 
-    _instance._client = Supabase.instance.client;
-    _instance._isInitialized = true;
+    _client = Supabase.instance.client;
+    _isInitialized = true;
   }
 
-  // Client getter (async)
+  // Client getter
   Future<SupabaseClient> get client async {
     if (!_isInitialized) {
-      await _initFuture;
+      await initialize();
     }
     return _client;
   }
 
-  // Convenience getter for synchronous access (use with caution)
-  SupabaseClient get syncClient {
+  // Synchronous client getter (use only after initialization)
+  SupabaseClient get clientSync {
     if (!_isInitialized) {
-      throw Exception('SupabaseService not initialized. Call client getter first.');
+      throw Exception('SupabaseService not initialized. Call initialize() first.');
     }
     return _client;
   }
 
-  // Auth convenience methods
-  Future<AuthResponse> signUp(String email, String password, {Map<String, dynamic>? metadata}) async {
-    final client = await this.client;
-    return await client.auth.signUp(
-      email: email,
-      password: password,
-      data: metadata,
-    );
+  // Check if initialized
+  bool get isInitialized => _isInitialized;
+
+  // Reset instance (for testing)
+  static void reset() {
+    _instance = null;
   }
 
-  Future<AuthResponse> signIn(String email, String password) async {
-    final client = await this.client;
-    return await client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
-  }
-
-  Future<void> signOut() async {
-    final client = await this.client;
-    await client.auth.signOut();
-  }
-
-  // Current user
-  User? get currentUser {
-    if (!_isInitialized) return null;
-    return _client.auth.currentUser;
-  }
-
-  // Auth state stream
-  Stream<AuthState> get authStateChanges {
-    if (!_isInitialized) {
-      return Stream.error('SupabaseService not initialized');
+  // Validation method
+  void validateEnvironmentVariables() {
+    if (supabaseUrl.isEmpty) {
+      throw Exception('SUPABASE_URL is not configured. Please check your env.json file.');
     }
-    return _client.auth.onAuthStateChange;
+    if (supabaseAnonKey.isEmpty) {
+      throw Exception('SUPABASE_ANON_KEY is not configured. Please check your env.json file.');
+    }
   }
 }

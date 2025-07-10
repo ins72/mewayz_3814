@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import '../core/app_export.dart';
 import './analytics_data_service.dart';
 
@@ -7,7 +9,7 @@ class StoreDataService {
   factory StoreDataService() => _instance;
   StoreDataService._internal();
 
-  final SupabaseService _supabaseService = SupabaseService();
+  final SupabaseService _supabaseService = SupabaseService.instance;
   final AnalyticsDataService _analyticsService = AnalyticsDataService();
 
   /// Get store data for workspace
@@ -99,56 +101,45 @@ class StoreDataService {
   }
 
   /// Create product
-  Future<bool> createProduct(String workspaceId, Map<String, dynamic> productData) async {
+  Future<Map<String, dynamic>> createProduct({
+    required String name,
+    required String description,
+    required double price,
+    required String category,
+    String? imageUrl,
+    Map<String, dynamic>? metadata,
+  }) async {
     try {
       final client = await _supabaseService.client;
+      final user = client.auth.currentUser;
       
-      final response = await client.from('products').insert({
-        'workspace_id': workspaceId,
-        'name': productData['name'],
-        'description': productData['description'],
-        'price': productData['price'],
-        'cost_price': productData['cost_price'],
-        'sku': productData['sku'],
-        'category': productData['category'],
-        'tags': productData['tags'],
-        'images': productData['images'] ?? [],
-        'stock_quantity': productData['stock_quantity'] ?? 0,
-        'stock_threshold': productData['stock_threshold'] ?? 5,
-        'status': productData['status'] ?? 'active',
-        'is_featured': productData['is_featured'] ?? false,
-        'metadata': productData['metadata'] ?? {},
-        'created_by': _supabaseService.currentUser?.id,
-      }).select();
-      
-      if (response.isNotEmpty) {
-        // Track analytics
-        await _analyticsService.trackEvent('product_created', {
-          'product_id': response.first['id'],
-          'product_name': productData['name'],
-          'category': productData['category'],
-        }, workspaceId: workspaceId);
-        
-        await _analyticsService.updateMetric(
-          workspaceId,
-          'marketplace_activity',
-          'products_created',
-          1,
-          metadata: {'product_id': response.first['id']});
-        
-        if (kDebugMode) {
-          debugPrint('Product created: ${productData['name']}');
-        }
-        
-        return true;
+      if (user == null) {
+        throw Exception('User not authenticated');
       }
-      
-      return false;
+
+      final productData = {
+        'name': name,
+        'description': description,
+        'price': price,
+        'category': category,
+        'image_url': imageUrl,
+        'metadata': metadata ?? {},
+        'status': 'active',
+        'created_by': user.id,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await client
+          .from('products')
+          .insert(productData)
+          .select()
+          .single();
+
+      return response;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Failed to create product: $e');
-      }
-      return false;
+      developer.log('Error creating product: $e', name: 'StoreDataService');
+      throw Exception('Failed to create product: ${e.toString()}');
     }
   }
 

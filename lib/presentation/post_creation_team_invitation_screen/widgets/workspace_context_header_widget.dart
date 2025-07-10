@@ -1,95 +1,101 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:sizer/sizer.dart';
-import '../../../core/app_constants.dart';
+
+import '../../../core/app_export.dart';
+
+// Workspace goal enum for this widget
+enum WorkspaceGoal {
+  socialMediaManagement,
+  contentCreation,
+  teamCollaboration,
+  analytics,
+  crmManagement,
+  marketing,
+  ecommerce,
+  other,
+}
 
 class WorkspaceContextHeaderWidget extends StatelessWidget {
-  final Map<String, dynamic> workspace;
+  final String workspaceName;
+  final String workspaceDescription;
   final WorkspaceGoal goal;
+  final String teamSize;
+  final VoidCallback onEditWorkspace;
 
   const WorkspaceContextHeaderWidget({
     Key? key,
-    required this.workspace,
+    required this.workspaceName,
+    required this.workspaceDescription,
     required this.goal,
+    required this.teamSize,
+    required this.onEditWorkspace,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       padding: EdgeInsets.all(4.w),
-      decoration: const BoxDecoration(
-        color: Color(0xFF191919),
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFF282828),
-            width: 1,
-          ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryAction.withAlpha(26),
+            AppTheme.primaryAction.withAlpha(13),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(3.w),
+        border: Border.all(
+          color: AppTheme.primaryAction.withAlpha(51),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back button
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: EdgeInsets.all(2.w),
-              decoration: BoxDecoration(
-                color: const Color(0xFF282828),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: const Color(0xFFF1F1F1),
-                size: 4.w,
-              ),
-            ),
-          ),
-          SizedBox(height: 3.h),
-          
-          // Workspace info
+          // Workspace header
           Row(
             children: [
-              // Workspace avatar
               Container(
-                width: 12.w,
-                height: 12.w,
+                padding: EdgeInsets.all(2.w),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF282828),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFF404040),
-                    width: 1,
-                  ),
+                  color: AppTheme.primaryAction,
+                  borderRadius: BorderRadius.circular(2.w),
                 ),
-                child: Icon(
-                  _getGoalIcon(goal),
-                  color: const Color(0xFFFDFDFD),
+                child: CustomIconWidget(
+                  iconName: _getGoalIcon(goal),
+                  color: AppTheme.primaryBackground,
                   size: 6.w,
                 ),
               ),
               SizedBox(width: 3.w),
-              
-              // Workspace details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      workspace['name'] ?? 'New Workspace',
-                      style: GoogleFonts.inter(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFF1F1F1),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            workspaceName,
+                            style: AppTheme.darkTheme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryText,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: onEditWorkspace,
+                          icon: CustomIconWidget(
+                            iconName: 'edit',
+                            color: AppTheme.primaryAction,
+                            size: 5.w,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 0.5.h),
                     Text(
-                      goal.displayName,
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        color: const Color(0xFFF1F1F1).withAlpha(179),
+                      _getGoalDisplayName(goal),
+                      style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.primaryAction,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -97,29 +103,41 @@ class WorkspaceContextHeaderWidget extends StatelessWidget {
               ),
             ],
           ),
+          
+          SizedBox(height: 3.h),
+          
+          // Workspace description
+          Text(
+            workspaceDescription,
+            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+              color: AppTheme.primaryText,
+              height: 1.4,
+            ),
+          ),
+          
           SizedBox(height: 2.h),
           
-          // Progress indicator
+          // Team size indicator
           Container(
             padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
             decoration: BoxDecoration(
-              color: const Color(0xFF282828),
-              borderRadius: BorderRadius.circular(20),
+              color: AppTheme.primaryAction.withAlpha(51),
+              borderRadius: BorderRadius.circular(2.w),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.group_add,
-                  color: const Color(0xFFFDFDFD),
+                CustomIconWidget(
+                  iconName: 'group',
+                  color: AppTheme.primaryAction,
                   size: 4.w,
                 ),
-                SizedBox(width: 2.w),
+                SizedBox(width: 1.w),
                 Text(
-                  'Step 3 of 3 • Team Invitation',
-                  style: GoogleFonts.inter(
-                    fontSize: 11.sp,
-                    color: const Color(0xFFF1F1F1),
+                  'Team Size: $teamSize',
+                  style: AppTheme.darkTheme.textTheme.bodySmall?.copyWith(
+                    color: AppTheme.primaryAction,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -130,20 +148,45 @@ class WorkspaceContextHeaderWidget extends StatelessWidget {
     );
   }
 
-  IconData _getGoalIcon(WorkspaceGoal goal) {
+  String _getGoalIcon(WorkspaceGoal goal) {
     switch (goal) {
       case WorkspaceGoal.socialMediaManagement:
-        return Icons.share;
-      case WorkspaceGoal.ecommerceBusiness:
-        return Icons.store;
-      case WorkspaceGoal.courseCreation:
-        return Icons.school;
-      case WorkspaceGoal.leadGeneration:
-        return Icons.trending_up;
-      case WorkspaceGoal.allInOneBusiness:
-        return Icons.business_center;
-      default:
-        return Icons.business;
+        return 'share';
+      case WorkspaceGoal.contentCreation:
+        return 'create';
+      case WorkspaceGoal.teamCollaboration:
+        return 'group';
+      case WorkspaceGoal.analytics:
+        return 'analytics';
+      case WorkspaceGoal.crmManagement:
+        return 'contact_page';
+      case WorkspaceGoal.marketing:
+        return 'campaign';
+      case WorkspaceGoal.ecommerce:
+        return 'shopping_cart';
+      case WorkspaceGoal.other:
+        return 'business';
+    }
+  }
+
+  String _getGoalDisplayName(WorkspaceGoal goal) {
+    switch (goal) {
+      case WorkspaceGoal.socialMediaManagement:
+        return 'Social Media Management';
+      case WorkspaceGoal.contentCreation:
+        return 'Content Creation';
+      case WorkspaceGoal.teamCollaboration:
+        return 'Team Collaboration';
+      case WorkspaceGoal.analytics:
+        return 'Analytics & Insights';
+      case WorkspaceGoal.crmManagement:
+        return 'CRM Management';
+      case WorkspaceGoal.marketing:
+        return 'Marketing Campaigns';
+      case WorkspaceGoal.ecommerce:
+        return 'E-commerce';
+      case WorkspaceGoal.other:
+        return 'Custom Workspace';
     }
   }
 }

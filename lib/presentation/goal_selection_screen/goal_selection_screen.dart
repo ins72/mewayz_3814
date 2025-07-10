@@ -16,7 +16,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen>
   late AnimationController _fadeAnimationController;
   late Animation<double> _fadeAnimation;
   
-  final OnboardingService _onboardingService = OnboardingService();
+  final OnboardingService _onboardingService = OnboardingService.instance;
   final TextEditingController _customGoalController = TextEditingController();
   
   Set<OnboardingGoal> _selectedGoals = {};

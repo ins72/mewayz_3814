@@ -346,7 +346,7 @@ class DataService {
   /// File Upload Operations - Using Supabase Storage
   Future<String?> uploadFile(String filePath, String fileType) async {
     try {
-      final supabaseService = SupabaseService();
+      final supabaseService = SupabaseService.instance;
       final client = await supabaseService.client;
       
       final file = File(filePath);

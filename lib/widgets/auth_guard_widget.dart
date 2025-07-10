@@ -28,7 +28,7 @@ class _AuthGuardState extends State<AuthGuard> {
   Future<void> _checkAuthStatus() async {
     try {
       final authService = AuthService();
-      final isLoggedIn = await authService.isUserLoggedIn();
+      final isLoggedIn = authService.isAuthenticated;
       
       if (!isLoggedIn) {
         // User is not authenticated, redirect to login

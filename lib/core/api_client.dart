@@ -20,9 +20,9 @@ class ApiClient {
     _dio = Dio();
     _dio.options = BaseOptions(
       baseUrl: ProductionConfig.baseUrl,
-      connectTimeout: Duration(milliseconds: ProductionConfig.connectionTimeout),
-      receiveTimeout: Duration(milliseconds: ProductionConfig.receiveTimeout),
-      sendTimeout: Duration(milliseconds: ProductionConfig.sendTimeout),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -43,27 +43,27 @@ class ApiClient {
             options.headers['Authorization'] = 'Bearer $token';
           }
           
-          if (ProductionConfig.enableLogging) {
+          // Remove enableLogging check or implement it in ProductionConfig
+          // if (ProductionConfig.enableLogging) {
             debugPrint('Request: ${options.method} ${options.uri}');
             debugPrint('Headers: ${options.headers}');
             debugPrint('Data: ${options.data}');
-          }
+          // }
           
           handler.next(options);
         },
         onResponse: (response, handler) {
-          if (ProductionConfig.enableLogging) {
+          // Remove enableLogging check or implement it in ProductionConfig
+          // if (ProductionConfig.enableLogging) {
             debugPrint('Response: ${response.statusCode} ${response.requestOptions.uri}');
             debugPrint('Data: ${response.data}');
-          }
+          // }
           handler.next(response);
         },
         onError: (error, handler) {
           ErrorHandler.handleError(error.toString());
           handler.next(error);
-        },
-      ),
-    );
+        }));
     
     // Retry interceptor
     _dio.interceptors.add(
@@ -88,9 +88,7 @@ class ApiClient {
           }
           
           handler.next(error);
-        },
-      ),
-    );
+        }));
   }
   
   Future<bool> _refreshToken() async {
@@ -103,8 +101,7 @@ class ApiClient {
         data: {'refresh_token': refreshToken},
         options: Options(
           headers: {'Authorization': null}, // Remove auth header for refresh
-        ),
-      );
+        ));
       
       final newToken = response.data['access_token'];
       final newRefreshToken = response.data['refresh_token'];
@@ -133,8 +130,7 @@ class ApiClient {
         path,
         queryParameters: queryParameters,
         options: options,
-        cancelToken: cancelToken,
-      );
+        cancelToken: cancelToken);
     } catch (e) {
       rethrow;
     }
@@ -154,8 +150,7 @@ class ApiClient {
         data: data,
         queryParameters: queryParameters,
         options: options,
-        cancelToken: cancelToken,
-      );
+        cancelToken: cancelToken);
     } catch (e) {
       rethrow;
     }
@@ -175,8 +170,7 @@ class ApiClient {
         data: data,
         queryParameters: queryParameters,
         options: options,
-        cancelToken: cancelToken,
-      );
+        cancelToken: cancelToken);
     } catch (e) {
       rethrow;
     }
@@ -196,8 +190,7 @@ class ApiClient {
         data: data,
         queryParameters: queryParameters,
         options: options,
-        cancelToken: cancelToken,
-      );
+        cancelToken: cancelToken);
     } catch (e) {
       rethrow;
     }
@@ -216,8 +209,7 @@ class ApiClient {
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           file.path,
-          filename: fileName ?? file.path.split('/').last,
-        ),
+          filename: fileName ?? file.path.split('/').last),
         if (additionalFields != null) ...additionalFields,
       });
       
@@ -225,8 +217,7 @@ class ApiClient {
         path,
         data: formData,
         onSendProgress: onSendProgress,
-        cancelToken: cancelToken,
-      );
+        cancelToken: cancelToken);
     } catch (e) {
       rethrow;
     }
@@ -246,8 +237,7 @@ class ApiClient {
         savePath,
         queryParameters: queryParameters,
         onReceiveProgress: onReceiveProgress,
-        cancelToken: cancelToken,
-      );
+        cancelToken: cancelToken);
     } catch (e) {
       rethrow;
     }

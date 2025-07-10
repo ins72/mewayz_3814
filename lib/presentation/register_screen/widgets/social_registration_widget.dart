@@ -79,10 +79,6 @@ class _SocialRegistrationWidgetState extends State<SocialRegistrationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (!ProductionConfig.enableOAuthSignIn) {
-      return const SizedBox.shrink();
-    }
-
     return Column(
       children: [
         // Divider

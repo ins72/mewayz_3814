@@ -18,7 +18,7 @@ class NotificationDataService {
     if (_isInitialized) return;
     
     try {
-      final supabaseService = SupabaseService();
+      final supabaseService = SupabaseService.instance;
       _client = await supabaseService.client;
       _isInitialized = true;
     } catch (e) {

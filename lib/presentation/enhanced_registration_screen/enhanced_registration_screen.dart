@@ -259,9 +259,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
       
       final response = await _authService.signUp(
         email: _emailController.text.trim(),
-        password: _passwordController.text,
-        fullName: fullName,
-      );
+        password: _passwordController.text);
 
       if (response?.user != null) {
         HapticFeedback.lightImpact();
@@ -273,19 +271,14 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
                 CustomIconWidget(
                   iconName: 'check_circle',
                   color: Colors.green,
-                  size: 20,
-                ),
+                  size: 20),
                 SizedBox(width: 2.w),
                 Expanded(
                   child: Text(
                     'Registration successful! Please check your email to verify your account.',
                     style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                      color: Colors.white))),
+              ]),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 5),
             action: SnackBarAction(
@@ -293,10 +286,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
               textColor: Colors.white,
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              },
-            ),
-          ),
-        );
+              })));
 
         // Navigate to email verification screen instead of directly to onboarding
         Navigator.pushReplacementNamed(
@@ -305,8 +295,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
           arguments: {
             'email': _emailController.text.trim(),
             'fullName': fullName,
-          },
-        );
+          });
       } else {
         setState(() {
           _generalError = 'Registration failed. Please try again.';
@@ -431,8 +420,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
   void _handleTermsOfServiceTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.termsOfServiceScreen,
-    );
+      AppRoutes.termsOfServiceScreen);
     
     if (result == true) {
       setState(() {
@@ -444,8 +432,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
   void _handlePrivacyPolicyTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.privacyPolicyScreen,
-    );
+      AppRoutes.privacyPolicyScreen);
     
     if (result == true) {
       setState(() {
@@ -509,9 +496,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
               colors: [
                 Color(0xFF101010),
                 Color(0xFF0A0A0A),
-              ],
-            ),
-          ),
+              ])),
           child: SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
@@ -529,40 +514,29 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
                           height: 16.w,
                           decoration: BoxDecoration(
                             color: const Color(0xFF007AFF),
-                            borderRadius: BorderRadius.circular(3.w),
-                          ),
+                            borderRadius: BorderRadius.circular(3.w)),
                           child: Center(
                             child: Text(
                               'M',
                               style: GoogleFonts.inter(
                                 fontSize: 24.sp,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                                fontWeight: FontWeight.bold)))),
                         SizedBox(height: 2.h),
                         Text(
                           'Create Account',
                           style: GoogleFonts.inter(
                             fontSize: 24.sp,
                             color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                            fontWeight: FontWeight.w600)),
                         SizedBox(height: 1.h),
                         Text(
                           'Join thousands of businesses using Mewayz',
                           style: GoogleFonts.inter(
                             fontSize: 14.sp,
-                            color: const Color(0xFF8E8E93),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
+                            color: const Color(0xFF8E8E93)),
+                          textAlign: TextAlign.center),
+                      ])),
 
                   SizedBox(height: 6.h),
 
@@ -596,16 +570,14 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
                         _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                       });
                     },
-                    onRegister: _handleRegister,
-                  ),
+                    onRegister: _handleRegister),
 
                   SizedBox(height: 2.h),
 
                   // Enhanced Password Strength Indicator
                   EnhancedPasswordStrengthIndicatorWidget(
                     strength: _passwordStrength,
-                    strengthText: _passwordStrengthText,
-                  ),
+                    strengthText: _passwordStrengthText),
 
                   SizedBox(height: 4.h),
 
@@ -626,16 +598,14 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
                       });
                     },
                     onTermsOfServiceTap: _handleTermsOfServiceTap,
-                    onPrivacyPolicyTap: _handlePrivacyPolicyTap,
-                  ),
+                    onPrivacyPolicyTap: _handlePrivacyPolicyTap),
 
                   SizedBox(height: 4.h),
 
                   // Enhanced Social Registration
                   EnhancedSocialRegistrationWidget(
                     onGoogleSignUp: _handleGoogleSignUp,
-                    onAppleSignUp: _handleAppleSignUp,
-                  ),
+                    onAppleSignUp: _handleAppleSignUp),
 
                   SizedBox(height: 4.h),
 
@@ -648,30 +618,17 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
                           text: 'Already have an account? ',
                           style: GoogleFonts.inter(
                             fontSize: 14.sp,
-                            color: const Color(0xFF7B7B7B),
-                          ),
+                            color: const Color(0xFF7B7B7B)),
                           children: [
                             TextSpan(
                               text: 'Login',
                               style: GoogleFonts.inter(
                                 fontSize: 14.sp,
                                 color: const Color(0xFF007AFF),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                                fontWeight: FontWeight.w500)),
+                          ])))),
 
                   SizedBox(height: 4.h),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+                ]))))));
   }
 }

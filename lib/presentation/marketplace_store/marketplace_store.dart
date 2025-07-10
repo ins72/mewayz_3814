@@ -82,23 +82,31 @@ class _MarketplaceStoreState extends State<MarketplaceStore>
     await _loadStoreData();
   }
 
-  void _showAddProductDialog() {
+  Future<void> _showAddProductDialog() async {
     showDialog(
       context: context,
       builder: (context) => AddProductDialogWidget(
         onProductAdded: (product) async {
           if (_currentWorkspaceId != null) {
-            final success = await _storeService.createProduct(_currentWorkspaceId!, product);
-            if (success) {
-              await _refreshData();
+            try {
+              final result = await _storeService.createProduct(
+                name: product['name'] as String,
+                price: product['price'] as double,
+                description: product['description'] as String,
+                category: product['category'] as String,
+              );
+              
+              if (result.isNotEmpty) {
+                await _refreshData();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Product added successfully'),
+                    backgroundColor: AppTheme.success));
+              }
+            } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Product added successfully'),
-                  backgroundColor: AppTheme.success));
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to add product'),
+                  content: Text('Failed to add product: $e'),
                   backgroundColor: AppTheme.error));
             }
           }

@@ -36,7 +36,7 @@ class AccessibilityService {
       
       _isInitialized = true;
       
-      if (ProductionConfig.enableLogging) {
+      if (kDebugMode) {
         debugPrint('✅ Accessibility service initialized');
         debugPrint('Screen reader: $_isScreenReaderEnabled');
         debugPrint('High contrast: $_isHighContrastEnabled');
@@ -44,7 +44,7 @@ class AccessibilityService {
         debugPrint('Text scale factor: $_textScaleFactor');
       }
     } catch (e) {
-      if (ProductionConfig.enableLogging) {
+      if (kDebugMode) {
         debugPrint('❌ Accessibility service initialization failed: $e');
       }
     }
@@ -67,7 +67,7 @@ class AccessibilityService {
       _isHighContrastEnabled = mediaQuery.accessibilityFeatures.highContrast;
       
     } catch (e) {
-      if (ProductionConfig.enableLogging) {
+      if (kDebugMode) {
         debugPrint('Error checking accessibility settings: $e');
       }
     }

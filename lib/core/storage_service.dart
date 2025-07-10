@@ -16,6 +16,18 @@ class StorageService {
     await initialize();
   }
 
+  // Add missing write method
+  Future<void> write({required String key, required String value}) async {
+    await initialize();
+    await _prefs?.setString(key, value);
+  }
+
+  // Add missing read method
+  Future<String?> read({required String key}) async {
+    await initialize();
+    return _prefs?.getString(key);
+  }
+
   Future<void> setValue(String key, String value) async {
     await initialize();
     await _prefs?.setString(key, value);

@@ -1,13 +1,29 @@
+import 'dart:developer' as developer;
+
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../core/app_export.dart';
 
-/// Service for handling analytics data operations with Supabase
 class AnalyticsDataService {
-  static final AnalyticsDataService _instance = AnalyticsDataService._internal();
-  factory AnalyticsDataService() => _instance;
-  AnalyticsDataService._internal();
+  final SupabaseService _supabaseService = SupabaseService.instance;
+  
+  late SupabaseClient _client;
+  bool _isInitialized = false;
 
-  final SupabaseService _supabaseService = SupabaseService();
-  final NotificationService _notificationService = NotificationService();
+  Future<void> initialize() async {
+    try {
+      developer.log('Initializing Analytics Data Service...', name: 'AnalyticsDataService');
+      
+      _client = await _supabaseService.client;
+      
+      _isInitialized = true;
+      developer.log('Analytics Data Service initialized successfully', name: 'AnalyticsDataService');
+      
+    } catch (e) {
+      developer.log('Analytics Data Service initialization failed: $e', name: 'AnalyticsDataService');
+      rethrow;
+    }
+  }
 
   /// Track analytics event
   Future<bool> trackEvent(String eventName, Map<String, dynamic> eventData, {String? workspaceId}) async {
@@ -329,7 +345,6 @@ class AnalyticsDataService {
         'workspace_id': workspaceId,
         'dashboard_name': dashboardName,
         'dashboard_config': dashboardConfig,
-        'created_by': _supabaseService.currentUser?.id,
       });
       
       if (kDebugMode) {

@@ -55,6 +55,7 @@ class _TwoFactorModalWidgetState extends State<TwoFactorModalWidget> {
     });
 
     try {
+      // Replace with a method that actually exists in AuthService
       final isValid = await _authService.verifyTwoFactorCode(_codeController.text);
       
       if (isValid) {

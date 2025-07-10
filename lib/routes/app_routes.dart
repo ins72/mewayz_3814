@@ -9,11 +9,13 @@ import '../presentation/content_calendar_screen/content_calendar_screen.dart';
 import '../presentation/content_templates_screen/content_templates_screen.dart';
 import '../presentation/course_creator/course_creator.dart';
 import '../presentation/crm_contact_management/crm_contact_management.dart';
+import '../presentation/custom_domain_management_screen/custom_domain_management_screen.dart';
 import '../presentation/email_marketing_campaign/email_marketing_campaign.dart';
 import '../presentation/email_verification_screen/email_verification_screen.dart';
 import '../presentation/enhanced_registration_screen/enhanced_registration_screen.dart';
 import '../presentation/enhanced_workspace_dashboard/enhanced_workspace_dashboard.dart';
 import '../presentation/forgot_password_screen/forgot_password_screen.dart';
+import '../presentation/goal_based_subscription_pricing_screen/goal_based_subscription_pricing_screen.dart';
 import '../presentation/goal_based_workspace_creation_screen/goal_based_workspace_creation_screen.dart';
 import '../presentation/goal_customized_workspace_dashboard/goal_customized_workspace_dashboard.dart';
 import '../presentation/goal_selection_screen/goal_selection_screen.dart';
@@ -28,10 +30,12 @@ import '../presentation/notification_settings_screen/notification_settings_scree
 import '../presentation/post_creation_team_invitation_screen/post_creation_team_invitation_screen.dart';
 import '../presentation/premium_social_media_hub/premium_social_media_hub.dart';
 import '../presentation/privacy_policy_screen/privacy_policy_screen.dart';
+import '../presentation/production_dashboard_screen/production_dashboard_screen.dart';
 import '../presentation/production_release_checklist_screen/production_release_checklist_screen.dart';
 import '../presentation/professional_readme_documentation_screen/professional_readme_documentation_screen.dart';
 import '../presentation/profile_settings_screen/profile_settings_screen.dart';
 import '../presentation/qr_code_generator_screen/qr_code_generator_screen.dart';
+import '../presentation/register_screen/register_screen.dart';
 import '../presentation/reset_password_screen/reset_password_screen.dart';
 import '../presentation/role_based_access_control_screen/role_based_access_control_screen.dart';
 import '../presentation/security_settings_screen/security_settings_screen.dart';
@@ -49,163 +53,238 @@ import '../presentation/team_member_invitation_screen/team_member_invitation_scr
 import '../presentation/terms_of_service_screen/terms_of_service_screen.dart';
 import '../presentation/two_factor_authentication_screen/two_factor_authentication_screen.dart';
 import '../presentation/unified_analytics_screen/unified_analytics_screen.dart';
-import '../presentation/unified_onboarding_screen/unified_onboarding_screen.dart';
 import '../presentation/unified_settings_screen/unified_settings_screen.dart';
 import '../presentation/users_team_management_screen/users_team_management_screen.dart';
 import '../presentation/workspace_creation_screen/workspace_creation_screen.dart';
+import '../presentation/workspace_dashboard/workspace_dashboard.dart';
 import '../presentation/workspace_selector_screen/workspace_selector_screen.dart';
 import '../presentation/workspace_settings_screen/workspace_settings_screen.dart';
-import '../widgets/auth_guard_widget.dart';
+import '../presentation/page_not_found_screen/page_not_found_screen.dart';
 
 class AppRoutes {
-  static const String initial = '/login-screen';
-  static const String splashScreen = '/splash-screen';
-  static const String onboarding = '/onboarding';
+  // Main screens
+  static const String splashScreen = '/splash';
   static const String home = '/home';
-  static const String linkInBio = '/link-in-bio';
-  static const String forgotPassword = '/forgot-password';
-  static const String register = '/register';
-  static const String postingScreen = '/posting-screen';
-  static const String scheduler = '/scheduler';
-  static const String socialMediaAnalytics = '/social-media-analytics';
-  static const String linkInBioAnalytics = '/link-in-bio-analytics';
-  static const String qrCodeGenerator = '/qr-code-generator';
-  static const String goalSelectionScreen = '/goal-selection-screen';
-  static const String goalBasedWorkspaceCreationScreen = '/goal-based-workspace-creation-screen';
-  static const String postCreationTeamInvitationScreen = '/post-creation-team-invitation-screen';
-  static const String workspaceCreationScreen = '/workspace-creation-screen';
-  static const String workspaceSelectorScreen = '/workspace-selector-screen';
+  static const String loginScreen = '/login';
+  static const String registerScreen = '/register';
+  static const String enhancedRegistrationScreen = '/enhanced-register';
+  static const String forgotPasswordScreen = '/forgot-password';
+  static const String resetPasswordScreen = '/reset-password';
+  static const String emailVerificationScreen = '/email-verification';
+  static const String twoFactorAuthenticationScreen = '/two-factor-authentication';
+  
+  // Onboarding
+  static const String userOnboardingScreen = '/user-onboarding';
+  static const String onboardingScreen = '/onboarding';
+  static const String unifiedOnboardingScreen = '/unified-onboarding';
+  static const String goalSelectionScreen = '/goal-selection';
+  static const String setupProgressScreen = '/setup-progress';
+  
+  // Error handling
+  static const String pageNotFoundScreen = '/page-not-found';
+  
+  // Workspace management
+  static const String workspaceSelectorScreen = '/workspace-selector';
+  static const String workspaceCreationScreen = '/workspace-creation';
+  static const String goalBasedWorkspaceCreationScreen = '/goal-based-workspace-creation';
   static const String workspaceDashboard = '/workspace-dashboard';
   static const String enhancedWorkspaceDashboard = '/enhanced-workspace-dashboard';
-  static const String enhancedRegistrationScreen = '/enhanced-registration-screen';
   static const String goalCustomizedWorkspaceDashboard = '/goal-customized-workspace-dashboard';
-  static const String premiumSocialMediaHub = '/premium-social-media-hub';
-  static const String loginScreen = '/login-screen';
-  static const String onboardingScreen = '/onboarding-screen';
-  static const String registerScreen = '/register-screen';
-  static const String termsOfServiceScreen = '/terms-of-service-screen';
-  static const String privacyPolicyScreen = '/privacy-policy-screen';
-  static const String forgotPasswordScreen = '/forgot-password-screen';
-  static const String resetPasswordScreen = '/reset-password-screen';
-  static const String emailVerificationScreen = '/email-verification-screen';
-  static const String userOnboardingScreen = '/user-onboarding-screen';
-  static const String twoFactorAuthenticationScreen = '/two-factor-authentication-screen';
-  static const String linkInBioTemplatesScreen = '/link-in-bio-templates-screen';
-  static const String advancedCrmManagementHub = '/advanced-crm-management-hub';
-  static const String socialMediaManagementScreen = '/social-media-management-screen';
-  static const String socialMediaManagementHub = '/social-media-management-hub';
-  static const String socialMediaManager = '/social-media-manager';
-  static const String socialMediaScheduler = '/social-media-scheduler';
-  static const String socialMediaSchedulerScreen = '/social-media-scheduler-screen';
-  static const String socialMediaAnalyticsScreen = '/social-media-analytics-screen';
-  static const String settingsScreen = '/settings-screen';
-  static const String settingsAccountManagement = '/settings-account-management';
-  static const String accountSettingsScreen = '/account-settings-screen';
-  static const String profileSettingsScreen = '/profile-settings-screen';
-  static const String notificationSettingsScreen = '/notification-settings-screen';
-  static const String securitySettingsScreen = '/security-settings-screen';
+  static const String workspaceSettingsScreen = '/workspace-settings';
+  
+  // Team management
+  static const String teamMemberInvitationScreen = '/team-member-invitation';
+  static const String postCreationTeamInvitationScreen = '/post-creation-team-invitation';
+  static const String usersTeamManagementScreen = '/users-team-management';
+  static const String roleBasedAccessControlScreen = '/role-based-access-control';
+  
+  // Social media
+  static const String socialMedia = '/social-media';
+  static const String socialMediaManagerScreen = '/social-media-manager';
+  static const String socialMediaManagementScreen = '/social-media-management';
+  static const String socialMediaManagementHubScreen = '/social-media-management-hub';
+  static const String premiumSocialMediaHubScreen = '/premium-social-media-hub';
+  static const String socialMediaSchedulerScreen = '/social-media-scheduler';
+  static const String socialMediaScheduler = '/social-media-scheduler-v2';
+  static const String multiPlatformPostingScreen = '/multi-platform-posting';
+  
+  // Analytics
   static const String analyticsDashboard = '/analytics-dashboard';
-  static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics-screen';
-  static const String unifiedSettingsScreen = '/unified-settings-screen';
-  static const String hashtagResearchScreen = '/hashtag-research-screen';
-  static const String instagramLeadSearch = '/instagram-lead-search';
-  static const String multiPlatformPostingScreen = '/multi-platform-posting-screen';
-  static const String contentTemplatesScreen = '/content-templates-screen';
-  static const String contentCalendarScreen = '/content-calendar-screen';
-  static const String qrCodeGeneratorScreen = '/qr-code-generator-screen';
-  static const String emailMarketingCampaign = '/email-marketing-campaign';
-  static const String crmContactManagement = '/crm-contact-management';
-  static const String marketplaceStore = '/marketplace-store';
-  static const String courseCreator = '/course-creator';
-  static const String workspaceSettingsScreen = '/workspace-settings-screen';
-  static const String roleBasedAccessControlScreen = '/role-based-access-control-screen';
-  static const String usersTeamManagementScreen = '/users-team-management-screen';
-  static const String teamMemberInvitationScreen = '/team-member-invitation-screen';
-  static const String contactUsScreen = '/contact-us-screen';
-  static const String appStoreOptimizationScreen = '/app-store-optimization-screen';
-  static const String productionReleaseChecklistScreen = '/production-release-checklist-screen';
-  static const String professionalReadmeDocumentationScreen = '/professional-readme-documentation-screen';
-  static const String setupProgressScreen = '/setup-progress-screen';
+  static const String unifiedAnalyticsScreen = '/unified-analytics';
+  static const String socialMediaAnalyticsScreen = '/social-media-analytics';
+  static const String linkInBioAnalyticsScreen = '/link-in-bio-analytics';
+  
+  // Content management
+  static const String contentTemplatesScreen = '/content-templates';
+  static const String contentCalendarScreen = '/content-calendar';
+  static const String hashtagResearchScreen = '/hashtag-research';
+  static const String courseCreatorScreen = '/course-creator';
+  static const String courses = '/courses';
+  
+  // Link in bio
+  static const String linkInBio = '/link-in-bio';
+  static const String linkInBioTemplatesScreen = '/link-in-bio-templates';
+  
+  // CRM
+  static const String crmContacts = '/crm-contacts';
+  static const String crmContactManagementScreen = '/crm-contact-management';
+  static const String advancedCrmManagementHubScreen = '/advanced-crm-management-hub';
+  static const String instagramLeadSearchScreen = '/instagram-lead-search';
+  
+  // E-commerce
+  static const String marketplace = '/marketplace';
+  static const String marketplaceStoreScreen = '/marketplace-store';
+  
+  // Marketing
+  static const String emailMarketing = '/email-marketing';
+  static const String emailMarketingCampaignScreen = '/email-marketing-campaign';
+  static const String qrCodeGeneratorScreen = '/qr-code-generator';
+  
+  // Settings
+  static const String settingsScreen = '/settings';
+  static const String unifiedSettingsScreen = '/unified-settings';
+  static const String accountSettingsScreen = '/account-settings';
+  static const String settingsAccountManagementScreen = '/settings-account-management';
+  static const String profileSettingsScreen = '/profile-settings';
+  static const String securitySettingsScreen = '/security-settings';
+  static const String notificationSettingsScreen = '/notification-settings';
+  
+  // Subscription and pricing
+  static const String goalBasedSubscriptionPricingScreen = '/goal-based-subscription-pricing';
+  
+  // Legal and support
+  static const String privacyPolicyScreen = '/privacy-policy';
+  static const String termsOfServiceScreen = '/terms-of-service';
+  static const String contactUsScreen = '/contact-us';
+  
+  // Development and documentation
+  static const String professionalReadmeDocumentationScreen = '/professional-readme-documentation';
+  static const String customDomainManagementScreen = '/custom-domain-management';
+  static const String appStoreOptimizationScreen = '/app-store-optimization';
+  
+  // Production management
+  static const String productionReleaseChecklistScreen = '/production-release-checklist';
+  static const String productionDashboardScreen = '/production-dashboard';
 
-  static Map<String, Widget Function(BuildContext)> get routes => {
-    initial: (context) => const AuthGuard(child: SplashScreen()),
-    splashScreen: (context) => const AuthGuard(child: SplashScreen()),
-    onboardingScreen: (context) => const AuthGuard(child: UnifiedOnboardingScreen()),
-    home: (context) => const AuthGuard(child: EnhancedWorkspaceDashboard()),
-    linkInBio: (context) => const AuthGuard(child: LinkInBioTemplatesScreen()),
-    forgotPassword: (context) => const ForgotPasswordScreen(),
-    register: (context) => const EnhancedRegistrationScreen(),
-    postingScreen: (context) => const AuthGuard(child: MultiPlatformPostingScreen()),
-    scheduler: (context) => const AuthGuard(child: SocialMediaScheduler()),
-    socialMediaAnalytics: (context) => const AuthGuard(child: SocialMediaAnalyticsScreen()),
-    linkInBioAnalytics: (context) => const AuthGuard(child: LinkInBioAnalyticsScreen()),
-    qrCodeGenerator: (context) => const AuthGuard(child: QrCodeGeneratorScreen()),
-    goalSelectionScreen: (context) => const AuthGuard(child: GoalSelectionScreen()),
-    goalBasedWorkspaceCreationScreen: (context) => const AuthGuard(child: GoalBasedWorkspaceCreationScreen()),
-    postCreationTeamInvitationScreen: (context) => const AuthGuard(child: PostCreationTeamInvitationScreen()),
-    workspaceCreationScreen: (context) => const AuthGuard(child: WorkspaceCreationScreen()),
-    workspaceSelectorScreen: (context) => const AuthGuard(child: WorkspaceSelectorScreen()),
-    workspaceDashboard: (context) => const AuthGuard(child: EnhancedWorkspaceDashboard()),
-    enhancedWorkspaceDashboard: (context) => const AuthGuard(child: EnhancedWorkspaceDashboard()),
-    enhancedRegistrationScreen: (context) => const EnhancedRegistrationScreen(),
-    goalCustomizedWorkspaceDashboard: (context) => const AuthGuard(child: GoalCustomizedWorkspaceDashboard()),
-    premiumSocialMediaHub: (context) => const AuthGuard(child: PremiumSocialMediaHub()),
+  // Route map
+  static Map<String, WidgetBuilder> get routes => {
+    // Main screens
+    splashScreen: (context) => const SplashScreen(),
+    home: (context) => const EnhancedWorkspaceDashboard(),
     loginScreen: (context) => const LoginScreen(),
-    registerScreen: (context) => const EnhancedRegistrationScreen(),
-    termsOfServiceScreen: (context) => const TermsOfServiceScreen(),
-    privacyPolicyScreen: (context) => const PrivacyPolicyScreen(),
+    registerScreen: (context) => const RegisterScreen(),
+    enhancedRegistrationScreen: (context) => const EnhancedRegistrationScreen(),
     forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
     resetPasswordScreen: (context) => const ResetPasswordScreen(),
     emailVerificationScreen: (context) => const EmailVerificationScreen(),
     twoFactorAuthenticationScreen: (context) => const TwoFactorAuthenticationScreen(),
-    linkInBioTemplatesScreen: (context) => const AuthGuard(child: LinkInBioTemplatesScreen()),
-    advancedCrmManagementHub: (context) => const AuthGuard(child: AdvancedCrmManagementHub()),
-    socialMediaManagementScreen: (context) => const AuthGuard(child: SocialMediaManagementScreen()),
-    socialMediaManagementHub: (context) => const AuthGuard(child: SocialMediaManagementHub()),
-    socialMediaManager: (context) => const AuthGuard(child: SocialMediaManager()),
-    socialMediaScheduler: (context) => const AuthGuard(child: SocialMediaScheduler()),
-    socialMediaSchedulerScreen: (context) => const AuthGuard(child: SocialMediaSchedulerScreen()),
-    socialMediaAnalyticsScreen: (context) => const AuthGuard(child: SocialMediaAnalyticsScreen()),
-    settingsScreen: (context) => const AuthGuard(child: SettingsScreen()),
-    settingsAccountManagement: (context) => const AuthGuard(child: SettingsAccountManagement()),
-    accountSettingsScreen: (context) => const AuthGuard(child: AccountSettingsScreen()),
-    profileSettingsScreen: (context) => const AuthGuard(child: ProfileSettingsScreen()),
-    notificationSettingsScreen: (context) => const AuthGuard(child: NotificationSettingsScreen()),
-    securitySettingsScreen: (context) => const AuthGuard(child: SecuritySettingsScreen()),
-    analyticsDashboard: (context) => const AuthGuard(child: AnalyticsDashboard()),
-    linkInBioAnalyticsScreen: (context) => const AuthGuard(child: LinkInBioAnalyticsScreen()),
-    unifiedSettingsScreen: (context) => const AuthGuard(child: UnifiedSettingsScreen()),
-    hashtagResearchScreen: (context) => const AuthGuard(child: HashtagResearchScreen()),
-    instagramLeadSearch: (context) => const AuthGuard(child: InstagramLeadSearch()),
-    multiPlatformPostingScreen: (context) => const AuthGuard(child: MultiPlatformPostingScreen()),
-    contentTemplatesScreen: (context) => const AuthGuard(child: ContentTemplatesScreen()),
-    contentCalendarScreen: (context) => const AuthGuard(child: ContentCalendarScreen()),
-    qrCodeGeneratorScreen: (context) => const AuthGuard(child: QrCodeGeneratorScreen()),
-    emailMarketingCampaign: (context) => const AuthGuard(child: EmailMarketingCampaign()),
-    crmContactManagement: (context) => const AuthGuard(child: CrmContactManagement()),
-    marketplaceStore: (context) => const AuthGuard(child: MarketplaceStore()),
-    courseCreator: (context) => const AuthGuard(child: CourseCreator()),
-    workspaceSettingsScreen: (context) => const AuthGuard(child: WorkspaceSettingsScreen()),
-    roleBasedAccessControlScreen: (context) => const AuthGuard(child: RoleBasedAccessControlScreen()),
-    usersTeamManagementScreen: (context) => const AuthGuard(child: UsersTeamManagementScreen()),
-    teamMemberInvitationScreen: (context) => const AuthGuard(child: TeamMemberInvitationScreen()),
-    contactUsScreen: (context) => const AuthGuard(child: ContactUsScreen()),
-    appStoreOptimizationScreen: (context) => const AuthGuard(child: AppStoreOptimizationScreen()),
-    productionReleaseChecklistScreen: (context) => const AuthGuard(child: ProductionReleaseChecklistScreen()),
-    professionalReadmeDocumentationScreen: (context) => const AuthGuard(child: ProfessionalReadmeDocumentationScreen()),
-    setupProgressScreen: (context) => const AuthGuard(child: SetupProgressScreen()),
     
-    // Legacy and alternative routes for backward compatibility
-    '/social-media-management-hub': (context) => const AuthGuard(child: SocialMediaManagementHub()),
-    '/social-media-manager-screen': (context) => const AuthGuard(child: SocialMediaManager()),
-    '/analytics-hub': (context) => const AuthGuard(child: UnifiedAnalyticsScreen()),
-    '/profile-settings': (context) => const AuthGuard(child: ProfileSettingsScreen()),
-    '/account-settings': (context) => const AuthGuard(child: AccountSettingsScreen()),
-    '/notification-settings': (context) => const AuthGuard(child: NotificationSettingsScreen()),
-    '/security-settings': (context) => const AuthGuard(child: SecuritySettingsScreen()),
-    '/setup-progress': (context) => const AuthGuard(child: SetupProgressScreen()),
-    '/content-scheduler': (context) => const AuthGuard(child: SocialMediaScheduler()),
-    '/unified-settings': (context) => const AuthGuard(child: UnifiedSettingsScreen()),
-    '/goal-customized-workspace-dashboard': (context) => const AuthGuard(child: GoalCustomizedWorkspaceDashboard()),
+    // Onboarding    unifiedOnboardingScreen: (context) => const UnifiedOnboardingScreen(),
+    goalSelectionScreen: (context) => const GoalSelectionScreen(),
+    setupProgressScreen: (context) => const SetupProgressScreen(),
+    
+    // Error handling
+    pageNotFoundScreen: (context) => const PageNotFoundScreen(),
+    
+    // Workspace management
+    workspaceSelectorScreen: (context) => const WorkspaceSelectorScreen(),
+    workspaceCreationScreen: (context) => const WorkspaceCreationScreen(),
+    goalBasedWorkspaceCreationScreen: (context) => const GoalBasedWorkspaceCreationScreen(),
+    workspaceDashboard: (context) => const WorkspaceDashboard(),
+    enhancedWorkspaceDashboard: (context) => const EnhancedWorkspaceDashboard(),
+    goalCustomizedWorkspaceDashboard: (context) => const GoalCustomizedWorkspaceDashboard(),
+    workspaceSettingsScreen: (context) => const WorkspaceSettingsScreen(),
+    
+    // Team management
+    teamMemberInvitationScreen: (context) => const TeamMemberInvitationScreen(),
+    postCreationTeamInvitationScreen: (context) => const PostCreationTeamInvitationScreen(),
+    usersTeamManagementScreen: (context) => const UsersTeamManagementScreen(),
+    roleBasedAccessControlScreen: (context) => const RoleBasedAccessControlScreen(),
+    
+    // Social media
+    socialMedia: (context) => const SocialMediaManager(),
+    socialMediaManagerScreen: (context) => const SocialMediaManager(),
+    socialMediaManagementScreen: (context) => const SocialMediaManagementScreen(),
+    socialMediaManagementHubScreen: (context) => const SocialMediaManagementHub(),
+    premiumSocialMediaHubScreen: (context) => const PremiumSocialMediaHub(),
+    socialMediaSchedulerScreen: (context) => const SocialMediaSchedulerScreen(),
+    socialMediaScheduler: (context) => const SocialMediaScheduler(),
+    multiPlatformPostingScreen: (context) => const MultiPlatformPostingScreen(),
+    
+    // Analytics
+    analyticsDashboard: (context) => const AnalyticsDashboard(),
+    unifiedAnalyticsScreen: (context) => const UnifiedAnalyticsScreen(),
+    socialMediaAnalyticsScreen: (context) => const SocialMediaAnalyticsScreen(),
+    linkInBioAnalyticsScreen: (context) => const LinkInBioAnalyticsScreen(),
+    
+    // Content management
+    contentTemplatesScreen: (context) => const ContentTemplatesScreen(),
+    contentCalendarScreen: (context) => const ContentCalendarScreen(),
+    hashtagResearchScreen: (context) => const HashtagResearchScreen(),
+    courseCreatorScreen: (context) => const CourseCreator(),
+    courses: (context) => const CourseCreator(),
+    
+    // Link in bio
+    linkInBio: (context) => const LinkInBioTemplatesScreen(),
+    linkInBioTemplatesScreen: (context) => const LinkInBioTemplatesScreen(),
+    
+    // CRM
+    crmContacts: (context) => const CrmContactManagement(),
+    crmContactManagementScreen: (context) => const CrmContactManagement(),
+    advancedCrmManagementHubScreen: (context) => const AdvancedCrmManagementHub(),
+    instagramLeadSearchScreen: (context) => const InstagramLeadSearch(),
+    
+    // E-commerce
+    marketplace: (context) => const MarketplaceStore(),
+    marketplaceStoreScreen: (context) => const MarketplaceStore(),
+    
+    // Marketing
+    emailMarketing: (context) => const EmailMarketingCampaign(),
+    emailMarketingCampaignScreen: (context) => const EmailMarketingCampaign(),
+    qrCodeGeneratorScreen: (context) => const QrCodeGeneratorScreen(),
+    
+    // Settings
+    settingsScreen: (context) => const SettingsScreen(),
+    unifiedSettingsScreen: (context) => const UnifiedSettingsScreen(),
+    accountSettingsScreen: (context) => const AccountSettingsScreen(),
+    settingsAccountManagementScreen: (context) => const SettingsAccountManagement(),
+    profileSettingsScreen: (context) => const ProfileSettingsScreen(),
+    securitySettingsScreen: (context) => const SecuritySettingsScreen(),
+    notificationSettingsScreen: (context) => const NotificationSettingsScreen(),
+    
+    // Subscription and pricing
+    goalBasedSubscriptionPricingScreen: (context) => const GoalBasedSubscriptionPricingScreen(),
+    
+    // Legal and support
+    privacyPolicyScreen: (context) => const PrivacyPolicyScreen(),
+    termsOfServiceScreen: (context) => const TermsOfServiceScreen(),
+    contactUsScreen: (context) => const ContactUsScreen(),
+    
+    // Development and documentation
+    professionalReadmeDocumentationScreen: (context) => const ProfessionalReadmeDocumentationScreen(),
+    customDomainManagementScreen: (context) => const CustomDomainManagementScreen(),
+    appStoreOptimizationScreen: (context) => const AppStoreOptimizationScreen(),
+    
+    // Production management
+    productionReleaseChecklistScreen: (context) => const ProductionReleaseChecklistScreen(),
+    productionDashboardScreen: (context) => const ProductionDashboardScreen(),
   };
+
+  // Handle unknown routes
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    // Check if the route exists in our defined routes
+    final routeBuilder = routes[settings.name];
+    if (routeBuilder != null) {
+      return MaterialPageRoute(
+        builder: routeBuilder,
+        settings: settings,
+      );
+    }
+    
+    // If route doesn't exist, show page not found
+    return MaterialPageRoute(
+      builder: (context) => const PageNotFoundScreen(),
+      settings: settings,
+    );
+  }
 }

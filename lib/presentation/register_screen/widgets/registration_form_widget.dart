@@ -1,3 +1,4 @@
+
 import '../../../core/app_export.dart';
 
 class RegistrationFormWidget extends StatelessWidget {

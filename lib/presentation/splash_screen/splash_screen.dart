@@ -84,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen>
       final workspaceService = WorkspaceService();
       
       // Check if user is authenticated
-      if (await authService.isUserLoggedIn()) {
+      if (authService.isAuthenticated) {
         // Navigate to login screen since onboarding check is unavailable
         Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
       } else {

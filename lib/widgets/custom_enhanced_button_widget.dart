@@ -154,6 +154,12 @@ class _CustomEnhancedButtonWidgetState extends State<CustomEnhancedButtonWidget>
           style: widget.style ?? _getDefaultIconButtonStyle(isDisabled),
           icon: buttonChild,
         );
+      case ButtonType.primary:
+        return ElevatedButton(
+          onPressed: isDisabled ? null : () {}, // Handled by GestureDetector
+          style: widget.style ?? _getPrimaryButtonStyle(isDisabled),
+          child: buttonChild,
+        );
     }
   }
 
@@ -164,7 +170,7 @@ class _CustomEnhancedButtonWidgetState extends State<CustomEnhancedButtonWidget>
       child: CircularProgressIndicator(
         strokeWidth: 2,
         valueColor: AlwaysStoppedAnimation<Color>(
-          widget.buttonType == ButtonType.elevated 
+          widget.buttonType == ButtonType.elevated || widget.buttonType == ButtonType.primary
               ? AppTheme.primaryBackground 
               : AppTheme.primaryAction,
         ),
@@ -181,6 +187,26 @@ class _CustomEnhancedButtonWidgetState extends State<CustomEnhancedButtonWidget>
           ? AppTheme.secondaryText.withAlpha(153)
           : AppTheme.primaryBackground,
       elevation: isDisabled ? 0 : 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.w),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: 4.w,
+        vertical: 2.h,
+      ),
+      animationDuration: const Duration(milliseconds: 200),
+    );
+  }
+
+  ButtonStyle _getPrimaryButtonStyle(bool isDisabled) {
+    return ElevatedButton.styleFrom(
+      backgroundColor: isDisabled 
+          ? AppTheme.secondaryText.withAlpha(77)
+          : AppTheme.primaryAction,
+      foregroundColor: isDisabled
+          ? AppTheme.secondaryText.withAlpha(153)
+          : AppTheme.primaryBackground,
+      elevation: isDisabled ? 0 : 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(3.w),
       ),
@@ -248,4 +274,5 @@ enum ButtonType {
   outlined,
   text,
   icon,
+  primary,
 }

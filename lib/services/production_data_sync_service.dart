@@ -1,47 +1,36 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/app_export.dart';
 
-/// Production-ready data synchronization service
-/// Handles offline/online data sync, conflict resolution, and data integrity
 class ProductionDataSyncService {
-  static final ProductionDataSyncService _instance = ProductionDataSyncService._internal();
-  late final SupabaseClient _client;
-  late final StorageService _storageService;
+  static ProductionDataSyncService? _instance;
+  static ProductionDataSyncService get instance => _instance ??= ProductionDataSyncService._();
+  
+  ProductionDataSyncService._();
+
+  late SupabaseClient _client;
   bool _isInitialized = false;
-  bool _isOnline = true;
+  bool _isOnline = false;
   Timer? _syncTimer;
   final List<Map<String, dynamic>> _offlineQueue = [];
-  
-  factory ProductionDataSyncService() {
-    return _instance;
-  }
-
-  ProductionDataSyncService._internal();
+  late final StorageService _storageService = StorageService();
 
   Future<void> initialize() async {
-    if (_isInitialized) return;
-    
     try {
-      final supabaseService = SupabaseService();
+      developer.log('Initializing Production Data Sync Service...', name: 'ProductionDataSyncService');
+      
+      // Get Supabase client from the service
+      final supabaseService = SupabaseService.instance;
       _client = await supabaseService.client;
-      _storageService = StorageService();
-      
-      // Initialize connectivity monitoring
-      await _initializeConnectivity();
-      
-      // Load offline queue from storage
-      await _loadOfflineQueue();
-      
-      // Start periodic sync
-      _startPeriodicSync();
       
       _isInitialized = true;
-      debugPrint('ProductionDataSyncService initialized successfully');
+      developer.log('Production Data Sync Service initialized successfully', name: 'ProductionDataSyncService');
+      
     } catch (e) {
-      ErrorHandler.handleError('Failed to initialize ProductionDataSyncService: $e');
+      developer.log('Production Data Sync Service initialization failed: $e', name: 'ProductionDataSyncService');
       rethrow;
     }
   }

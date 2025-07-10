@@ -19,8 +19,7 @@ class UnifiedDataService {
     if (_isInitialized) return;
     
     try {
-      final supabaseService = SupabaseService();
-      _client = await supabaseService.client;
+      _client = Supabase.instance.client;
       _isInitialized = true;
       debugPrint('UnifiedDataService initialized successfully');
     } catch (e) {

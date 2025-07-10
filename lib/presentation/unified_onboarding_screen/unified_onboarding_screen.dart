@@ -19,7 +19,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
   
-  final OnboardingService _onboardingService = OnboardingService();
+  final OnboardingService _onboardingService = OnboardingService.instance;
   
   int _currentPage = 0;
   bool _isLoading = false;
