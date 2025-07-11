@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import '../../services/enhanced_auth_service.dart';
 import './widgets/enhanced_biometric_auth_widget.dart';
@@ -89,12 +88,12 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
     });
 
     try {
-      final response = await _authService.signIn(
-        email: email,
-        password: password,
+      final response = await _authService.signInWithEmailAndPassword(
+        email,
+        password,
       );
       
-      if (response != null) {
+      if (response.user != null) {
         // Success - add haptic feedback
         HapticFeedback.lightImpact();
         _navigateToWorkspace();

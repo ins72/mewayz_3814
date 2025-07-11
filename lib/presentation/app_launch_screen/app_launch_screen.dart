@@ -2,6 +2,7 @@ import 'dart:async';
 
 
 import '../../core/app_export.dart';
+import '../../core/enhanced_supabase_service.dart';
 import '../../services/enhanced_auth_service.dart';
 import '../../services/workspace_service.dart';
 
@@ -21,10 +22,12 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   bool _isLoading = true;
   bool _hasError = false;
   String _statusMessage = 'Initializing...';
+  String? _errorDetails;
   int _retryCount = 0;
   static const int _maxRetries = 3;
   Timer? _timeoutTimer;
   bool _isNavigating = false;
+  bool _showProgressDetails = false;
 
   @override
   void initState() {
@@ -66,29 +69,45 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
       setState(() {
         _isLoading = true;
         _hasError = false;
+        _errorDetails = null;
       });
 
       // Set overall timeout for the entire launch sequence
-      _timeoutTimer = Timer(const Duration(seconds: 30), () {
+      _timeoutTimer = Timer(const Duration(seconds: 45), () {
         if (mounted && !_isNavigating) {
-          _handleLaunchError('Launch sequence timed out');
+          _handleLaunchError(
+            'Launch sequence timed out after 45 seconds', 
+            'The app took too long to initialize. Please check your internet connection and try again.'
+          );
         }
       });
 
-      // Step 1: Initialize core services with enhanced timeout handling
-      _updateStatus('Initializing core services...');
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Step 1: Initialize Supabase service with enhanced error handling
+      _updateStatus('Connecting to services...');
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      final supabaseService = EnhancedSupabaseService.enhancedInstance;
+      
+      await _initializeServiceWithRetry(() async {
+        await supabaseService.initialize();
+        
+        // Test connection with enhanced diagnostics
+        final isConnected = await supabaseService.testConnection();
+        if (!isConnected) {
+          throw Exception('Service connection failed');
+        }
+      }, 'Enhanced Supabase Service');
       
       // Step 2: Enhanced authentication check with proper error handling
       _updateStatus('Checking authentication...');
-      final authService = EnhancedAuthService();
+      final authService = EnhancedAuthService.instance;
       
       // Initialize with enhanced timeout and retry logic
       await _initializeServiceWithRetry(() async {
         await authService.initialize();
       }, 'Enhanced Auth Service');
       
-      // Enhanced session validation
+      // Enhanced session validation with better error handling
       await _validateAuthSession(authService);
 
       final isAuthenticated = authService.isAuthenticated;
@@ -124,7 +143,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
 
       final userWorkspaces = await _executeWithTimeout(
         () => workspaceService.getUserWorkspaces(),
-        const Duration(seconds: 15),
+        const Duration(seconds: 20),
         'workspace data loading'
       );
 
@@ -149,7 +168,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
       // Enhanced role verification with caching
       final userRole = await _executeWithTimeout(
         () => workspaceService.getUserRoleInWorkspace(workspaceId),
-        const Duration(seconds: 10),
+        const Duration(seconds: 15),
         'user role verification'
       );
 
@@ -162,7 +181,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
       await Future.delayed(const Duration(milliseconds: 500));
       
       // Cache workspace data for faster subsequent loads
-      await _cacheWorkspaceData(workspaceId);
+      await _cacheWorkspaceData(primaryWorkspace);
       
       if (userWorkspaces.length > 1) {
         // User has multiple workspaces, show workspace selector
@@ -174,7 +193,10 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
 
     } catch (e) {
       debugPrint('App launch error: $e');
-      await _handleLaunchError(e.toString());
+      await _handleLaunchError(
+        'Initialization failed',
+        e.toString()
+      );
     } finally {
       _timeoutTimer?.cancel();
     }
@@ -188,7 +210,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
   }) async {
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        await serviceInit().timeout(const Duration(seconds: 15));
+        await serviceInit().timeout(const Duration(seconds: 20));
         return;
       } catch (e) {
         if (attempt == maxRetries) {
@@ -196,7 +218,8 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
         }
         
         debugPrint('$serviceName initialization attempt ${attempt + 1} failed: $e');
-        await Future.delayed(Duration(milliseconds: 1000 * (attempt + 1)));
+        _updateStatus('Retrying $serviceName... (${attempt + 1}/${maxRetries + 1})');
+        await Future.delayed(Duration(milliseconds: 1500 * (attempt + 1)));
       }
     }
   }
@@ -271,24 +294,25 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
     }
   }
 
-  Future<void> _handleLaunchError(String error) async {
+  Future<void> _handleLaunchError(String error, String? details) async {
     if (_retryCount < _maxRetries) {
       _retryCount++;
       debugPrint('Retrying app launch (attempt $_retryCount/$_maxRetries) due to: $error');
       
       // Wait before retry with exponential backoff
-      await Future.delayed(Duration(seconds: _retryCount * 2));
+      await Future.delayed(Duration(seconds: _retryCount * 3));
       
       // Reset and retry
       _performAppLaunchSequence();
       return;
     }
     
-    // Max retries reached, show error state
+    // Max retries reached, show error state with proper error widget
     if (mounted) {
       setState(() {
         _hasError = true;
-        _statusMessage = 'Failed to initialize app';
+        _statusMessage = error;
+        _errorDetails = details;
         _isLoading = false;
       });
     }
@@ -338,6 +362,12 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
     _retryCount = 0; // Reset retry count for manual retry
     _isNavigating = false; // Reset navigation flag
     _performAppLaunchSequence();
+  }
+
+  void _showDiagnostics() {
+    setState(() {
+      _showProgressDetails = !_showProgressDetails;
+    });
   }
 
   @override
@@ -447,7 +477,7 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
 
                 SizedBox(height: 8.h),
 
-                // Status indicator
+                // Loading state with enhanced progress indicator
                 if (_isLoading && !_hasError) ...[
                   const SizedBox(
                     width: 32,
@@ -477,36 +507,114 @@ class _AppLaunchScreenState extends State<AppLaunchScreen>
                       ),
                     ),
                   ],
-                ],
-
-                // Error state
-                if (_hasError) ...[
-                  Icon(
-                    Icons.error_outline,
-                    size: 8.w,
-                    color: const Color(0xFFFF3B30),
-                  ),
+                  
+                  // Diagnostics toggle
                   SizedBox(height: 2.h),
-                  Text(
-                    'Launch Failed',
-                    style: GoogleFonts.inter(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFFF3B30),
-                    ),
-                  ),
-                  SizedBox(height: 1.h),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                  TextButton(
+                    onPressed: _showDiagnostics,
                     child: Text(
-                      _statusMessage,
-                      textAlign: TextAlign.center,
+                      _showProgressDetails ? 'Hide Details' : 'Show Details',
                       style: GoogleFonts.inter(
-                        fontSize: 14.sp,
-                        color: const Color(0xFF8E8E93),
+                        fontSize: 12.sp,
+                        color: const Color(0xFF007AFF),
                       ),
                     ),
                   ),
+                  
+                  if (_showProgressDetails) ...[
+                    SizedBox(height: 1.h),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 8.w),
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1E),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF38383A),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Initialization Progress',
+                            style: GoogleFonts.inter(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Current Step: $_statusMessage',
+                            style: GoogleFonts.inter(
+                              fontSize: 12.sp,
+                              color: const Color(0xFF8E8E93),
+                            ),
+                          ),
+                          if (_retryCount > 0) ...[
+                            SizedBox(height: 4),
+                            Text(
+                              'Retry Count: $_retryCount/$_maxRetries',
+                              style: GoogleFonts.inter(
+                                fontSize: 12.sp,
+                                color: const Color(0xFFFF9500),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+
+                // Enhanced error state with proper error widget
+                if (_hasError) ...[
+                  CustomErrorWidget(
+                    title: 'Launch Failed',
+                    message: _statusMessage,
+                    onRetry: _retryLaunch,
+                    showDetails: true,
+                    backgroundColor: Colors.transparent,
+                  ),
+                  
+                  if (_errorDetails != null) ...[
+                    SizedBox(height: 2.h),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 8.w),
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1E),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFF3B30).withAlpha(77),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Error Details',
+                            style: GoogleFonts.inter(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFFF3B30),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            _errorDetails!,
+                            style: GoogleFonts.inter(
+                              fontSize: 12.sp,
+                              color: const Color(0xFF8E8E93),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  
                   SizedBox(height: 4.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

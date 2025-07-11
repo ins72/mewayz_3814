@@ -1,534 +1,74 @@
 import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
-import './environment_config.dart';
-import 'app_export.dart';
+import './resilient_error_handler.dart';
 
-/// Enhanced Supabase service with optimized performance and error handling
+/// Enhanced Supabase service with improved error handling and connection management
 class EnhancedSupabaseService {
-  static EnhancedSupabaseService? _instance;
-  late final SupabaseClient _client;
+  static EnhancedSupabaseService? _enhancedInstance;
+  Timer? _connectionHealthTimer;
+  Timer? _reconnectTimer;
+  bool _isHealthy = false;
+  bool _isEnhancedInitialized = false;
   bool _isInitialized = false;
-  Future<void>? _initFuture;
+  int _healthCheckFailures = 0;
+  static const int _maxHealthCheckFailures = 3;
+  static const Duration _healthCheckInterval = Duration(seconds: 30);
+  final ResilientErrorHandler _errorHandler = ResilientErrorHandler();
+  late SupabaseClient _client;
 
-  // Performance optimization features
-  final Map<String, dynamic> _queryCache = {};
-  final Map<String, DateTime> _cacheExpiry = {};
-  Timer? _cacheCleanupTimer;
-  
-  // Connection monitoring
-  bool _isOnline = true;
-  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
-  final List<String> _offlineQueue = [];
-  
-  // Retry mechanism
-  final Map<String, int> _retryAttempts = {};
-  static const int maxRetryAttempts = 3;
-  static const Duration retryDelay = Duration(seconds: 2);
-
-  // Singleton pattern with enhanced initialization
-  static EnhancedSupabaseService get instance {
-    return _instance ??= EnhancedSupabaseService._internal();
-  }
-
-  EnhancedSupabaseService._internal() {
-    _setupConnectivityMonitoring();
-    _setupCacheCleanup();
-  }
-
-  // Factory constructor for backwards compatibility
-  factory EnhancedSupabaseService() => instance;
-
-  // Environment variables with validation
+  // Environment variables
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL', 
       defaultValue: '');
   static const String supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY',
       defaultValue: '');
 
-  /// Initialize Enhanced Supabase service with performance optimizations
+  // Enhanced singleton pattern
+  static EnhancedSupabaseService get enhancedInstance {
+    return _enhancedInstance ??= EnhancedSupabaseService._internal();
+  }
+
+  EnhancedSupabaseService._internal();
+
+  /// Enhanced initialization with comprehensive error handling
   Future<void> initialize() async {
     if (_isInitialized) return;
     
-    // Ensure only one initialization runs at a time
-    _initFuture ??= _performEnhancedInitialization();
-    await _initFuture;
-  }
-
-  /// Perform the enhanced initialization with optimizations
-  Future<void> _performEnhancedInitialization() async {
     try {
       // Validate environment variables
       _validateEnvironmentVariables();
 
-      // Initialize Supabase with optimized configuration
+      // Initialize Supabase with enhanced timeout
       await Supabase.initialize(
         url: supabaseUrl,
         anonKey: supabaseAnonKey,
-        debug: !EnvironmentConfig.isProduction,
-        realtimeClientOptions: const RealtimeClientOptions(
-          logLevel: RealtimeLogLevel.info,
-          timeout: Duration(seconds: 30),
-        ),
-      );
+        debug: false, // Disable debug in production
+      ).timeout(const Duration(seconds: 30));
 
       _client = Supabase.instance.client;
+      
+      // Enhanced initialization
+      _isEnhancedInitialized = true;
       _isInitialized = true;
       
-      // Setup enhanced monitoring
-      await _setupEnhancedMonitoring();
+      // Start enhanced health monitoring
+      _startEnhancedHealthMonitoring();
       
-      debugPrint('✅ Enhanced Supabase initialized successfully');
+      debugPrint('✅ Enhanced Supabase service initialized successfully');
     } catch (e) {
-      debugPrint('❌ Enhanced Supabase initialization failed: $e');
-      _isInitialized = false;
-      
-      // Log error for monitoring
-      await _logInitializationError(e);
+      await _errorHandler.handleError(
+        e,
+        context: 'enhanced_supabase_initialization',
+        shouldRetry: true,
+        maxRetries: 2,
+      );
       rethrow;
     }
   }
 
-  /// Setup enhanced monitoring and health checks
-  Future<void> _setupEnhancedMonitoring() async {
-    try {
-      // Test connection and log performance metrics
-      final stopwatch = Stopwatch()..start();
-      await _client.from('workspaces').select('count').limit(1);
-      stopwatch.stop();
-      
-      // Log connection performance
-      await _recordPerformanceMetric('connection_test', stopwatch.elapsedMilliseconds);
-      
-      // Setup periodic health checks
-      Timer.periodic(const Duration(minutes: 5), (_) {
-        _performHealthCheck();
-      });
-    } catch (e) {
-      debugPrint('Enhanced monitoring setup failed: $e');
-    }
-  }
-
-  /// Setup connectivity monitoring
-  void _setupConnectivityMonitoring() {
-    try {
-      final connectivity = Connectivity();
-      _connectivitySubscription = connectivity.onConnectivityChanged.listen((result) {
-        final wasOnline = _isOnline;
-        _isOnline = result != ConnectivityResult.none;
-        
-        if (!wasOnline && _isOnline) {
-          _onNetworkReconnection();
-        } else if (wasOnline && !_isOnline) {
-          _onNetworkDisconnection();
-        }
-      });
-    } catch (e) {
-      debugPrint('Connectivity monitoring setup failed: $e');
-    }
-  }
-
-  /// Setup cache cleanup
-  void _setupCacheCleanup() {
-    _cacheCleanupTimer = Timer.periodic(const Duration(minutes: 15), (_) {
-      _cleanupExpiredCache();
-    });
-  }
-
-  /// Enhanced query method with caching and retry logic
-  Future<PostgrestResponse<T>> enhancedQuery<T>(
-    String table,
-    String Function(PostgrestQueryBuilder) queryBuilder, {
-    bool useCache = true,
-    Duration? cacheDuration,
-    int? maxRetries,
-  }) async {
-    await _ensureInitialized();
-    
-    final cacheKey = _generateCacheKey(table, queryBuilder.toString());
-    final retries = maxRetries ?? maxRetryAttempts;
-    
-    // Check cache first
-    if (useCache && _queryCache.containsKey(cacheKey)) {
-      final expiry = _cacheExpiry[cacheKey];
-      if (expiry != null && DateTime.now().isBefore(expiry)) {
-        await _recordPerformanceMetric('cache_hit', 0);
-        return _queryCache[cacheKey] as PostgrestResponse<T>;
-      }
-    }
-    
-    // Execute query with retry logic
-    for (int attempt = 0; attempt < retries; attempt++) {
-      try {
-        final stopwatch = Stopwatch()..start();
-        
-        final query = _client.from(table);
-        final response = await queryBuilder(query) as PostgrestResponse<T>;
-        
-        stopwatch.stop();
-        
-        // Cache successful response
-        if (useCache) {
-          _cacheResponse(cacheKey, response, cacheDuration);
-        }
-        
-        // Record performance metrics
-        await _recordPerformanceMetric('query_success', stopwatch.elapsedMilliseconds);
-        
-        // Reset retry count on success
-        _retryAttempts.remove(cacheKey);
-        
-        return response;
-      } catch (e) {
-        _retryAttempts[cacheKey] = attempt + 1;
-        
-        if (attempt == retries - 1) {
-          await _recordPerformanceMetric('query_error', 0);
-          
-          // If offline, queue for later
-          if (!_isOnline) {
-            _offlineQueue.add(cacheKey);
-          }
-          
-          rethrow;
-        } else {
-          // Exponential backoff
-          await Future.delayed(retryDelay * (attempt + 1));
-        }
-      }
-    }
-    
-    throw Exception('Query failed after $retries attempts');
-  }
-
-  /// Enhanced insert/update/delete with optimistic updates
-  Future<PostgrestResponse<T>> enhancedMutation<T>(
-    String table,
-    Future<PostgrestResponse<T>> Function() mutationFunction, {
-    Function()? optimisticUpdate,
-    Function()? rollback,
-  }) async {
-    await _ensureInitialized();
-    
-    // Apply optimistic update
-    optimisticUpdate?.call();
-    
-    try {
-      final stopwatch = Stopwatch()..start();
-      final response = await mutationFunction();
-      stopwatch.stop();
-      
-      // Clear related cache entries
-      _invalidateRelatedCache(table);
-      await _recordPerformanceMetric('mutation_success', stopwatch.elapsedMilliseconds);
-      
-      return response;
-    } catch (e) {
-      // Rollback optimistic update
-      rollback?.call();
-      await _recordPerformanceMetric('mutation_error', 0);
-      rethrow;
-    }
-  }
-
-  /// Enhanced real-time subscription with auto-reconnection
-  RealtimeChannel enhancedSubscription(
-    String channelName,
-    String table, {
-    String? filter,
-    Function(Map<String, dynamic>)? onInsert,
-    Function(Map<String, dynamic>)? onUpdate,
-    Function(Map<String, dynamic>)? onDelete,
-    Function()? onError,
-    bool autoReconnect = true,
-  }) {
-    final channel = _client.channel(channelName);
-    
-    PostgresChangeFilter? changeFilter;
-    if (filter != null) {
-      final parts = filter.split('=');
-      if (parts.length == 2) {
-        changeFilter = PostgresChangeFilter(
-          type: PostgresChangeFilterType.eq,
-          column: parts[0].trim(),
-          value: parts[1].trim(),
-        );
-      }
-    }
-    
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: table,
-      filter: changeFilter,
-      callback: (payload) {
-        try {
-          switch (payload.eventType) {
-            case PostgresChangeEvent.insert:
-              onInsert?.call(payload.newRecord);
-              break;
-            case PostgresChangeEvent.update:
-              onUpdate?.call(payload.newRecord);
-              break;
-            case PostgresChangeEvent.delete:
-              onDelete?.call(payload.oldRecord);
-              break;
-            default:
-              break;
-          }
-          
-          // Invalidate related cache
-          _invalidateRelatedCache(table);
-        } catch (e) {
-          debugPrint('Real-time callback error: $e');
-          onError?.call();
-        }
-      },
-    );
-    
-    channel.subscribe((status, error) {
-      if (status == RealtimeSubscribeStatus.subscribed) {
-        debugPrint('✅ Subscribed to $channelName');
-      } else if (status == RealtimeSubscribeStatus.channelError) {
-        debugPrint('❌ Subscription error for $channelName: $error');
-        
-        if (autoReconnect) {
-          Timer(const Duration(seconds: 5), () {
-            channel.subscribe();
-          });
-        }
-      }
-    });
-    
-    return channel;
-  }
-
-  /// Enhanced RPC call with caching and error handling
-  Future<T?> enhancedRpc<T>(
-    String functionName,
-    Map<String, dynamic>? params, {
-    bool useCache = false,
-    Duration? cacheDuration,
-  }) async {
-    await _ensureInitialized();
-    
-    final cacheKey = _generateCacheKey(functionName, params?.toString() ?? '');
-    
-    // Check cache first
-    if (useCache && _queryCache.containsKey(cacheKey)) {
-      final expiry = _cacheExpiry[cacheKey];
-      if (expiry != null && DateTime.now().isBefore(expiry)) {
-        await _recordPerformanceMetric('rpc_cache_hit', 0);
-        return _queryCache[cacheKey] as T;
-      }
-    }
-    
-    try {
-      final stopwatch = Stopwatch()..start();
-      final result = await _client.rpc<T>(functionName, params: params);
-      stopwatch.stop();
-      
-      // Cache successful response
-      if (useCache && result != null) {
-        _cacheResponse(cacheKey, result, cacheDuration);
-      }
-      
-      await _recordPerformanceMetric('rpc_success', stopwatch.elapsedMilliseconds);
-      return result;
-    } catch (e) {
-      await _recordPerformanceMetric('rpc_error', 0);
-      debugPrint('RPC call failed: $e');
-      rethrow;
-    }
-  }
-
-  /// Enhanced batch operations
-  Future<List<PostgrestResponse>> enhancedBatch(
-    List<Future<PostgrestResponse> Function()> operations, {
-    bool stopOnError = false,
-  }) async {
-    await _ensureInitialized();
-    
-    final results = <PostgrestResponse>[];
-    final stopwatch = Stopwatch()..start();
-    
-    try {
-      for (final operation in operations) {
-        try {
-          final result = await operation();
-          results.add(result);
-          
-          if (stopOnError) {
-            break;
-          }
-        } catch (e) {
-          if (stopOnError) {
-            rethrow;
-          }
-          // Continue with next operation
-        }
-      }
-      
-      stopwatch.stop();
-      await _recordPerformanceMetric('batch_operation', stopwatch.elapsedMilliseconds);
-      
-      return results;
-    } catch (e) {
-      stopwatch.stop();
-      await _recordPerformanceMetric('batch_error', stopwatch.elapsedMilliseconds);
-      rethrow;
-    }
-  }
-
-  /// Network status handling
-  void _onNetworkReconnection() {
-    debugPrint('📶 Network reconnected - processing offline queue');
-    
-    // Process offline queue
-    _processOfflineQueue();
-    
-    // Resume real-time subscriptions
-    _resumeSubscriptions();
-  }
-
-  void _onNetworkDisconnection() {
-    debugPrint('📶 Network disconnected - enabling offline mode');
-    
-    // Switch to cached data
-    // Real-time subscriptions will automatically try to reconnect
-  }
-
-  /// Process queued operations after reconnection
-  Future<void> _processOfflineQueue() async {
-    final queueCopy = List<String>.from(_offlineQueue);
-    _offlineQueue.clear();
-    
-    for (final operation in queueCopy) {
-      try {
-        // Re-execute queued operations
-        // This would need to be implemented based on the specific operation type
-        debugPrint('Processing queued operation: $operation');
-      } catch (e) {
-        debugPrint('Failed to process queued operation: $e');
-      }
-    }
-  }
-
-  /// Resume real-time subscriptions
-  void _resumeSubscriptions() {
-    // Real-time subscriptions automatically reconnect in Supabase
-    debugPrint('📡 Resuming real-time subscriptions');
-  }
-
-  /// Cache management
-  void _cacheResponse(String key, dynamic response, Duration? duration) {
-    _queryCache[key] = response;
-    _cacheExpiry[key] = DateTime.now().add(duration ?? const Duration(minutes: 5));
-  }
-
-  void _invalidateRelatedCache(String table) {
-    final keysToRemove = _queryCache.keys
-        .where((key) => key.contains(table))
-        .toList();
-    
-    for (final key in keysToRemove) {
-      _queryCache.remove(key);
-      _cacheExpiry.remove(key);
-    }
-  }
-
-  void _cleanupExpiredCache() {
-    final now = DateTime.now();
-    final expiredKeys = _cacheExpiry.entries
-        .where((entry) => now.isAfter(entry.value))
-        .map((entry) => entry.key)
-        .toList();
-    
-    for (final key in expiredKeys) {
-      _queryCache.remove(key);
-      _cacheExpiry.remove(key);
-    }
-    
-    if (expiredKeys.isNotEmpty) {
-      debugPrint('🧹 Cleaned up ${expiredKeys.length} expired cache entries');
-    }
-  }
-
-  String _generateCacheKey(String operation, String params) {
-    return '${operation}_${params.hashCode}';
-  }
-
-  /// Performance monitoring
-  Future<void> _recordPerformanceMetric(String metricName, int duration) async {
-    try {
-      if (_isInitialized) {
-        await _client.rpc('record_health_metric', params: {
-          'metric_name_param': 'supabase_$metricName',
-          'metric_value_param': duration.toDouble(),
-          'metric_unit_param': duration == 0 ? 'count' : 'milliseconds',
-          'tags_param': {
-            'service': 'enhanced_supabase',
-            'timestamp': DateTime.now().toIso8601String(),
-          },
-        });
-      }
-    } catch (e) {
-      // Silently fail for metrics to avoid affecting app performance
-    }
-  }
-
-  /// Health check
-  Future<void> _performHealthCheck() async {
-    try {
-      final stopwatch = Stopwatch()..start();
-      await _client.from('workspaces').select('count').limit(1);
-      stopwatch.stop();
-      
-      await _recordPerformanceMetric('health_check', stopwatch.elapsedMilliseconds);
-    } catch (e) {
-      await _recordPerformanceMetric('health_check_error', 0);
-      debugPrint('Health check failed: $e');
-    }
-  }
-
-  /// Log initialization error
-  Future<void> _logInitializationError(dynamic error) async {
-    try {
-      // This would log to an external monitoring service in production
-      debugPrint('Initialization error logged: $error');
-    } catch (e) {
-      // Silently fail
-    }
-  }
-
-  /// Ensure initialization
-  Future<void> _ensureInitialized() async {
-    if (!_isInitialized) {
-      await initialize();
-    }
-  }
-
-  // Client getter (async) - ensures initialization
-  Future<SupabaseClient> get client async {
-    await _ensureInitialized();
-    return _client;
-  }
-
-  // Synchronous client getter (use only after ensuring initialization)
-  SupabaseClient get clientSync {
-    if (!_isInitialized) {
-      throw Exception('Enhanced Supabase service not initialized. Call initialize() first or use async client getter.');
-    }
-    return _client;
-  }
-
-  // Check if initialized
-  bool get isInitialized => _isInitialized;
-
-  // Check if online
-  bool get isOnline => _isOnline;
-
-  // Validation method with detailed error messages
+  /// Validate environment variables
   void _validateEnvironmentVariables() {
     final List<String> missingVars = [];
     
@@ -541,98 +81,289 @@ class EnhancedSupabaseService {
     
     if (missingVars.isNotEmpty) {
       throw Exception(
-        'Missing required Enhanced Supabase environment variables: ${missingVars.join(', ')}\n'
-        'Please configure these using --dart-define:\n'
-        'flutter run --dart-define=SUPABASE_URL=your_url --dart-define=SUPABASE_ANON_KEY=your_key'
-      );
-    }
-
-    // Validate URL format
-    if (!supabaseUrl.startsWith('https://') || !supabaseUrl.contains('.supabase.co')) {
-      throw Exception(
-        'Invalid SUPABASE_URL format: $supabaseUrl\n'
-        'Expected format: https://your-project.supabase.co'
+        'Missing required Supabase environment variables: ${missingVars.join(', ')}'
       );
     }
   }
 
-  /// Test connection to Supabase with enhanced metrics
+  /// Enhanced connection test with detailed error reporting
   Future<bool> testConnection() async {
     try {
-      await _ensureInitialized();
+      if (!_isInitialized) {
+        throw Exception('Supabase service not initialized');
+      }
+
+      // Test basic connectivity
+      final basicTest = await _performBasicConnectivityTest();
+      if (!basicTest) {
+        return false;
+      }
+
+      // Test database operations
+      final dbTest = await _performDatabaseTest();
+      if (!dbTest) {
+        return false;
+      }
+
+      // Test authentication
+      final authTest = await _performAuthTest();
       
-      final stopwatch = Stopwatch()..start();
-      await _client.from('workspaces').select('count').limit(1);
-      stopwatch.stop();
+      _isHealthy = basicTest && dbTest && authTest;
+      _healthCheckFailures = 0;
       
-      await _recordPerformanceMetric('connection_test', stopwatch.elapsedMilliseconds);
-      return true;
+      return _isHealthy;
     } catch (e) {
-      await _recordPerformanceMetric('connection_test_error', 0);
-      debugPrint('Enhanced Supabase connection test failed: $e');
+      _isHealthy = false;
+      _healthCheckFailures++;
+      
+      await _errorHandler.handleError(
+        e,
+        context: 'enhanced_connection_test',
+        metadata: {
+          'health_check_failures': _healthCheckFailures,
+          'max_failures': _maxHealthCheckFailures,
+        },
+        shouldRetry: _healthCheckFailures < _maxHealthCheckFailures,
+      );
+      
       return false;
     }
   }
 
-  /// Reset instance (for testing or re-initialization)
-  static void reset() {
-    _instance?._cacheCleanupTimer?.cancel();
-    _instance?._connectivitySubscription?.cancel();
-    _instance?._isInitialized = false;
-    _instance?._initFuture = null;
-    _instance?._queryCache.clear();
-    _instance?._cacheExpiry.clear();
-    _instance?._offlineQueue.clear();
-    _instance?._retryAttempts.clear();
-    _instance = null;
+  /// Perform basic connectivity test
+  Future<bool> _performBasicConnectivityTest() async {
+    try {
+      // Simple ping to check if we can reach Supabase
+      await _client
+          .from('workspaces')
+          .select('count')
+          .limit(1)
+          .timeout(const Duration(seconds: 8));
+      
+      return true;
+    } on TimeoutException {
+      throw Exception('Connection timeout during basic connectivity test');
+    } catch (e) {
+      throw Exception('Basic connectivity test failed: $e');
+    }
   }
 
-  /// Get enhanced connection status information
-  Map<String, dynamic> getEnhancedStatus() {
+  /// Perform database operations test
+  Future<bool> _performDatabaseTest() async {
+    try {
+      // Test read operation
+      await _client
+          .from('user_profiles')
+          .select('id')
+          .limit(1)
+          .timeout(const Duration(seconds: 10));
+      
+      return true;
+    } on TimeoutException {
+      throw Exception('Database test timeout');
+    } catch (e) {
+      // If table doesn't exist, that's still a successful connection
+      if (e.toString().contains('relation') && e.toString().contains('does not exist')) {
+        return true;
+      }
+      throw Exception('Database test failed: $e');
+    }
+  }
+
+  /// Perform authentication test
+  Future<bool> _performAuthTest() async {
+    try {
+      // Test auth state access
+      final user = _client.auth.currentUser;
+      
+      // Test auth session validation
+      final session = _client.auth.currentSession;
+      
+      return true; // Auth service is accessible
+    } catch (e) {
+      throw Exception('Authentication test failed: $e');
+    }
+  }
+
+  /// Start enhanced health monitoring
+  void _startEnhancedHealthMonitoring() {
+    _connectionHealthTimer?.cancel();
+    _connectionHealthTimer = Timer.periodic(_healthCheckInterval, (_) {
+      _performEnhancedHealthCheck();
+    });
+  }
+
+  /// Perform enhanced health check
+  Future<void> _performEnhancedHealthCheck() async {
+    try {
+      final isHealthy = await testConnection();
+      
+      if (!isHealthy && _healthCheckFailures >= _maxHealthCheckFailures) {
+        await _handleUnhealthyConnection();
+      }
+      
+    } catch (e) {
+      debugPrint('Enhanced health check failed: $e');
+      
+      if (_healthCheckFailures >= _maxHealthCheckFailures) {
+        await _handleUnhealthyConnection();
+      }
+    }
+  }
+
+  /// Handle unhealthy connection
+  Future<void> _handleUnhealthyConnection() async {
+    debugPrint('⚠️ Enhanced Supabase connection is unhealthy, attempting recovery...');
+    
+    try {
+      // Attempt to reinitialize
+      await _attemptConnectionRecovery();
+    } catch (e) {
+      await _errorHandler.handleError(
+        e,
+        context: 'connection_recovery',
+        metadata: {
+          'health_check_failures': _healthCheckFailures,
+          'connection_healthy': _isHealthy,
+        },
+        shouldRetry: false,
+      );
+    }
+  }
+
+  /// Attempt connection recovery
+  Future<void> _attemptConnectionRecovery() async {
+    try {
+      // Reset connection state
+      _isHealthy = false;
+      _healthCheckFailures = 0;
+      
+      // Reinitialize the connection
+      await initialize();
+      
+      // Verify recovery
+      final recovered = await testConnection();
+      
+      if (recovered) {
+        debugPrint('✅ Enhanced Supabase connection recovery successful');
+      } else {
+        throw Exception('Connection recovery verification failed');
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Enhanced Supabase connection recovery failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Enhanced execute with retry and circuit breaker
+  Future<T> executeWithRetry<T>(
+    Future<T> Function() operation, {
+    int maxRetries = 2,
+    Duration delay = const Duration(seconds: 1),
+    bool requiresConnection = true,
+  }) async {
+    // Check if service is healthy
+    if (requiresConnection && !_isHealthy) {
+      // Attempt immediate health check
+      final isHealthy = await testConnection();
+      if (!isHealthy) {
+        throw Exception('Enhanced Supabase service is not healthy');
+      }
+    }
+
+    Exception? lastException;
+    
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        final result = await operation().timeout(const Duration(seconds: 25));
+        
+        // Update health status on successful operation
+        if (!_isHealthy) {
+          _isHealthy = true;
+          _healthCheckFailures = 0;
+          debugPrint('✅ Enhanced Supabase connection restored through successful operation');
+        }
+        
+        return result;
+      } on TimeoutException {
+        lastException = Exception('Enhanced operation timed out after 25 seconds');
+        _isHealthy = false;
+        _healthCheckFailures++;
+      } catch (e) {
+        lastException = e is Exception ? e : Exception(e.toString());
+        
+        // Update health status on operation failure
+        if (e.toString().contains('network') || 
+            e.toString().contains('connection') ||
+            e.toString().contains('timeout')) {
+          _isHealthy = false;
+          _healthCheckFailures++;
+        }
+        
+        // Log retry attempt
+        if (attempt < maxRetries) {
+          debugPrint('Enhanced operation failed (attempt ${attempt + 1}), retrying: $e');
+          await Future.delayed(delay * (attempt + 1));
+        }
+      }
+    }
+    
+    // Handle final failure with error reporting
+    await _errorHandler.handleError(
+      lastException!,
+      context: 'enhanced_execute_with_retry',
+      metadata: {
+        'max_retries': maxRetries,
+        'requires_connection': requiresConnection,
+        'health_check_failures': _healthCheckFailures,
+      },
+      shouldRetry: false,
+    );
+    
+    throw lastException;
+  }
+
+  /// Get enhanced service status
+  Map<String, dynamic> getStatus() {
     return {
-      'is_initialized': _isInitialized,
-      'is_online': _isOnline,
-      'has_url': supabaseUrl.isNotEmpty,
-      'has_anon_key': supabaseAnonKey.isNotEmpty,
-      'url_format_valid': supabaseUrl.startsWith('https://') && supabaseUrl.contains('.supabase.co'),
-      'supabase_url': supabaseUrl.isNotEmpty ? '${supabaseUrl.substring(0, 20)}...' : 'Not configured',
-      'cache_size': _queryCache.length,
-      'offline_queue_size': _offlineQueue.length,
-      'active_retries': _retryAttempts.length,
+      'enhanced_is_healthy': _isHealthy,
+      'enhanced_health_check_failures': _healthCheckFailures,
+      'enhanced_max_health_check_failures': _maxHealthCheckFailures,
+      'enhanced_health_monitoring_active': _connectionHealthTimer?.isActive ?? false,
+      'enhanced_health_check_interval_seconds': _healthCheckInterval.inSeconds,
+      'enhanced_service_type': 'enhanced',
+      'enhanced_last_health_check': DateTime.now().toIso8601String(),
     };
   }
 
-  /// Get performance statistics
-  Map<String, dynamic> getPerformanceStats() {
-    return {
-      'cache_entries': _queryCache.length,
-      'cache_hit_rate': 'Not calculated', // Would need to track hits vs misses
-      'offline_operations': _offlineQueue.length,
-      'failed_retries': _retryAttempts.length,
-      'connection_status': _isOnline ? 'online' : 'offline',
-    };
+  /// Get enhanced connection health score (0-100)
+  int getConnectionHealthScore() {
+    if (!_isInitialized) return 0;
+    if (!_isHealthy) return 25;
+    if (_healthCheckFailures > 0) return 75 - (_healthCheckFailures * 15);
+    return 100;
   }
 
-  /// Clear all caches
-  void clearCache() {
-    _queryCache.clear();
-    _cacheExpiry.clear();
-    debugPrint('🧹 Enhanced Supabase cache cleared');
+  /// Enhanced dispose
+  void dispose() {
+    _connectionHealthTimer?.cancel();
+    _reconnectTimer?.cancel();
+    _errorHandler.dispose();
   }
 
-  /// Dispose and cleanup
-  Future<void> dispose() async {
-    _cacheCleanupTimer?.cancel();
-    await _connectivitySubscription?.cancel();
-    
-    _queryCache.clear();
-    _cacheExpiry.clear();
-    _offlineQueue.clear();
-    _retryAttempts.clear();
-    
-    debugPrint('🧹 Enhanced Supabase Service disposed');
-  }
+  /// Get health status
+  bool get isHealthy => _isHealthy;
+
+  /// Get health check failures count
+  int get healthCheckFailures => _healthCheckFailures;
+
+  /// Get enhanced initialization status
+  bool get isEnhancedInitialized => _isEnhancedInitialized;
+  
+  /// Get initialization status
+  bool get initialized => _isInitialized;
+  
+  /// Get client
+  SupabaseClient get client => _client;
 }
-
-// Export for backward compatibility
-typedef SupabaseService = EnhancedSupabaseService;

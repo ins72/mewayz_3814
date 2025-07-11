@@ -221,31 +221,29 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper>
   void _setupAuthStateListener() {
     try {
       final authService = EnhancedAuthService();
-      final authStream = authService.authStateChanges;
+      final authStream = authService.onAuthStateChanged;
       
-      if (authStream != null) {
-        _authStateSubscription = authStream.listen((AuthState authState) {
-          if (!_isDisposed && mounted) {
-            final event = authState.event;
-            debugPrint('Auth state changed: $event');
-            
-            switch (event) {
-              case AuthChangeEvent.signedOut:
-                _handleAuthSignOut();
-                break;
-              case AuthChangeEvent.signedIn:
-                _handleAuthSignIn();
-                break;
-              case AuthChangeEvent.tokenRefreshed:
-                // Token refreshed, verify workspace access
-                _refreshWorkspaceData();
-                break;
-              default:
-                break;
-            }
+      _authStateSubscription = authStream.listen((AuthState authState) {
+        if (!_isDisposed && mounted) {
+          final event = authState.event;
+          debugPrint('Auth state changed: $event');
+          
+          switch (event) {
+            case AuthChangeEvent.signedOut:
+              _handleAuthSignOut();
+              break;
+            case AuthChangeEvent.signedIn:
+              _handleAuthSignIn();
+              break;
+            case AuthChangeEvent.tokenRefreshed:
+              // Token refreshed, verify workspace access
+              _refreshWorkspaceData();
+              break;
+            default:
+              break;
           }
-        });
-      }
+        }
+      });
     } catch (e) {
       debugPrint('Failed to setup auth state listener: $e');
     }

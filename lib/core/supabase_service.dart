@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
 
 import '../services/workspace_service.dart';
-import './main_navigation.dart';
 
 class SupabaseService {
   static SupabaseService? _instance;
