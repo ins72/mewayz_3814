@@ -7,13 +7,11 @@ import '../../../services/enhanced_auth_service.dart';
 class EnhancedBiometricAuthWidget extends StatefulWidget {
   final VoidCallback onBiometricAuth;
   final bool isLoading;
-  final EnhancedAuthService? authService;
 
   const EnhancedBiometricAuthWidget({
     super.key,
     required this.onBiometricAuth,
     required this.isLoading,
-    this.authService,
   });
 
   @override
@@ -24,21 +22,22 @@ class _EnhancedBiometricAuthWidgetState extends State<EnhancedBiometricAuthWidge
   bool _isBiometricAvailable = false;
   bool _isDeviceRegistered = false;
   bool _isPressed = false;
-  late final EnhancedAuthService _authService;
+  final EnhancedAuthService _authService = EnhancedAuthService();
 
   @override
   void initState() {
     super.initState();
-    _authService = widget.authService ?? EnhancedAuthService();
     _checkBiometricStatus();
   }
 
   void _checkBiometricStatus() async {
     try {
-      // Methods need to be implemented in EnhancedAuthService
+      final isAvailable = await _authService.isBiometricAvailable();
+      final isRegistered = await _authService.isDeviceRegistered();
+      
       setState(() {
-        _isBiometricAvailable = false;
-        _isDeviceRegistered = false;
+        _isBiometricAvailable = isAvailable;
+        _isDeviceRegistered = isRegistered;
       });
     } catch (e) {
       debugPrint('Error checking biometric status: $e');
@@ -56,8 +55,11 @@ class _EnhancedBiometricAuthWidgetState extends State<EnhancedBiometricAuthWidge
     
     try {
       if (_isDeviceRegistered) {
-        // Method needs to be implemented in EnhancedAuthService
-        widget.onBiometricAuth();
+        // Existing user - authenticate with biometrics
+        final response = await _authService.authenticateWithBiometrics();
+        if (response != null) {
+          widget.onBiometricAuth();
+        }
       } else {
         // New device - show registration dialog
         _showBiometricRegistrationDialog();
@@ -249,8 +251,14 @@ class _BiometricRegistrationDialogState extends State<_BiometricRegistrationDial
     });
 
     try {
-      // Method needs to be implemented in EnhancedAuthService
-      widget.onRegistrationComplete();
+      final result = await widget.authService.registerDeviceForBiometric(
+        email: _skipCredentials ? null : _emailController.text.trim(),
+        fullName: _skipCredentials ? null : _nameController.text.trim(),
+      );
+
+      if (result != null) {
+        widget.onRegistrationComplete();
+      }
     } catch (e) {
       widget.onError(e.toString());
     } finally {

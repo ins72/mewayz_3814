@@ -550,7 +550,7 @@ class _SocialMediaManagerState extends State<SocialMediaManager>
                       buttonId: 'view_content',
                       child: const Text('View All'),
                       onPressed: () async {
-                        Navigator.pushNamed(context, AppRoutes.contentTemplatesScreen);
+                        Navigator.pushNamed(context, '/content-templates');
                       }),
                   ]),
                 SizedBox(height: 4.h),

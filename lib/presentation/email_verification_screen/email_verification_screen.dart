@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import './widgets/email_verification_form_widget.dart';
 import './widgets/email_verification_status_widget.dart';
@@ -76,7 +75,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         // Navigate to onboarding or dashboard
         Navigator.pushNamedAndRemoveUntil(
           context,
-          AppRoutes.onboardingScreen,
+          AppRoutes.onboardingRoute,
           (route) => false);
       } else {
         setState(() {
@@ -142,7 +141,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   void _handleBackToLogin() {
     Navigator.pushNamedAndRemoveUntil(
       context,
-      AppRoutes.loginScreen,
+      AppRoutes.loginRoute,
       (route) => false);
   }
 

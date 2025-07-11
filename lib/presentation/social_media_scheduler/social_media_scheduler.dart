@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import '../../services/dynamic_data_service.dart';
 import './widgets/add_post_modal.dart';
@@ -46,7 +45,8 @@ class _SocialMediaSchedulerState extends State<SocialMediaScheduler>
     try {
       setState(() => _isLoading = true);
       
-      final data = await _dataService.getSocialMediaSchedulerData(_workspaceId);
+      // Replace with available method from DynamicDataService
+      final data = await _dataService.fetchData(_workspaceId);
       
       final posts = data['posts'] as List? ?? [];
       final platforms = data['platforms'] as List? ?? [];

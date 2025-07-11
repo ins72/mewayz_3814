@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import './widgets/completion_celebration_widget.dart';
 import './widgets/progress_overview_widget.dart';
@@ -85,7 +84,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
         // Auto-navigate to dashboard after celebration
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) {
-            Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+            Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
           }
         });
       }
@@ -118,7 +117,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+              Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryAction,
@@ -180,7 +179,7 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
               if (_showCelebration)
                 CompletionCelebrationWidget(
                   onContinue: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+                    Navigator.pushReplacementNamed(context, AppRoutes.workspace);
                   }),
             ]))));
   }
@@ -236,13 +235,12 @@ class _SetupProgressScreenState extends State<SetupProgressScreen>
         onPressed: () async {
           try {
             await _onboardingService.completeOnboarding();
-            Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+            Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
           } catch (e) {
             _showErrorMessage('Failed to complete onboarding: $e');
           }
         },
         style: ElevatedButton.styleFrom(
-          
           foregroundColor: Color(0xFF141414),
           padding: EdgeInsets.symmetric(vertical: 2.h),
           shape: RoundedRectangleBorder(

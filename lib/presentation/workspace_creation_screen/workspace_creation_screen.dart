@@ -184,11 +184,7 @@ class _WorkspaceCreationScreenState extends State<WorkspaceCreationScreen> {
         );
 
         // Navigate to workspace dashboard
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.workspaceDashboard,
-          (route) => false,
-        );
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {

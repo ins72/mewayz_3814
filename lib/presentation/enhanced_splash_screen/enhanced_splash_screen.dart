@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 
 class EnhancedSplashScreen extends StatefulWidget {
@@ -134,7 +133,7 @@ class _EnhancedSplashScreenState extends State<EnhancedSplashScreen>
     // Navigate to appropriate screen
     Navigator.pushReplacementNamed(
       context,
-      AppRoutes.enhancedLoginScreen,
+      AppRoutes.login,
     );
   }
 

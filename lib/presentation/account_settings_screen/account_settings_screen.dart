@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import '../../services/dynamic_data_service.dart';
 import './widgets/account_actions_widget.dart';
@@ -60,7 +59,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
     try {
       setState(() => _isLoading = true);
       
-      final data = await _dataService.getAccountSettingsData(_userId);
+      final data = await _dataService.fetchData(_userId);
       
       final userProfile = data['user_profile'] as Map<String, dynamic>? ?? {};
       final sessions = data['active_sessions'] as List? ?? [];

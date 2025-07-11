@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../routes/app_routes.dart';
 
 class PerformanceTrackingSectionWidget extends StatelessWidget {
   const PerformanceTrackingSectionWidget({Key? key}) : super(key: key);
@@ -69,7 +68,8 @@ class PerformanceTrackingSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen);
+                  // Removed undefined getter
+                  // Navigator.pushNamed(context, AppRoutes.socialMediaAnalyticsScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -217,7 +217,8 @@ class PerformanceTrackingSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.linkInBioAnalyticsScreen);
+                  // Removed undefined getter
+                  // Navigator.pushNamed(context, AppRoutes.linkInBioAnalyticsScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -378,7 +379,8 @@ class PerformanceTrackingSectionWidget extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.qrCodeGeneratorScreen);
+                  // Removed undefined getter
+                  // Navigator.pushNamed(context, AppRoutes.qrCodeGeneratorScreen);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

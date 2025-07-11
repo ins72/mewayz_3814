@@ -149,7 +149,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
     final isCompleted = await storageService.getValue('onboarding_completed') == 'true';
     
     if (isCompleted) {
-      Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+      Navigator.pushReplacementNamed(context, AppRoutes.dashboardRoute);
     }
   }
 
@@ -241,7 +241,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
         // Auto-navigate to dashboard after celebration
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) {
-            Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+            Navigator.pushReplacementNamed(context, AppRoutes.dashboardRoute);
           }
         });
       }
@@ -270,7 +270,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
       
       await Future.delayed(const Duration(seconds: 2));
       
-      Navigator.pushReplacementNamed(context, AppRoutes.goalSelectionScreen);
+      Navigator.pushReplacementNamed(context, AppRoutes.dashboardRoute);
     } catch (e) {
       ErrorHandler.handleError(e.toString());
     } finally {
@@ -310,7 +310,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+              Navigator.pushReplacementNamed(context, AppRoutes.dashboardRoute);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accent,
@@ -520,7 +520,7 @@ class _UnifiedOnboardingScreenState extends State<UnifiedOnboardingScreen>
               if (_showCelebration)
                 CompletionCelebrationWidget(
                   onContinue: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.workspaceDashboard);
+                    Navigator.pushReplacementNamed(context, AppRoutes.dashboardRoute);
                   }),
             ]))));
   }

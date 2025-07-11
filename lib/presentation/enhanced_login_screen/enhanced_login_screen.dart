@@ -1,9 +1,8 @@
-
 import '../../core/app_export.dart';
 import '../../services/enhanced_auth_service.dart';
 import './widgets/enhanced_biometric_auth_widget.dart';
 import './widgets/enhanced_login_form_widget.dart';
-import './widgets/enhanced_two_factor_modal_widget.dart';
+import './widgets/enhanced_two_factor_modal_widget';
 
 class EnhancedLoginScreen extends StatefulWidget {
   const EnhancedLoginScreen({super.key});
@@ -89,12 +88,12 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
     });
 
     try {
-      final response = await _authService.signInWithEmailAndPassword(
-        email,
-        password,
+      final response = await _authService.signInWithPassword(
+        email: email,
+        password: password,
       );
       
-      if (response.user != null) {
+      if (response != null) {
         // Success - add haptic feedback
         HapticFeedback.lightImpact();
         _navigateToWorkspace();
@@ -305,7 +304,6 @@ class _EnhancedLoginScreenState extends State<EnhancedLoginScreen>
             EnhancedBiometricAuthWidget(
               onBiometricAuth: _handleBiometricAuth,
               isLoading: _isLoading,
-              authService: _authService,
             ),
             
             SizedBox(height: 6.h),

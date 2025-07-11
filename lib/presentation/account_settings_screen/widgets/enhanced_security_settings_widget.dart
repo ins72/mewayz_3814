@@ -60,6 +60,11 @@ class _EnhancedSecuritySettingsWidgetState extends State<EnhancedSecuritySetting
     });
 
     try {
+      await _authService.setupPasswordForMultiDevice(
+        password: _passwordController.text,
+        email: _emailController.text.isNotEmpty ? _emailController.text : null,
+      );
+
       setState(() {
         _hasPassword = true;
         _showPasswordForm = false;
@@ -86,6 +91,7 @@ class _EnhancedSecuritySettingsWidgetState extends State<EnhancedSecuritySetting
     );
 
     if (confirmed) {
+      await _authService.clearBiometricData();
       setState(() {
         _isBiometricEnabled = false;
       });

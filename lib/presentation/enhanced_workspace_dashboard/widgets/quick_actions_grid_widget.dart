@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../routes/app_routes.dart';
 
 class QuickActionsGridWidget extends StatelessWidget {
   const QuickActionsGridWidget({Key? key}) : super(key: key);
@@ -11,73 +10,73 @@ class QuickActionsGridWidget extends StatelessWidget {
       {
         'title': 'Social Media',
         'icon': Icons.share,
-        'route': AppRoutes.premiumSocialMediaHubScreen,
+        'route': '/premium-social-media-hub',
         'color': Colors.blue,
       },
       {
         'title': 'Content Calendar',
         'icon': Icons.calendar_today,
-        'route': AppRoutes.contentCalendarScreen,
+        'route': '/content-calendar',
         'color': Colors.green,
       },
       {
         'title': 'Analytics',
         'icon': Icons.analytics,
-        'route': AppRoutes.unifiedAnalyticsScreen,
+        'route': '/unified-analytics',
         'color': Colors.orange,
       },
       {
         'title': 'Team Management',
         'icon': Icons.people,
-        'route': AppRoutes.usersTeamManagementScreen,
+        'route': '/users-team-management',
         'color': Colors.purple,
       },
       {
         'title': 'Settings',
         'icon': Icons.settings,
-        'route': AppRoutes.settingsScreen,
+        'route': '/settings',
         'color': Colors.grey,
       },
       {
         'title': 'Link in Bio',
         'icon': Icons.link,
-        'route': AppRoutes.linkInBioTemplatesScreen,
+        'route': '/link-in-bio-templates',
         'color': Colors.pink,
       },
       {
         'title': 'Templates',
         'icon': Icons.design_services,
-        'route': AppRoutes.contentTemplatesScreen,
+        'route': '/content-templates',
         'color': Colors.cyan,
       },
       {
         'title': 'QR Generator',
         'icon': Icons.qr_code,
-        'route': AppRoutes.qrCodeGeneratorScreen,
+        'route': '/qr-code-generator',
         'color': Colors.indigo,
       },
       {
         'title': 'Advanced CRM',
         'icon': Icons.contacts,
-        'route': AppRoutes.advancedCrmManagementHubScreen,
+        'route': '/advanced-crm-management-hub',
         'color': Colors.teal,
       },
       {
         'title': 'Email Marketing',
         'icon': Icons.email,
-        'route': AppRoutes.emailMarketingCampaignScreen,
+        'route': '/email-marketing-campaign',
         'color': Colors.amber,
       },
       {
         'title': 'Marketplace',
         'icon': Icons.store,
-        'route': AppRoutes.marketplaceStoreScreen,
+        'route': '/marketplace-store',
         'color': Colors.brown,
       },
       {
         'title': 'Course Creator',
         'icon': Icons.school,
-        'route': AppRoutes.courseCreatorScreen,
+        'route': '/course-creator',
         'color': Colors.deepOrange,
       },
     ];

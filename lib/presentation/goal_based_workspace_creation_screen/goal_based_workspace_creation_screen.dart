@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import '../../services/workspace_service.dart';
 import './widgets/goal_selection_card_widget.dart';
@@ -125,7 +124,7 @@ class _GoalBasedWorkspaceCreationScreenState extends State<GoalBasedWorkspaceCre
         if (mounted) {
           Navigator.pushReplacementNamed(
             context,
-            AppRoutes.postCreationTeamInvitationScreen,
+            'team_invitation_screen',
             arguments: {
               'workspace': workspace,
               'goal': _selectedGoal,

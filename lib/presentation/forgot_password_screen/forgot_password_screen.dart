@@ -1,4 +1,3 @@
-
 import '../../core/app_export.dart';
 import './widgets/forgot_password_form_widget.dart';
 
@@ -183,7 +182,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _handleBackToLogin() {
-    Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
+    Navigator.pushReplacementNamed(context, AppRoutes.loginRoute);
   }
 
   void _handleHelpAction() {

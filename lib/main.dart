@@ -1,13 +1,10 @@
-import './core/enhanced_app_initialization.dart';
+import './core/app_initialization.dart';
 import 'core/app_export.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Use enhanced initialization for production-ready performance with rebuilt optimizations
-  final enhancedAppInitialization = EnhancedAppInitialization();
-  await enhancedAppInitialization.initialize();
-  
+  final appInitialization = AppInitialization();
+  await appInitialization.initialize();
   runApp(const MyApp());
 }
 
@@ -24,8 +21,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
-          // Start with App Launch Screen for comprehensive auth state check
-          initialRoute: AppRoutes.appLaunchScreen,
+          initialRoute: AppRoutes.enhancedWorkspaceDashboard,
           routes: AppRoutes.routes,
           onGenerateRoute: AppRoutes.onGenerateRoute,
           builder: (context, child) {

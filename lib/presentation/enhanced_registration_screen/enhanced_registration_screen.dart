@@ -291,7 +291,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
         // Navigate to email verification screen instead of directly to onboarding
         Navigator.pushReplacementNamed(
           context, 
-          AppRoutes.emailVerificationScreen,
+          'email_verification_screen',
           arguments: {
             'email': _emailController.text.trim(),
             'fullName': fullName,
@@ -420,7 +420,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
   void _handleTermsOfServiceTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.termsOfServiceScreen);
+      'terms_of_service_screen');
     
     if (result == true) {
       setState(() {
@@ -432,7 +432,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
   void _handlePrivacyPolicyTap() async {
     final result = await Navigator.pushNamed(
       context,
-      AppRoutes.privacyPolicyScreen);
+      'privacy_policy_screen');
     
     if (result == true) {
       setState(() {
@@ -442,7 +442,7 @@ class _EnhancedRegistrationScreenState extends State<EnhancedRegistrationScreen>
   }
 
   void _handleSignIn() {
-    Navigator.pushReplacementNamed(context, AppRoutes.loginScreen);
+    Navigator.pushReplacementNamed(context, 'login_screen');
   }
 
   int _getPasswordStrength() {

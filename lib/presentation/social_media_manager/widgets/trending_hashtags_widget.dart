@@ -204,7 +204,12 @@ class TrendingHashtagsWidget extends StatelessWidget {
                     ],
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.hashtagResearchScreen);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Hashtag research feature coming soon'),
+                        backgroundColor: AppTheme.success,
+                      ),
+                    );
                   },
                 ),
               ),
