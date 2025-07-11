@@ -18,7 +18,7 @@ void main() async {
   };
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Use enhanced initialization for production-ready performance
+  // Use enhanced initialization for production-ready performance with rebuilt optimizations
   final enhancedAppInitialization = EnhancedAppInitialization();
   await enhancedAppInitialization.initialize();
   
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
-          // Start with App Launch Screen for auth state check
+          // Start with App Launch Screen for comprehensive auth state check
           initialRoute: AppRoutes.appLaunchScreen,
           routes: AppRoutes.routes,
           onGenerateRoute: AppRoutes.onGenerateRoute,
